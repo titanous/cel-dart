@@ -1,9 +1,14 @@
 import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/int.dart';
+import 'package:cel/src/common/types/error.dart';
 
 /// Helper for cross-type numeric comparisons
 class NumericCompare {
   static Value compare(Value left, Value right) {
+    // Check for errors first
+    if (isError(left)) return left;
+    if (isError(right)) return right;
+    
     // Get numeric values
     final leftNum = _getNumericValue(left);
     final rightNum = _getNumericValue(right);
@@ -28,6 +33,12 @@ class NumericCompare {
   }
   
   static bool equals(Value left, Value right) {
+    // Check for errors first
+    if (isError(left) || isError(right)) {
+      // Errors are never equal to anything
+      return false;
+    }
+    
     // Handle cross-type numeric equality
     if (_isNumeric(left) && _isNumeric(right)) {
       final leftNum = _getNumericValue(left);

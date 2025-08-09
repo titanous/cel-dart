@@ -1,19 +1,23 @@
 import 'package:cel/src/common/types/bool.dart';
+import 'package:cel/src/common/types/double.dart';
 import 'package:cel/src/common/types/int.dart';
 import 'package:cel/src/common/types/list.dart';
 import 'package:cel/src/common/types/map.dart';
 import 'package:cel/src/common/types/string.dart';
+import 'package:cel/src/common/types/error.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
 import 'package:cel/src/common/types/traits/container.dart';
 import 'package:cel/src/common/types/traits/field_tester.dart';
 import 'package:cel/src/common/types/traits/indexer.dart';
 import 'package:cel/src/common/types/traits/matcher.dart';
 import 'package:cel/src/common/types/traits/math.dart';
+import 'package:cel/src/common/types/traits/receiver.dart';
 import 'package:cel/src/common/types/traits/sizer.dart';
 
 import '../../common/overloads/overloads.dart';
 import '../../operators/operators.dart';
 import 'functions.dart';
+import 'math.dart';
 
 // https://github.com/google/cel-go/blob/master/interpreter/functions/standard.go
 List<Overload> standardOverloads() {
@@ -32,37 +36,53 @@ List<Overload> standardOverloads() {
     // Less than operator
     Overload(Operators.less.name,
         binaryOperator: (leftHandSide, rightHandSide) {
+      if (isError(leftHandSide)) return leftHandSide;
+      if (isError(rightHandSide)) return rightHandSide;
       if (leftHandSide is! Comparer) {
         throw StateError('$leftHandSide should be a Comparer');
       }
-      return BooleanValue(leftHandSide.compare(rightHandSide).value < 0);
+      final result = leftHandSide.compare(rightHandSide);
+      if (isError(result)) return result;
+      return BooleanValue(result.value < 0);
     }),
 
     // Less than or equal operator
     Overload(Operators.lessEquals.name,
         binaryOperator: (leftHandSide, rightHandSide) {
+      if (isError(leftHandSide)) return leftHandSide;
+      if (isError(rightHandSide)) return rightHandSide;
       if (leftHandSide is! Comparer) {
         throw StateError('$leftHandSide should be a Comparer');
       }
-      return BooleanValue(leftHandSide.compare(rightHandSide).value <= 0);
+      final result = leftHandSide.compare(rightHandSide);
+      if (isError(result)) return result;
+      return BooleanValue(result.value <= 0);
     }),
 
     // Greater than operator
     Overload(Operators.greater.name,
         binaryOperator: (leftHandSide, rightHandSide) {
+      if (isError(leftHandSide)) return leftHandSide;
+      if (isError(rightHandSide)) return rightHandSide;
       if (leftHandSide is! Comparer) {
         throw StateError('$leftHandSide should be a Comparer');
       }
-      return BooleanValue(leftHandSide.compare(rightHandSide).value > 0);
+      final result = leftHandSide.compare(rightHandSide);
+      if (isError(result)) return result;
+      return BooleanValue(result.value > 0);
     }),
 
     // Greater than equal operators
     Overload(Operators.greaterEquals.name,
         binaryOperator: (leftHandSide, rightHandSide) {
+      if (isError(leftHandSide)) return leftHandSide;
+      if (isError(rightHandSide)) return rightHandSide;
       if (leftHandSide is! Comparer) {
         throw StateError('$leftHandSide should be a Comparer');
       }
-      return BooleanValue(leftHandSide.compare(rightHandSide).value >= 0);
+      final result = leftHandSide.compare(rightHandSide);
+      if (isError(result)) return result;
+      return BooleanValue(result.value >= 0);
     }),
 
     // Add operator
@@ -109,7 +129,16 @@ List<Overload> standardOverloads() {
       return leftHandSide.modulo(rightHandSide);
     }),
 
-    // TODO: implement Negate.
+    // Negate operator (unary minus)
+    Overload(Operators.negate.name,
+      unaryOperator: (value) {
+        if (isError(value)) return value;
+        if (value is! Negater) {
+          throw StateError('$value should be a Negater');
+        }
+        return value.negate();
+      },
+    ),
 
     // Index operator
     // https://github.com/google/cel-go/blob/92fda7d38a37f42d4154147896cfd4ebbf8f846e/interpreter/functions/standard.go#L149
@@ -189,5 +218,63 @@ List<Overload> standardOverloads() {
     // This is a macro in CEL spec but implemented as function here
     // For now, this is a placeholder - proper macro support needed
     // The macro expands has(msg.field) to msg.has("field")
+    
+    // String functions - these use the Receiver trait
+    // startsWith function for strings
+    Overload('startsWith', binaryOperator: (target, arg) {
+      if (target is! Receiver) {
+        throw StateError('$target should be a Receiver');
+      }
+      return target.receive('startsWith', 'startsWith', [arg]);
+    }),
+    
+    // endsWith function for strings
+    Overload('endsWith', binaryOperator: (target, arg) {
+      if (target is! Receiver) {
+        throw StateError('$target should be a Receiver');
+      }
+      return target.receive('endsWith', 'endsWith', [arg]);
+    }),
+    
+    // contains function for strings
+    Overload('contains', binaryOperator: (target, arg) {
+      if (target is! Receiver) {
+        throw StateError('$target should be a Receiver');
+      }
+      return target.receive('contains', 'contains', [arg]);
+    }),
+    
+    // Math functions
+    Overload('isNan', unaryOperator: (value) {
+      if (value is! DoubleValue) {
+        throw StateError('$value should be a DoubleValue');
+      }
+      return MathFunctions.isNan(value);
+    }),
+    
+    Overload('isInf',
+      unaryOperator: (value) {
+        if (value is! DoubleValue) {
+          throw StateError('$value should be a DoubleValue');
+        }
+        return MathFunctions.isInf(value);
+      },
+      binaryOperator: (value, sign) {
+        if (value is! DoubleValue) {
+          throw StateError('$value should be a DoubleValue');
+        }
+        if (sign is! IntValue) {
+          throw StateError('$sign should be an IntValue');
+        }
+        return MathFunctions.isInf(value, sign);
+      },
+    ),
+    
+    Overload('isFinite', unaryOperator: (value) {
+      if (value is! DoubleValue) {
+        throw StateError('$value should be a DoubleValue');
+      }
+      return MathFunctions.isFinite(value);
+    }),
   ];
 }

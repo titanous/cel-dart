@@ -2,11 +2,12 @@ import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
 import 'package:cel/src/common/types/traits/math.dart';
 import 'package:cel/src/common/types/numeric_compare.dart';
+import 'package:cel/src/common/types/error.dart';
 
 final uintType = Type_('uint');
 
 class UintValue extends Value
-    implements Comparer, Adder, Divider, Multiplier, Subtractor, Modder {
+    implements Comparer, Adder, Divider, Multiplier, Subtractor, Modder, Negater {
   UintValue(this.value);
 
   @override
@@ -27,12 +28,20 @@ class UintValue extends Value
 
   @override
   divide(Value denominator) {
-    return UintValue(value ~/ (denominator.value as int));
+    final denominatorValue = denominator.value as int;
+    if (denominatorValue == 0) {
+      return divideByZeroError;
+    }
+    return UintValue(value ~/ denominatorValue);
   }
 
   @override
   modulo(Value denominator) {
-    return UintValue(value % (denominator.value as int));
+    final denominatorValue = denominator.value as int;
+    if (denominatorValue == 0) {
+      return moduloByZeroError;
+    }
+    return UintValue(value % denominatorValue);
   }
 
   @override
@@ -43,5 +52,12 @@ class UintValue extends Value
   @override
   subtract(Value subtrahend) {
     return UintValue(value - (subtrahend.value as int));
+  }
+
+  @override
+  Value negate() {
+    // Unsigned integers cannot be negated to a valid unsigned value
+    // Following Go implementation, this returns an error
+    return ErrorValue('cannot negate unsigned integer');
   }
 }

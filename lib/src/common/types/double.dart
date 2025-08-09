@@ -16,7 +16,7 @@ final doubleType = Type_('double', {
 });
 
 class DoubleValue extends Value
-    implements Comparer, Adder, Divider, Multiplier, Subtractor, Modder {
+    implements Comparer, Adder, Divider, Multiplier, Subtractor, Modder, Negater {
   DoubleValue(this.value);
 
   @override
@@ -54,5 +54,10 @@ class DoubleValue extends Value
   @override
   subtract(Value subtrahend) {
     return DoubleValue(value - subtrahend.value);
+  }
+
+  @override
+  Value negate() {
+    return DoubleValue(-value);
   }
 }

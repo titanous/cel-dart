@@ -1,6 +1,7 @@
 import 'package:cel/src/common/types/bool.dart';
 import 'package:cel/src/common/types/traits/receiver.dart';
 import 'package:cel/src/common/types/numeric_compare.dart';
+import 'package:cel/src/common/types/error.dart';
 
 import '../common/types/ref/provider.dart';
 import '../common/types/ref/value.dart';
@@ -76,8 +77,24 @@ class LogicalAndInterpretable implements Interpretable {
 
   @override
   evaluate(Activation activation) {
-    return BooleanValue(leftHandSide.evaluate(activation).value &&
-        rightHandSide.evaluate(activation).value);
+    final left = leftHandSide.evaluate(activation);
+    if (isError(left)) return left;
+    if (left is! BooleanValue) {
+      return ErrorValue('AND operator requires boolean operands, got ${left.type.name}');
+    }
+    
+    // Short-circuit evaluation: if left is false, don't evaluate right
+    if (!left.value) {
+      return BooleanValue(false);
+    }
+    
+    final right = rightHandSide.evaluate(activation);
+    if (isError(right)) return right;
+    if (right is! BooleanValue) {
+      return ErrorValue('AND operator requires boolean operands, got ${right.type.name}');
+    }
+    
+    return BooleanValue(right.value);
   }
 }
 
@@ -89,8 +106,24 @@ class LogicalOrInterpretable implements Interpretable {
 
   @override
   evaluate(Activation activation) {
-    return BooleanValue(leftHandSide.evaluate(activation).value ||
-        rightHandSide.evaluate(activation).value);
+    final left = leftHandSide.evaluate(activation);
+    if (isError(left)) return left;
+    if (left is! BooleanValue) {
+      return ErrorValue('OR operator requires boolean operands, got ${left.type.name}');
+    }
+    
+    // Short-circuit evaluation: if left is true, don't evaluate right
+    if (left.value) {
+      return BooleanValue(true);
+    }
+    
+    final right = rightHandSide.evaluate(activation);
+    if (isError(right)) return right;
+    if (right is! BooleanValue) {
+      return ErrorValue('OR operator requires boolean operands, got ${right.type.name}');
+    }
+    
+    return BooleanValue(right.value);
   }
 }
 
