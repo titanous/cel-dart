@@ -3,6 +3,7 @@ import 'package:cel/src/common/types/ref/provider.dart';
 import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/traits/container.dart';
 import 'package:cel/src/common/types/traits/indexer.dart';
+import 'package:cel/src/common/types/traits/sizer.dart';
 import 'package:cel/src/common/types/traits/traits.dart';
 
 // https://github.com/google/cel-go/blob/377a0bba20d07926e0583b4e604509ca7f3583b7/common/types/map.go
@@ -14,7 +15,7 @@ final mapType = Type_("map", {
   Traits.SizerType
 });
 
-class MapValue extends Value implements Indexer, Container {
+class MapValue extends Value implements Indexer, Container, Sizer {
   MapValue(this.value, this.typeAdapter);
 
   factory MapValue.fromNativeKeyValues(
@@ -53,5 +54,10 @@ class MapValue extends Value implements Indexer, Container {
   @override
   BooleanValue contains(Value value) {
     return BooleanValue(this.value.containsKey(value));
+  }
+  
+  @override
+  int size() {
+    return value.length;
   }
 }

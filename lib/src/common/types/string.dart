@@ -3,6 +3,7 @@ import 'package:cel/src/common/types/int.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
 import 'package:cel/src/common/types/traits/matcher.dart';
 import 'package:cel/src/common/types/traits/math.dart';
+import 'package:cel/src/common/types/traits/sizer.dart';
 import 'package:cel/src/common/types/traits/traits.dart';
 
 import '../overloads/overloads.dart';
@@ -19,7 +20,7 @@ final stringType = Type_('string', {
   Traits.SizerType
 });
 
-class StringValue extends Value implements Receiver, Matcher, Adder, Comparer {
+class StringValue extends Value implements Receiver, Matcher, Adder, Comparer, Sizer {
   StringValue(this.value);
 
   @override
@@ -46,6 +47,12 @@ class StringValue extends Value implements Receiver, Matcher, Adder, Comparer {
   @override
   Value compare(Value other) {
     return IntValue(value.compareTo(other.value));
+  }
+  
+  @override
+  int size() {
+    // Return the number of Unicode code points (runes) in the string
+    return value.runes.length;
   }
 }
 

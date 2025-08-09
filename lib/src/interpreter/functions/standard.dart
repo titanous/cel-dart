@@ -1,9 +1,11 @@
 import 'package:cel/src/common/types/bool.dart';
+import 'package:cel/src/common/types/int.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
 import 'package:cel/src/common/types/traits/container.dart';
 import 'package:cel/src/common/types/traits/indexer.dart';
 import 'package:cel/src/common/types/traits/matcher.dart';
 import 'package:cel/src/common/types/traits/math.dart';
+import 'package:cel/src/common/types/traits/sizer.dart';
 
 import '../../common/overloads/overloads.dart';
 import '../../operators/operators.dart';
@@ -114,7 +116,13 @@ List<Overload> standardOverloads() {
       return target.get(index);
     }),
 
-    // TODO: implement size.
+    // Size function
+    Overload('size', unaryOperator: (value) {
+      if (value is! Sizer) {
+        throw StateError('$value should be a Sizer');
+      }
+      return IntValue(value.size());
+    }),
 
     // In operator
     // https://github.com/google/cel-go/blob/92fda7d38a37f42d4154147896cfd4ebbf8f846e/interpreter/functions/standard.go#L163
