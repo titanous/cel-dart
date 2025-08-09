@@ -30,15 +30,96 @@ class ProtobufTypeAdapter {
   Value getField(GeneratedMessage msg, String fieldName) {
     final info = msg.info_;
     
-    // Find the field info
+    // Find the field info - try both proto field name and Dart property name
     for (final field in info.fieldInfo.values) {
-      if (field.name == fieldName) {
+      // Check if the field matches by proto name (snake_case) or Dart name (camelCase)
+      if (_matchesFieldName(field, fieldName)) {
         return _adaptFieldValue(msg, field);
       }
     }
     
     // Field not found
     return NullValue();
+  }
+  
+  /// Check if a field matches the given name (either proto name or Dart property name)
+  bool _matchesFieldName(FieldInfo field, String name) {
+    // Check Dart property name (camelCase)
+    if (field.name == name) {
+      return true;
+    }
+    
+    // Check proto field name (snake_case)
+    // The proto name is stored in the protoName property if available
+    // Otherwise, try converting between naming conventions
+    final protoName = _getProtoFieldName(field);
+    if (protoName == name) {
+      return true;
+    }
+    
+    // Also try converting the given name to see if it matches
+    if (_toCamelCase(name) == field.name) {
+      return true;
+    }
+    
+    return false;
+  }
+  
+  /// Get the proto field name for a field
+  String _getProtoFieldName(FieldInfo field) {
+    // Try to get the proto name from the field's protoName property if it exists
+    // Otherwise, convert the Dart name to snake_case
+    try {
+      // FieldInfo has a protoName getter that returns the original proto field name
+      final dynamic fieldDynamic = field;
+      if (fieldDynamic.protoName != null) {
+        return fieldDynamic.protoName as String;
+      }
+    } catch (_) {
+      // protoName might not exist in older versions
+    }
+    
+    // Fallback: convert camelCase to snake_case
+    return _toSnakeCase(field.name);
+  }
+  
+  /// Convert snake_case to camelCase
+  String _toCamelCase(String snakeCase) {
+    if (!snakeCase.contains('_')) {
+      return snakeCase;
+    }
+    
+    final parts = snakeCase.split('_');
+    if (parts.isEmpty) return snakeCase;
+    
+    final result = StringBuffer(parts[0]);
+    for (int i = 1; i < parts.length; i++) {
+      if (parts[i].isNotEmpty) {
+        result.write(parts[i][0].toUpperCase());
+        if (parts[i].length > 1) {
+          result.write(parts[i].substring(1));
+        }
+      }
+    }
+    return result.toString();
+  }
+  
+  /// Convert camelCase to snake_case
+  String _toSnakeCase(String camelCase) {
+    final result = StringBuffer();
+    for (int i = 0; i < camelCase.length; i++) {
+      final char = camelCase[i];
+      if (char.toUpperCase() == char && char.toLowerCase() != char) {
+        // It's an uppercase letter
+        if (i > 0) {
+          result.write('_');
+        }
+        result.write(char.toLowerCase());
+      } else {
+        result.write(char);
+      }
+    }
+    return result.toString();
   }
   
   /// Adapt a field value to CEL value

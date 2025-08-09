@@ -71,6 +71,9 @@ _nativeToValue(TypeAdapter adapter, dynamic value) {
   if (value is MapValue) {
     return value;
   }
+  if (value is ListValue) {
+    return value;
+  }
   // Wrap primitives.
   if (value is bool) {
     return BooleanValue(value);

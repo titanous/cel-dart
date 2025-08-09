@@ -61,9 +61,9 @@ class MessageValue extends Value implements Indexer, FieldTester {
   bool has(String fieldName) {
     final info = message.info_;
     
-    // Find the field info
+    // Find the field info - try both proto field name and Dart property name
     for (final field in info.fieldInfo.values) {
-      if (field.name == fieldName) {
+      if (_matchesFieldName(field, fieldName)) {
         // For repeated fields, check if not empty
         if (field.isRepeated) {
           final list = message.getField(field.tagNumber) as List;
@@ -75,6 +75,65 @@ class MessageValue extends Value implements Indexer, FieldTester {
     }
     
     return false;
+  }
+  
+  /// Check if a field matches the given name (either proto name or Dart property name)
+  bool _matchesFieldName(FieldInfo field, String name) {
+    // Check Dart property name (camelCase)
+    if (field.name == name) {
+      return true;
+    }
+    
+    // Check proto field name (snake_case)
+    // Convert between naming conventions
+    if (_toCamelCase(name) == field.name) {
+      return true;
+    }
+    
+    if (_toSnakeCase(field.name) == name) {
+      return true;
+    }
+    
+    return false;
+  }
+  
+  /// Convert snake_case to camelCase
+  String _toCamelCase(String snakeCase) {
+    if (!snakeCase.contains('_')) {
+      return snakeCase;
+    }
+    
+    final parts = snakeCase.split('_');
+    if (parts.isEmpty) return snakeCase;
+    
+    final result = StringBuffer(parts[0]);
+    for (int i = 1; i < parts.length; i++) {
+      if (parts[i].isNotEmpty) {
+        result.write(parts[i][0].toUpperCase());
+        if (parts[i].length > 1) {
+          result.write(parts[i].substring(1));
+        }
+      }
+    }
+    return result.toString();
+  }
+  
+  /// Convert camelCase to snake_case
+  String _toSnakeCase(String camelCase) {
+    final result = StringBuffer();
+    for (int i = 0; i < camelCase.length; i++) {
+      final char = camelCase[i];
+      if (char.toUpperCase() == char && char.toLowerCase() != char) {
+        // It's an uppercase letter
+        if (i > 0) {
+          result.write('_');
+        }
+        result.write(char.toLowerCase());
+      } else {
+        result.write(char);
+      }
+    }
+    return result.toString();
   }
   
   /// Test if a field is set (implements FieldTester)

@@ -5,6 +5,10 @@ import 'package:protobuf/protobuf.dart';
 import '../common/types/ref/value.dart';
 import '../common/types/pb/adapter.dart';
 import '../common/types/provider.dart' as cel_provider;
+import '../common/types/map.dart';
+import '../common/types/list.dart';
+import '../common/types/string.dart';
+import '../common/types/int.dart';
 
 abstract class Attribute extends Equatable {
   dynamic resolve(Activation activation);
@@ -142,7 +146,19 @@ class ProtobufFieldQualifier extends Qualifier {
       throw StateError('Trying to read field $fieldName on null');
     }
     
-    // Import the protobuf types we need
+    // Handle CEL MapValue
+    if (object is MapValue) {
+      return object.get(StringValue(fieldName));
+    }
+    
+    // Handle CEL ListValue (for index access, fieldName would be a number string)
+    if (object is ListValue) {
+      final index = int.tryParse(fieldName);
+      if (index != null) {
+        return object.get(IntValue(index));
+      }
+    }
+    
     if (object is Value) {
       // If it's already a CEL value, get the underlying protobuf message
       final value = object.value;
