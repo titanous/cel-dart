@@ -1,0 +1,123 @@
+# CEL Conformance Test Configuration
+# This file tracks known failures and tests to skip
+
+# Tests to skip entirely (not yet supported features)
+skip_tests:
+  # Timestamp/Duration not supported
+  - "timestamp"
+  - "duration"
+  
+  # Type checking not implemented
+  - "type_is"
+  - "type_name"
+  
+  # Macros not implemented
+  - "all"
+  - "exists"
+  - "exists_one"
+  - "filter"
+  - "map_macro"
+  
+  # Proto features not fully supported
+  - "proto2_field_presence"
+  - "proto3_field_presence"
+  - "any_type"
+  
+# Expected failures (features in progress)
+expected_failures:
+  # Missing functions
+  - name: "size"
+    reason: "size() function not implemented"
+  
+  - name: "matches"
+    reason: "regex matching needs enhancement"
+  
+  - name: "unique"
+    reason: "unique() function not implemented"
+  
+  - name: "getField"
+    reason: "getField() function not implemented"
+  
+  # Missing string extensions
+  - name: "string_contains_bytes"
+    reason: "bytes operations not implemented"
+  
+  - name: "string_starts_with_bytes"
+    reason: "bytes operations not implemented"
+  
+  - name: "string_ends_with_bytes"  
+    reason: "bytes operations not implemented"
+
+# Test suites status
+test_suites:
+  basic.textproto:
+    status: partial
+    notes: "Basic literals and operations work"
+  
+  comparisons.textproto:
+    status: partial
+    notes: "Basic comparisons work, missing cross-type comparisons"
+  
+  conversions.textproto:
+    status: unsupported
+    notes: "Type conversions not implemented"
+  
+  dynamic.textproto:
+    status: unsupported
+    notes: "Dynamic types and Any not supported"
+  
+  enums.textproto:
+    status: unsupported
+    notes: "Proto enum support not implemented"
+  
+  fields.textproto:
+    status: unsupported
+    notes: "Proto field access not implemented"
+  
+  fp_math.textproto:
+    status: partial
+    notes: "Basic math works, missing NaN/Inf functions"
+  
+  integer_math.textproto:
+    status: partial
+    notes: "Basic math works"
+  
+  lists.textproto:
+    status: partial
+    notes: "Basic list operations work, missing size()"
+  
+  logic.textproto:
+    status: good
+    notes: "Logical operators working"
+  
+  macros.textproto:
+    status: unsupported
+    notes: "Macros not implemented"
+  
+  namespace.textproto:
+    status: unsupported
+    notes: "Namespaces not implemented"
+  
+  parse.textproto:
+    status: partial
+    notes: "Basic parsing works"
+  
+  proto2.textproto:
+    status: unsupported
+    notes: "Proto2 support not implemented"
+  
+  proto3.textproto:
+    status: unsupported
+    notes: "Proto3 support not implemented"
+  
+  string.textproto:
+    status: partial
+    notes: "Basic string operations work, missing extensions"
+  
+  timestamps.textproto:
+    status: unsupported
+    notes: "Timestamp type not supported"
+  
+  unknowns.textproto:
+    status: unsupported
+    notes: "Unknown tracking not implemented"
