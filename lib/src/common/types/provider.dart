@@ -1,6 +1,7 @@
 import 'package:cel/src/common/types/list.dart';
 import 'package:cel/src/common/types/map.dart';
 import 'package:cel/src/common/types/bool.dart';
+import 'package:cel/src/common/types/bytes.dart';
 import 'package:cel/src/common/types/double.dart';
 import 'package:cel/src/common/types/int.dart';
 import 'package:cel/src/common/types/null_.dart';
@@ -17,7 +18,7 @@ TypeAdapter newRegistry() {
   return TypeRegistry()
     ..registerTypes([
       boolType,
-      // bytesType,
+      bytesType,
       // doubleType,
       // DurationType,
       intType,
@@ -59,6 +60,9 @@ _nativeToValue(TypeAdapter adapter, dynamic value) {
   if (value is StringValue) {
     return value;
   }
+  if (value is BytesValue) {
+    return value;
+  }
   if (value is MapValue) {
     return value;
   }
@@ -85,6 +89,10 @@ _nativeToValue(TypeAdapter adapter, dynamic value) {
   }
   if (value is List<Value>) {
     return ListValue(value, adapter);
+  }
+  // Handle List<int> as bytes (CodeUnits type from parser)
+  if (value is List<int>) {
+    return BytesValue.fromCodeUnits(value);
   }
   throw UnimplementedError('Unsupported type for $value: ${value.runtimeType}');
 }
