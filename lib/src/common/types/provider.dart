@@ -4,6 +4,7 @@ import 'package:cel/src/common/types/bool.dart';
 import 'package:cel/src/common/types/bytes.dart';
 import 'package:cel/src/common/types/double.dart';
 import 'package:cel/src/common/types/int.dart';
+import 'package:cel/src/common/types/uint.dart';
 import 'package:cel/src/common/types/null_.dart';
 import 'package:cel/src/common/types/ref/provider.dart';
 import 'package:cel/src/common/types/ref/value.dart';
@@ -19,13 +20,14 @@ TypeAdapter newRegistry() {
     ..registerTypes([
       boolType,
       bytesType,
-      // doubleType,
+      doubleType,
       // DurationType,
       intType,
       // listType,
       // mapType,
       nullType,
-      stringType
+      stringType,
+      uintType
     ]);
   // TimestampType,
   // TypeType,
@@ -52,6 +54,9 @@ _nativeToValue(TypeAdapter adapter, dynamic value) {
     return value;
   }
   if (value is IntValue) {
+    return value;
+  }
+  if (value is UintValue) {
     return value;
   }
   if (value is DoubleValue) {

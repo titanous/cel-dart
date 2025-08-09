@@ -1,5 +1,6 @@
 import 'package:cel/src/common/types/bool.dart';
 import 'package:cel/src/common/types/traits/receiver.dart';
+import 'package:cel/src/common/types/numeric_compare.dart';
 
 import '../common/types/ref/provider.dart';
 import '../common/types/ref/value.dart';
@@ -47,8 +48,9 @@ class EqualInterpretable implements Interpretable {
 
   @override
   evaluate(Activation activation) {
-    return BooleanValue(leftHandSide.evaluate(activation).value ==
-        rightHandSide.evaluate(activation).value);
+    final left = leftHandSide.evaluate(activation);
+    final right = rightHandSide.evaluate(activation);
+    return BooleanValue(NumericCompare.equals(left, right));
   }
 }
 
@@ -60,8 +62,9 @@ class NotEqualInterpretable implements Interpretable {
 
   @override
   evaluate(Activation activation) {
-    return BooleanValue(leftHandSide.evaluate(activation).value !=
-        rightHandSide.evaluate(activation).value);
+    final left = leftHandSide.evaluate(activation);
+    final right = rightHandSide.evaluate(activation);
+    return BooleanValue(!NumericCompare.equals(left, right));
   }
 }
 

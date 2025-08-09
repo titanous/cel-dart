@@ -3,19 +3,18 @@ import 'package:cel/src/common/types/traits/comparer.dart';
 import 'package:cel/src/common/types/traits/math.dart';
 import 'package:cel/src/common/types/numeric_compare.dart';
 
-final intType = Type_('int');
+final uintType = Type_('uint');
 
-class IntValue extends Value
+class UintValue extends Value
     implements Comparer, Adder, Divider, Multiplier, Subtractor, Modder {
-  IntValue(this.value);
+  UintValue(this.value);
 
   @override
-  Type_ get type => intType;
+  Type_ get type => uintType;
 
   @override
   final int value;
 
-  // https://github.com/google/cel-go/blob/92fda7d38a37f42d4154147896cfd4ebbf8f846e/common/types/int.go#L75
   @override
   Value compare(Value other) {
     return NumericCompare.compare(this, other);
@@ -23,26 +22,26 @@ class IntValue extends Value
 
   @override
   add(Value other) {
-    return IntValue((value + other.value).toInt());
+    return UintValue(value + (other.value as int));
   }
 
   @override
   divide(Value denominator) {
-    return IntValue(value ~/ denominator.value);
+    return UintValue(value ~/ (denominator.value as int));
   }
 
   @override
   modulo(Value denominator) {
-    return IntValue((value % denominator.value).toInt());
+    return UintValue(value % (denominator.value as int));
   }
 
   @override
   multiply(Value other) {
-    return IntValue((value * other.value).toInt());
+    return UintValue(value * (other.value as int));
   }
 
   @override
   subtract(Value subtrahend) {
-    return IntValue((value - subtrahend.value).toInt());
+    return UintValue(value - (subtrahend.value as int));
   }
 }
