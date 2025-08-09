@@ -1,6 +1,10 @@
 import 'package:cel/src/interpreter/activation.dart';
 import 'package:cel/src/interpreter/interpretable.dart';
 import 'package:equatable/equatable.dart';
+import 'package:protobuf/protobuf.dart';
+import '../common/types/ref/value.dart';
+import '../common/types/pb/adapter.dart';
+import '../common/types/provider.dart' as cel_provider;
 
 abstract class Attribute extends Equatable {
   dynamic resolve(Activation activation);
@@ -125,6 +129,48 @@ class StringQualifier extends Qualifier {
 
   @override
   List<Object?> get props => [value];
+}
+
+class ProtobufFieldQualifier extends Qualifier {
+  ProtobufFieldQualifier(this.fieldName);
+
+  final String fieldName;
+
+  @override
+  qualify(Activation activation, object) {
+    if (object == null) {
+      throw StateError('Trying to read field $fieldName on null');
+    }
+    
+    // Import the protobuf types we need
+    if (object is Value) {
+      // If it's already a CEL value, get the underlying protobuf message
+      final value = object.value;
+      if (value is GeneratedMessage) {
+        return _getFieldFromMessage(value);
+      }
+    } else if (object is GeneratedMessage) {
+      // Direct protobuf message
+      return _getFieldFromMessage(object);
+    }
+    
+    // Fall back to map-style access for non-protobuf objects
+    try {
+      return object[fieldName];
+    } catch (_) {
+      throw StateError('Cannot access field $fieldName on ${object.runtimeType}');
+    }
+  }
+  
+  Value _getFieldFromMessage(GeneratedMessage msg) {
+    // We need the ProtobufTypeAdapter to convert the field value
+    // For now, use the default CEL type registry
+    final adapter = ProtobufTypeAdapter(cel_provider.TypeRegistry());
+    return adapter.getField(msg, fieldName);
+  }
+
+  @override
+  List<Object?> get props => [fieldName];
 }
 
 class ConditionalAttribute extends Attribute {

@@ -66,8 +66,8 @@ void main() {
       final program = env.makeProgram(ast);
       final result = program.evaluate({'msg': MessageValue(msg)});
       
-      expect(result, isA<BooleanValue>());
-      expect((result as BooleanValue).value, isTrue);
+      expect(result, isA<bool>());
+      expect(result, isTrue);
     });
     
     test('can handle repeated fields', () {

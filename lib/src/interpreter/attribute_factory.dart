@@ -16,7 +16,8 @@ class AttributeFactory {
   // https://github.com/google/cel-go/blob/32ac6133c6b8eca8bb76e17e6ad50a1eb757778a/interpreter/attributes.go#L594
   Qualifier qualifier(dynamic value) {
     if (value is String) {
-      return StringQualifier(value);
+      // Use ProtobufFieldQualifier which can handle both protobuf messages and maps
+      return ProtobufFieldQualifier(value);
     } else {
       throw StateError('Unsupported qualifier type ${value.runtimeType}');
     }
