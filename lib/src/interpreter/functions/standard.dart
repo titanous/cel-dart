@@ -5,6 +5,7 @@ import 'package:cel/src/common/types/map.dart';
 import 'package:cel/src/common/types/string.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
 import 'package:cel/src/common/types/traits/container.dart';
+import 'package:cel/src/common/types/traits/field_tester.dart';
 import 'package:cel/src/common/types/traits/indexer.dart';
 import 'package:cel/src/common/types/traits/matcher.dart';
 import 'package:cel/src/common/types/traits/math.dart';
@@ -183,5 +184,10 @@ List<Overload> standardOverloads() {
       }
       return string.match(regExp);
     }),
+    
+    // has() function for field testing
+    // This is a macro in CEL spec but implemented as function here
+    // For now, this is a placeholder - proper macro support needed
+    // The macro expands has(msg.field) to msg.has("field")
   ];
 }

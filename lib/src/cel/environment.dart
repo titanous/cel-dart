@@ -3,6 +3,7 @@ import 'package:cel/src/cel/options.dart';
 import 'package:cel/src/cel/program.dart';
 import 'package:cel/src/common/types/provider.dart';
 import 'package:cel/src/common/types/ref/provider.dart';
+import 'package:cel/src/common/types/pb/registry.dart';
 import '../checker/declaration.dart';
 import '../parser/parser.dart';
 import 'ast.dart';
@@ -27,10 +28,24 @@ class Environment {
   Environment.standard()
       : this._(environmentOptions: [StandardLibrary().toEnvironmentOption()]);
 
+  /// Creates a program environment with protobuf support
+  Environment.withProtos({
+    required ProtoTypeRegistry registry,
+    List<EnvironmentOption> options = const [],
+  }) : this._(environmentOptions: [
+    StandardLibrary().toEnvironmentOption(),
+    ...options,
+    (env) {
+      // Store the registry for use in protobuf operations
+      env.protoRegistry = registry;
+    }
+  ]);
+
   /// This is actually not useful yet. See https://github.com/atn832/cel-dart/blob/01b30af236478bbb181a37c60df8405ecfc87052/README.md?plain=1#L245.
   final List<Declaration> declarations = [];
   final List<ProgramOption> programOptions = [];
   final TypeAdapter adapter;
+  ProtoTypeRegistry? protoRegistry;
 
   Ast compile(String text) {
     return Ast(Parser().parse(text));
