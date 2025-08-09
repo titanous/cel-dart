@@ -14,9 +14,8 @@ class EvalActivation extends Activation {
 
   @override
   resolveName(namespaceName) {
-    if (!input.containsKey(namespaceName)) {
-      throw Exception('No value for variable $namespaceName');
-    }
+    // Return null for unbound variables instead of throwing
+    // This allows the attribute resolution to handle it properly
     return input[namespaceName];
   }
 

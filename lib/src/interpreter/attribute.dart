@@ -51,13 +51,14 @@ class AbsoluteAttribute extends NamespaceAttribute {
   // See https://github.com/google/cel-go/blob/32ac6133c6b8eca8bb76e17e6ad50a1eb757778a/interpreter/attributes.go#L294.
   @override
   resolve(Activation activation) {
-    try {
-      // https://github.com/google/cel-go/blob/32ac6133c6b8eca8bb76e17e6ad50a1eb757778a/interpreter/attributes.go#L300
-      final object = activation.resolveName(namespaceName);
-      return applyQualifiers(activation, object, qualifiers);
-    } catch (e) {
-      throw Exception("Missing attribute $this.");
+    // https://github.com/google/cel-go/blob/32ac6133c6b8eca8bb76e17e6ad50a1eb757778a/interpreter/attributes.go#L300
+    final object = activation.resolveName(namespaceName);
+    if (object == null && activation is EvalActivation && 
+        !activation.input.containsKey(namespaceName)) {
+      // Variable is truly unbound, not just null
+      throw Exception("Unbound variable: $namespaceName");
     }
+    return applyQualifiers(activation, object, qualifiers);
   }
 
   @override
