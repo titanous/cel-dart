@@ -247,7 +247,7 @@ Expr visitMemberCall(MemberCallContext tree) {
   return CallExpr(
       function: id,
       target: operand,
-      args: tree.args!.e.map((e) => visit(e)).toList());
+      args: tree.args?.e.map((e) => visit(e)).toList() ?? []);
 }
 
 Expr visitSelect(SelectContext tree) {

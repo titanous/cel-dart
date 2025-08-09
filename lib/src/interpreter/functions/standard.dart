@@ -1,5 +1,8 @@
 import 'package:cel/src/common/types/bool.dart';
 import 'package:cel/src/common/types/int.dart';
+import 'package:cel/src/common/types/list.dart';
+import 'package:cel/src/common/types/map.dart';
+import 'package:cel/src/common/types/string.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
 import 'package:cel/src/common/types/traits/container.dart';
 import 'package:cel/src/common/types/traits/indexer.dart';
@@ -122,6 +125,46 @@ List<Overload> standardOverloads() {
         throw StateError('$value should be a Sizer');
       }
       return IntValue(value.size());
+    }),
+
+    // Unique function - checks if all elements in a list are unique
+    Overload('unique', unaryOperator: (value) {
+      if (value is! ListValue) {
+        throw StateError('$value should be a ListValue');
+      }
+      final seen = <dynamic>{};
+      for (final item in value.value) {
+        // Use the actual value for comparison to handle Value wrapper objects
+        final key = item.value;
+        if (seen.contains(key)) {
+          return BooleanValue(false);
+        }
+        seen.add(key);
+      }
+      return BooleanValue(true);
+    }),
+
+    // GetField function - dynamic field access for messages/maps
+    Overload('getField', binaryOperator: (target, fieldName) {
+      // Handle map types
+      if (target is MapValue) {
+        // Convert field name to a string if needed
+        if (fieldName is StringValue) {
+          return target.get(fieldName);
+        }
+        throw StateError('Field name must be a string');
+      }
+      // For protobuf messages (when implemented), we'd handle them here
+      // For now, we support map-based field access
+      throw StateError('getField requires a map or message type');
+    }),
+
+    // Dyn function - converts a value to dynamic type for cross-type operations
+    Overload('dyn', unaryOperator: (value) {
+      // In CEL, dyn() essentially returns the value as-is but marks it as dynamic
+      // This allows for operations between different types without explicit conversion
+      // For now, we just return the value unchanged as Dart handles dynamic typing
+      return value;
     }),
 
     // In operator
