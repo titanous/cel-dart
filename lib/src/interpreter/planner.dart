@@ -74,10 +74,13 @@ class Planner {
     // TODO: implement indexer, optSelect, optIndex.
 
     final functionImplementation = dispatcher.findOverload(functionName);
+    if (functionImplementation == null) {
+      throw Exception('No overload found for function: $functionName');
+    }
     switch (interpretableArguments.length) {
       // TODO: handle zero functions.
       case 1:
-        return planCallUnary(expression, functionName, functionImplementation!,
+        return planCallUnary(expression, functionName, functionImplementation,
             interpretableArguments);
       case 2:
         return planCallBinary(expression, functionName, functionImplementation,
@@ -145,6 +148,9 @@ class Planner {
 
   Interpretable planCallUnary(CallExpr expression, String functionName,
       Overload functionImplementation, List<Interpretable> arguments) {
+    if (functionImplementation.unaryOperator == null) {
+      throw Exception('No unary operator implementation for function: $functionName');
+    }
     return UnaryInterpretable(
         functionImplementation.unaryOperator!, arguments[0]);
   }
