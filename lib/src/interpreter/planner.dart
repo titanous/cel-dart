@@ -77,6 +77,13 @@ class Planner {
     if (functionImplementation == null) {
       throw Exception('No overload found for function: $functionName');
     }
+    // Check if function has a functionOperator first (works for any argument count)
+    if (functionImplementation.functionOperator != null) {
+      return planCallFunction(expression, functionName, functionImplementation,
+          interpretableArguments);
+    }
+    
+    // Fall back to argument-count-based logic for traditional operators
     switch (interpretableArguments.length) {
       // TODO: handle zero functions.
       case 1:
@@ -86,11 +93,6 @@ class Planner {
         return planCallBinary(expression, functionName, functionImplementation,
             interpretableArguments);
       default:
-        // Check if function has a functionOperator for variable arguments
-        if (functionImplementation.functionOperator != null) {
-          return planCallFunction(expression, functionName, functionImplementation,
-              interpretableArguments);
-        }
         throw UnsupportedError(
             "Function $functionName with ${interpretableArguments.length} arguments is not supported.");
     }

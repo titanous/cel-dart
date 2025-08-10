@@ -3,6 +3,7 @@ import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
 import 'package:cel/src/common/types/traits/receiver.dart';
 import 'package:cel/src/common/types/traits/sizer.dart';
+import 'package:cel/src/common/types/traits/math.dart';
 import 'package:cel/src/common/types/int.dart';
 import 'package:cel/src/common/types/bool.dart';
 import 'package:cel/src/common/overloads/overloads.dart';
@@ -11,7 +12,7 @@ import 'package:cel/src/common/overloads/overloads.dart';
 final Type_ bytesType = Type_('bytes');
 
 // BytesValue holds a byte array value.
-class BytesValue extends Value implements Comparer, Sizer, Receiver {
+class BytesValue extends Value implements Comparer, Sizer, Receiver, Adder {
   @override
   final Uint8List value;
 
@@ -55,6 +56,19 @@ class BytesValue extends Value implements Comparer, Sizer, Receiver {
       return IntValue(1);
     }
     return IntValue(0);
+  }
+
+  @override
+  add(Value other) {
+    if (other is! BytesValue) {
+      throw Exception('Cannot add bytes with ${other.type.name}');
+    }
+    
+    // Concatenate byte arrays
+    final result = Uint8List(value.length + other.value.length);
+    result.setRange(0, value.length, value);
+    result.setRange(value.length, result.length, other.value);
+    return BytesValue(result);
   }
 
   @override

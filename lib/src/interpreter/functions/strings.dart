@@ -276,62 +276,9 @@ List<Overload> stringOverloads() {
       return stringFormat(valueArgs);
     }),
     
-    // quote function (strings.quote)
-    Overload('strings.quote', unaryOperator: (str) {
-      if (str is! StringValue) {
-        return ErrorValue('quote requires string argument');
-      }
-      
-      final result = StringBuffer('"');
-      
-      for (final rune in str.value.runes) {
-        switch (rune) {
-          case 0x07: // \a
-            result.write(r'\a');
-            break;
-          case 0x08: // \b
-            result.write(r'\b');
-            break;
-          case 0x0C: // \f
-            result.write(r'\f');
-            break;
-          case 0x0A: // \n
-            result.write(r'\n');
-            break;
-          case 0x0D: // \r
-            result.write(r'\r');
-            break;
-          case 0x09: // \t
-            result.write(r'\t');
-            break;
-          case 0x0B: // \v
-            result.write(r'\v');
-            break;
-          case 0x5C: // \\
-            result.write(r'\\');
-            break;
-          case 0x22: // \"
-            result.write(r'\"');
-            break;
-          default:
-            if (rune >= 0x20 && rune <= 0x7E) {
-              result.writeCharCode(rune);
-            } else if (rune <= 0xFF) {
-              result.write(r'\x');
-              result.write(rune.toRadixString(16).padLeft(2, '0'));
-            } else if (rune <= 0xFFFF) {
-              result.write(r'\u');
-              result.write(rune.toRadixString(16).padLeft(4, '0'));
-            } else {
-              result.write(r'\U');
-              result.write(rune.toRadixString(16).padLeft(8, '0'));
-            }
-        }
-      }
-      
-      result.write('"');
-      return StringValue(result.toString());
-    }),
+    // quote function (strings.quote) - register both versions
+    Overload('strings.quote', unaryOperator: _quoteFunction),
+    Overload('quote', unaryOperator: _quoteFunction),
   ];
 }
 
@@ -814,4 +761,61 @@ class _FormatClause {
     this.precision,
     required this.end,
   });
+}
+
+// Helper function for string quoting
+dynamic _quoteFunction(dynamic str) {
+  if (str is! StringValue) {
+    return ErrorValue('quote requires string argument');
+  }
+  
+  final result = StringBuffer('"');
+  
+  for (final rune in str.value.runes) {
+    switch (rune) {
+      case 0x07: // \a
+        result.write(r'\a');
+        break;
+      case 0x08: // \b
+        result.write(r'\b');
+        break;
+      case 0x0C: // \f
+        result.write(r'\f');
+        break;
+      case 0x0A: // \n
+        result.write(r'\n');
+        break;
+      case 0x0D: // \r
+        result.write(r'\r');
+        break;
+      case 0x09: // \t
+        result.write(r'\t');
+        break;
+      case 0x0B: // \v
+        result.write(r'\v');
+        break;
+      case 0x5C: // \\
+        result.write(r'\\');
+        break;
+      case 0x22: // \"
+        result.write(r'\"');
+        break;
+      default:
+        if (rune >= 0x20 && rune <= 0x7E) {
+          result.writeCharCode(rune);
+        } else if (rune <= 0xFF) {
+          result.write(r'\x');
+          result.write(rune.toRadixString(16).padLeft(2, '0'));
+        } else if (rune <= 0xFFFF) {
+          result.write(r'\u');
+          result.write(rune.toRadixString(16).padLeft(4, '0'));
+        } else {
+          result.write(r'\U');
+          result.write(rune.toRadixString(16).padLeft(8, '0'));
+        }
+    }
+  }
+  
+  result.write('"');
+  return StringValue(result.toString());
 }
