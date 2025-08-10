@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:fixnum/fixnum.dart';
 import 'package:protobuf/protobuf.dart' as pb;
 import 'package:cel/cel.dart';
+import 'package:cel/src/common/types/pb/registry.dart';
+import 'package:cel/src/common/types/provider.dart';
 import '../gen/cel/expr/conformance/test/simple.pb.dart';
 import '../gen/cel/expr/value.pb.dart' as value_pb;
 import '../gen/cel/expr/eval.pb.dart';
@@ -57,7 +59,13 @@ class ConformanceTestRunner {
   ConformanceTestRunner({
     Environment? environment,
     this.skipTests = const {},
-  }) : environment = environment ?? Environment.standard();
+  }) : environment = environment ?? _createDefaultEnvironment();
+  
+  static Environment _createDefaultEnvironment() {
+    // Create an environment with protobuf support
+    final protoRegistry = ProtoTypeRegistry();
+    return Environment.withProtos(registry: protoRegistry);
+  }
   
   /// Run a single test file
   Future<TestResults> runTestFile(String testFile) async {
@@ -127,8 +135,22 @@ class ConformanceTestRunner {
         );
       }
       
+      // Create an environment with the container if provided
+      Environment testEnv = environment;
+      if (test.hasContainer() && test.container.isNotEmpty) {
+        // Create a new environment with the container namespace
+        testEnv = Environment.withProtos(
+          registry: environment.protoRegistry ?? ProtoTypeRegistry(),
+        );
+        testEnv.container = testEnv.container.extend(name: test.container);
+        // Update the TypeRegistry's container
+        if (testEnv.adapter is TypeRegistry) {
+          (testEnv.adapter as TypeRegistry).container = testEnv.container;
+        }
+      }
+      
       // Compile the expression
-      final ast = environment.compile(test.expr);
+      final ast = testEnv.compile(test.expr);
       
       // Check if we expect a parse error
       if (test.hasDisableCheck() && test.disableCheck) {
@@ -136,7 +158,7 @@ class ConformanceTestRunner {
       }
       
       // Create the program
-      final program = environment.makeProgram(ast);
+      final program = testEnv.makeProgram(ast);
       
       // Prepare the input bindings
       final bindings = _prepareBindings(test.bindings);

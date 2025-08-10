@@ -153,5 +153,14 @@ class ProtoTypeRegistry {
         'type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes',
         proto3.TestAllTypes().info_,
         () => proto3.TestAllTypes());
+    // Also register with fully qualified names for direct resolution
+    registerMessageType(
+        'cel.expr.conformance.proto2.TestAllTypes',
+        proto2.TestAllTypes().info_,
+        () => proto2.TestAllTypes());
+    registerMessageType(
+        'cel.expr.conformance.proto3.TestAllTypes',
+        proto3.TestAllTypes().info_,
+        () => proto3.TestAllTypes());
   }
 }

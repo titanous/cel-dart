@@ -9,6 +9,10 @@ import 'package:cel/src/common/types/double.dart';
 import 'package:cel/src/common/types/string.dart';
 import 'package:cel/src/common/types/bytes.dart';
 import 'package:cel/src/common/types/null_.dart';
+import 'package:cel/src/common/types/list.dart';
+import 'package:cel/src/common/types/map.dart';
+import 'package:cel/src/common/types/pb/message.dart';
+import 'package:cel/src/common/types/provider.dart';
 
 import '../common/types/ref/provider.dart';
 import '../common/types/ref/value.dart';
@@ -237,10 +241,36 @@ class MessageInterpretable implements Interpretable {
       return _getWrapperDefaultValue(typeName);
     }
     
-    // For regular messages, create a map representation
+    // For regular messages, try to create a real protobuf message
     final evaluatedKeys = keys.map((k) => k.evaluate(activation)).toList();
     final evaluatedValues = values.map((v) => v.evaluate(activation)).toList();
     
+    // Convert CEL values to native values for the message fields
+    final fieldMap = <String, dynamic>{};
+    for (int i = 0; i < evaluatedKeys.length; i++) {
+      final key = evaluatedKeys[i];
+      final value = evaluatedValues[i];
+      
+      if (key is StringValue) {
+        // Convert CEL value to native value for the field
+        fieldMap[key.value] = _convertToNativeValue(value);
+      }
+    }
+    
+    // Try to create a real protobuf message if we have a TypeRegistry with ProtoTypeRegistry
+    if (adapter is TypeRegistry) {
+      final typeRegistry = adapter as TypeRegistry;
+      
+      // Try to resolve the type name using the proto registry
+      // The proto registry should handle namespace resolution
+      final message = typeRegistry.createMessage(typeName, fieldMap);
+      if (message != null) {
+        // Return the message wrapped in a MessageValue
+        return MessageValue(message, adapter);
+      }
+    }
+    
+    // Fallback: create a map representation with type information
     final map = <Value, Value>{};
     for (int i = 0; i < evaluatedKeys.length; i++) {
       map[evaluatedKeys[i]] = evaluatedValues[i];
@@ -249,6 +279,34 @@ class MessageInterpretable implements Interpretable {
     // Add type information for later message reconstruction
     map[adapter.nativeToValue('__message_type__')] = adapter.nativeToValue(typeName);
     return adapter.nativeToValue(map);
+  }
+  
+  // Convert a CEL Value to its native Dart representation
+  dynamic _convertToNativeValue(Value value) {
+    if (value is BooleanValue) return value.value;
+    if (value is IntValue) return value.value;
+    if (value is UintValue) return value.value;
+    if (value is DoubleValue) return value.value;
+    if (value is StringValue) return value.value;
+    if (value is BytesValue) return value.value;
+    if (value is NullValue) return null;
+    if (value is ListValue) {
+      return value.value.map((v) => _convertToNativeValue(v)).toList();
+    }
+    if (value is MapValue) {
+      final result = <String, dynamic>{};
+      value.value.forEach((k, v) {
+        if (k is StringValue) {
+          result[k.value] = _convertToNativeValue(v);
+        }
+      });
+      return result;
+    }
+    if (value is MessageValue) {
+      return value.message;
+    }
+    // For other types, return the value itself
+    return value;
   }
   
   bool _isWrapperType(String typeName) {
