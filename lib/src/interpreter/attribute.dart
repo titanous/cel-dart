@@ -1,5 +1,6 @@
 import 'package:cel/src/interpreter/activation.dart';
 import 'package:cel/src/interpreter/interpretable.dart';
+import 'package:cel/src/interpreter/errors.dart';
 import 'package:equatable/equatable.dart';
 import 'package:protobuf/protobuf.dart';
 import '../common/types/ref/value.dart';
@@ -10,6 +11,8 @@ import '../common/types/map.dart';
 import '../common/types/list.dart';
 import '../common/types/string.dart';
 import '../common/types/int.dart';
+import '../common/types/double.dart';
+import '../common/types/uint.dart';
 
 abstract class Attribute extends Equatable {
   dynamic resolve(Activation activation);
@@ -35,14 +38,22 @@ class MaybeAttribute extends Attribute {
   // https://github.com/google/cel-go/blob/32ac6133c6b8eca8bb76e17e6ad50a1eb757778a/interpreter/attributes.go#L490
   @override
   resolve(Activation activation) {
+    ResolutionError? lastError;
     for (final attribute in namespaceAttributes) {
       try {
         return attribute.resolve(activation);
-      } catch (_) {
-        continue;
+      } on ResolutionError catch (e) {
+        lastError = e;
+        // If it's a missing attribute error, try the next candidate
+        if (e.isMissingAttribute()) {
+          continue;
+        }
+        // For missing key/index errors, propagate them immediately
+        rethrow;
       }
     }
-    throw Exception('Could not find ${toString()} in environment $activation.');
+    // If we exhausted all candidates, throw the last error or a generic one
+    throw lastError ?? ResolutionError.missingAttribute(namespaceAttributes.first.toString());
   }
 
   @override
@@ -65,7 +76,7 @@ class AbsoluteAttribute extends NamespaceAttribute {
     if (object == null && activation is EvalActivation && 
         !activation.input.containsKey(namespaceName)) {
       // Variable is truly unbound, not just null
-      throw Exception("Unbound variable: $namespaceName");
+      throw ResolutionError.missingAttribute(namespaceName);
     }
     return applyQualifiers(activation, object, qualifiers);
   }
@@ -91,7 +102,7 @@ class AbsoluteAttribute extends NamespaceAttribute {
 class RelativeAttribute extends Attribute {
   RelativeAttribute(this.operand);
 
-  Interpretable operand;
+  final Interpretable operand;
   final List<Qualifier> qualifiers = [];
 
   // https://github.com/google/cel-go/blob/32ac6133c6b8eca8bb76e17e6ad50a1eb757778a/interpreter/attributes.go#L570
@@ -131,9 +142,137 @@ class StringQualifier extends Qualifier {
   @override
   qualify(Activation activation, object) {
     if (object == null) {
-      throw StateError('Trying to read value of key $value on $object');
+      throw ResolutionError.missingKey(StringValue(value));
     }
-    return object[value];
+    
+    // Handle CEL MapValue
+    if (object is MapValue) {
+      final key = StringValue(value);
+      if (!object.value.containsKey(key)) {
+        throw ResolutionError.missingKey(key);
+      }
+      return object.get(key);
+    }
+    
+    // Handle CEL MessageValue
+    if (object is MessageValue) {
+      final key = StringValue(value);
+      try {
+        return object.get(key);
+      } catch (e) {
+        throw ResolutionError.missingKey(key);
+      }
+    }
+    
+    // Handle plain Dart maps
+    if (object is Map) {
+      if (!object.containsKey(value)) {
+        throw ResolutionError.missingKey(StringValue(value));
+      }
+      return object[value];
+    }
+    
+    // Try indexed access for other types
+    try {
+      return object[value];
+    } catch (_) {
+      throw ResolutionError.missingKey(StringValue(value));
+    }
+  }
+
+  @override
+  List<Object?> get props => [value];
+}
+
+class IndexQualifier extends Qualifier {
+  IndexQualifier(this.index);
+
+  final Value index;
+
+  @override
+  qualify(Activation activation, object) {
+    if (object == null) {
+      throw ResolutionError.missingIndex(index);
+    }
+    
+    // Get the numeric value from the index
+    int? indexValue;
+    if (index is IntValue) {
+      indexValue = (index as IntValue).value;
+    } else if (index is UintValue) {
+      indexValue = (index as UintValue).value.toInt();
+    } else {
+      throw InvalidKeyTypeError(index.runtimeType);
+    }
+    
+    // Handle CEL ListValue
+    if (object is ListValue) {
+      final list = object.value;
+      if (indexValue < 0 || indexValue >= list.length) {
+        throw ResolutionError.missingIndex(index);
+      }
+      return list[indexValue];
+    }
+    
+    // Handle Dart lists
+    if (object is List) {
+      if (indexValue < 0 || indexValue >= object.length) {
+        throw ResolutionError.missingIndex(index);
+      }
+      return object[indexValue];
+    }
+    
+    // Handle maps with integer keys
+    if (object is MapValue) {
+      if (!object.value.containsKey(index)) {
+        throw ResolutionError.missingKey(index);
+      }
+      return object.get(index);
+    }
+    
+    if (object is Map) {
+      if (!object.containsKey(indexValue)) {
+        throw ResolutionError.missingKey(index);
+      }
+      return object[indexValue];
+    }
+    
+    throw StateError('Cannot index ${object.runtimeType} with integer');
+  }
+
+  @override
+  List<Object?> get props => [index];
+}
+
+class DoubleQualifier extends Qualifier {
+  DoubleQualifier(this.value);
+
+  final DoubleValue value;
+
+  @override
+  qualify(Activation activation, object) {
+    if (object == null) {
+      throw ResolutionError.missingKey(value);
+    }
+    
+    // Maps with double keys are valid in CEL for dynamic data
+    if (object is MapValue) {
+      if (!object.value.containsKey(value)) {
+        throw ResolutionError.missingKey(value);
+      }
+      return object.get(value);
+    }
+    
+    // For regular Dart maps, convert to appropriate key type
+    if (object is Map) {
+      final doubleKey = value.value;
+      if (!object.containsKey(doubleKey)) {
+        throw ResolutionError.missingKey(value);
+      }
+      return object[doubleKey];
+    }
+    
+    throw InvalidKeyTypeError(value.runtimeType);
   }
 
   @override
@@ -148,7 +287,7 @@ class ProtobufFieldQualifier extends Qualifier {
   @override
   qualify(Activation activation, object) {
     if (object == null) {
-      throw StateError('Trying to read field $fieldName on null');
+      throw NoSuchFieldError(fieldName, Null);
     }
     
     // Handle CEL MessageValue (protobuf messages wrapped in CEL)

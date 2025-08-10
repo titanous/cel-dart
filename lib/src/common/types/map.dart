@@ -40,7 +40,17 @@ class MapValue extends Value implements Indexer, Container, Sizer {
   @override
   Value get(Value index) {
     // Simplified compared to https://github.com/google/cel-go/blob/377a0bba20d07926e0583b4e604509ca7f3583b7/common/types/map.go#L272.
-    return typeAdapter.nativeToValue(value[index]);
+    final result = value[index];
+    if (result == null) {
+      // This could be either a missing key or a null value
+      // We need to check if the key exists
+      if (!value.containsKey(index)) {
+        // Key doesn't exist - this should be handled by the caller
+        // Return null to indicate missing key
+        return typeAdapter.nativeToValue(null);
+      }
+    }
+    return typeAdapter.nativeToValue(result);
   }
 
   @override
