@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:antlr4/antlr4.dart';
 import 'package:cel/src/operators/operators.dart';
@@ -5,6 +6,7 @@ import 'package:cel/src/operators/operators.dart';
 import '../cel/expr.dart';
 import 'gen/CELLexer.dart';
 import 'gen/CELParser.dart';
+import 'unescape.dart';
 
 /// Low-level Parser that parses CEL code into an [Expr]. Exposed for testing
 /// purposes. Most users should use [Environment.compile] insetad. Based on
@@ -156,7 +158,21 @@ List<Expr> visitListInit(ListInitContext? elems) {
 Expr visitBytes(BytesContext tree) {
   // Looks like `b"abc"`.
   // Gotta remove the starting 'b' and unquote the rest.
-  return BytesLiteralExpr(unquote(tree.text.substring(1)).codeUnits);
+  final text = tree.text;
+  if (text.isEmpty) {
+    return BytesLiteralExpr([]);
+  }
+  
+  try {
+    final unescaped = unescape(text.substring(1), true);
+    return BytesLiteralExpr(unescaped.codeUnits);
+  } catch (e) {
+    // Handle empty bytes case
+    if (text == 'b""' || text == "b''") {
+      return BytesLiteralExpr([]);
+    }
+    rethrow;
+  }
 }
 
 Expr visitDouble(DoubleContext tree) {
@@ -263,7 +279,12 @@ Expr visitRelation(RelationContext tree) {
 }
 
 Expr visitString(StringContext tree) {
-  return StringLiteralExpr(unquote(tree.text));
+  try {
+    return StringLiteralExpr(unescape(tree.text, false));
+  } catch (e) {
+    // Fallback to simple unquote for backward compatibility
+    return StringLiteralExpr(unquote(tree.text));
+  }
 }
 
 // Based on

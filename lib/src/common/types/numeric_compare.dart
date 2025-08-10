@@ -46,6 +46,16 @@ class NumericCompare {
       return leftNum == rightNum;
     }
     
+    // Handle list equality
+    if (_isList(left) && _isList(right)) {
+      return _listsEqual(left.value as List, right.value as List);
+    }
+    
+    // Handle map equality
+    if (_isMap(left) && _isMap(right)) {
+      return _mapsEqual(left.value as Map, right.value as Map);
+    }
+    
     // For non-numeric types, use standard equality
     return left.value == right.value;
   }
@@ -54,5 +64,47 @@ class NumericCompare {
     return value.type.name == 'int' || 
            value.type.name == 'uint' || 
            value.type.name == 'double';
+  }
+  
+  static bool _isList(Value value) {
+    return value.type.name == 'list';
+  }
+  
+  static bool _isMap(Value value) {
+    return value.type.name == 'map';
+  }
+  
+  static bool _listsEqual(List left, List right) {
+    if (left.length != right.length) {
+      return false;
+    }
+    
+    for (var i = 0; i < left.length; i++) {
+      final leftVal = left[i] is Value ? left[i] : IntValue(left[i]);
+      final rightVal = right[i] is Value ? right[i] : IntValue(right[i]);
+      if (!equals(leftVal, rightVal)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  static bool _mapsEqual(Map leftMap, Map rightMap) {
+    if (leftMap.length != rightMap.length) {
+      return false;
+    }
+    
+    for (final key in leftMap.keys) {
+      if (!rightMap.containsKey(key)) {
+        return false;
+      }
+      
+      final leftVal = leftMap[key] is Value ? leftMap[key] : IntValue(leftMap[key]);
+      final rightVal = rightMap[key] is Value ? rightMap[key] : IntValue(rightMap[key]);
+      if (!equals(leftVal, rightVal)) {
+        return false;
+      }
+    }
+    return true;
   }
 }
