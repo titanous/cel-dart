@@ -14,6 +14,7 @@ import '../common/types/string.dart';
 import '../common/types/int.dart';
 import '../common/types/double.dart';
 import '../common/types/uint.dart';
+import '../common/types/error.dart';
 
 abstract class Attribute extends Equatable {
   dynamic resolve(Activation activation);
@@ -39,22 +40,24 @@ class MaybeAttribute extends Attribute {
   // https://github.com/google/cel-go/blob/32ac6133c6b8eca8bb76e17e6ad50a1eb757778a/interpreter/attributes.go#L490
   @override
   resolve(Activation activation) {
-    ResolutionError? lastError;
+    dynamic lastResult;
     for (final attribute in namespaceAttributes) {
-      try {
-        return attribute.resolve(activation);
-      } on ResolutionError catch (e) {
-        lastError = e;
-        // If it's a missing attribute error, try the next candidate
-        if (e.isMissingAttribute()) {
-          continue;
-        }
-        // For missing key/index errors, propagate them immediately
-        rethrow;
+      final result = attribute.resolve(activation);
+      // If we got a non-error value, return it
+      if (result is! ErrorValue) {
+        return result;
       }
+      // Save the error and try the next namespace
+      lastResult = result;
+      // Check if it's a missing attribute error (try next namespace)
+      if (result.message.startsWith('no such attribute:')) {
+        continue;
+      }
+      // For other errors (missing key/index), return immediately
+      return result;
     }
-    // If we exhausted all candidates, throw the last error or a generic one
-    throw lastError ?? ResolutionError.missingAttribute(namespaceAttributes.first.toString());
+    // If we exhausted all candidates, return the last error or a generic one
+    return lastResult ?? ErrorValue('no such attribute: ${namespaceAttributes.first}');
   }
 
   @override
@@ -77,7 +80,7 @@ class AbsoluteAttribute extends NamespaceAttribute {
     if (object == null && activation is EvalActivation && 
         !activation.input.containsKey(namespaceName)) {
       // Variable is truly unbound, not just null
-      throw ResolutionError.missingAttribute(namespaceName);
+      return ErrorValue('no such attribute: $namespaceName');
     }
     return applyQualifiers(activation, object, qualifiers);
   }
@@ -142,8 +145,14 @@ class StringQualifier extends Qualifier {
 
   @override
   qualify(Activation activation, object) {
+    // Return error for null object
     if (object == null) {
-      throw ResolutionError.missingKey(StringValue(value));
+      return ErrorValue('no such key: ${StringValue(value)}');
+    }
+    
+    // Handle errors passed through
+    if (object is ErrorValue) {
+      return object;
     }
     
     // Handle raw protobuf messages - wrap them in MessageValue
@@ -160,7 +169,7 @@ class StringQualifier extends Qualifier {
       try {
         return messageValue.get(key);
       } catch (e) {
-        throw ResolutionError.missingKey(key);
+        return ErrorValue('no such key: $key');
       }
     }
     
@@ -168,7 +177,7 @@ class StringQualifier extends Qualifier {
     if (object is MapValue) {
       final key = StringValue(value);
       if (!object.value.containsKey(key)) {
-        throw ResolutionError.missingKey(key);
+        return ErrorValue('no such key: $key');
       }
       return object.get(key);
     }
@@ -179,14 +188,14 @@ class StringQualifier extends Qualifier {
       try {
         return object.get(key);
       } catch (e) {
-        throw ResolutionError.missingKey(key);
+        return ErrorValue('no such key: $key');
       }
     }
     
     // Handle plain Dart maps
     if (object is Map) {
       if (!object.containsKey(value)) {
-        throw ResolutionError.missingKey(StringValue(value));
+        return ErrorValue('no such key: ${StringValue(value)}');
       }
       return object[value];
     }
@@ -195,7 +204,7 @@ class StringQualifier extends Qualifier {
     try {
       return object[value];
     } catch (_) {
-      throw ResolutionError.missingKey(StringValue(value));
+      return ErrorValue('no such key: ${StringValue(value)}');
     }
   }
 
@@ -211,7 +220,12 @@ class IndexQualifier extends Qualifier {
   @override
   qualify(Activation activation, object) {
     if (object == null) {
-      throw ResolutionError.missingIndex(index);
+      return ErrorValue('index out of bounds: $index');
+    }
+    
+    // Handle errors passed through
+    if (object is ErrorValue) {
+      return object;
     }
     
     // Get the numeric value from the index
@@ -221,14 +235,14 @@ class IndexQualifier extends Qualifier {
     } else if (index is UintValue) {
       indexValue = (index as UintValue).value.toInt();
     } else {
-      throw InvalidKeyTypeError(index.runtimeType);
+      return ErrorValue('invalid index type: ${index.runtimeType}');
     }
     
     // Handle CEL ListValue
     if (object is ListValue) {
       final list = object.value;
       if (indexValue < 0 || indexValue >= list.length) {
-        throw ResolutionError.missingIndex(index);
+        return ErrorValue('index out of bounds: $index');
       }
       return list[indexValue];
     }
@@ -236,7 +250,7 @@ class IndexQualifier extends Qualifier {
     // Handle Dart lists
     if (object is List) {
       if (indexValue < 0 || indexValue >= object.length) {
-        throw ResolutionError.missingIndex(index);
+        return ErrorValue('index out of bounds: $index');
       }
       return object[indexValue];
     }
@@ -244,19 +258,19 @@ class IndexQualifier extends Qualifier {
     // Handle maps with integer keys
     if (object is MapValue) {
       if (!object.value.containsKey(index)) {
-        throw ResolutionError.missingKey(index);
+        return ErrorValue('no such key: $index');
       }
       return object.get(index);
     }
     
     if (object is Map) {
       if (!object.containsKey(indexValue)) {
-        throw ResolutionError.missingKey(index);
+        return ErrorValue('no such key: $index');
       }
       return object[indexValue];
     }
     
-    throw StateError('Cannot index ${object.runtimeType} with integer');
+    return ErrorValue('Cannot index ${object.runtimeType} with integer');
   }
 
   @override
@@ -271,13 +285,18 @@ class DoubleQualifier extends Qualifier {
   @override
   qualify(Activation activation, object) {
     if (object == null) {
-      throw ResolutionError.missingKey(value);
+      return ErrorValue('no such key: $value');
+    }
+    
+    // Handle errors passed through
+    if (object is ErrorValue) {
+      return object;
     }
     
     // Maps with double keys are valid in CEL for dynamic data
     if (object is MapValue) {
       if (!object.value.containsKey(value)) {
-        throw ResolutionError.missingKey(value);
+        return ErrorValue('no such key: $value');
       }
       return object.get(value);
     }
@@ -286,12 +305,12 @@ class DoubleQualifier extends Qualifier {
     if (object is Map) {
       final doubleKey = value.value;
       if (!object.containsKey(doubleKey)) {
-        throw ResolutionError.missingKey(value);
+        return ErrorValue('no such key: $value');
       }
       return object[doubleKey];
     }
     
-    throw InvalidKeyTypeError(value.runtimeType);
+    return ErrorValue('type does not support indexing: ${object.runtimeType}');
   }
 
   @override

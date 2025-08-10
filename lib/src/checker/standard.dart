@@ -9,5 +9,7 @@ import 'declaration.dart';
 // This is actually not useful yet. See https://github.com/atn832/cel-dart/blob/01b30af236478bbb181a37c60df8405ecfc87052/README.md?plain=1#L245.
 final List<Declaration> standardDeclarations = [
   // String functions.
-  FunctionDeclaration(Overload(Overloads.startsWith.name))
+  FunctionDeclaration(Overload(Overloads.startsWith.name)),
+  // Field presence testing
+  FunctionDeclaration(Overload('has'))
 ];

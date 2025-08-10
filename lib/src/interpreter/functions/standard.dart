@@ -12,6 +12,8 @@ import 'package:cel/src/common/types/traits/matcher.dart';
 import 'package:cel/src/common/types/traits/math.dart';
 import 'package:cel/src/common/types/traits/receiver.dart';
 import 'package:cel/src/common/types/traits/sizer.dart';
+import 'package:cel/src/common/types/traits/field_tester.dart';
+import 'package:cel/src/common/types/pb/message.dart';
 
 import '../../common/overloads/overloads.dart';
 import '../../operators/operators.dart';
@@ -276,6 +278,24 @@ List<Overload> standardOverloads() {
         throw StateError('$value should be a DoubleValue');
       }
       return MathFunctions.isFinite(value);
+    }),
+    
+    // has() function for field presence testing
+    Overload('has', unaryOperator: (value) {
+      // The has() macro should have been expanded during parsing
+      // This is a fallback implementation for direct has() calls
+      // In practice, has() is usually called on a field selector like has(msg.field)
+      // which gets transformed into a presence test during macro expansion
+      if (value is MapValue) {
+        // For maps, has() checks if a key exists (but this is rarely used directly)
+        return BooleanValue(false);
+      }
+      if (value is MessageValue) {
+        // For messages, has() checks if a field is set (but needs field name)
+        return BooleanValue(false);
+      }
+      // Default behavior - field is present if value is not null
+      return BooleanValue(value != null);
     }),
     
     // String extension functions
