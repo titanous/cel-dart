@@ -1,10 +1,22 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:fixnum/fixnum.dart';
+import 'package:protobuf/protobuf.dart' as pb;
 import 'package:cel/cel.dart';
 import '../gen/cel/expr/conformance/test/simple.pb.dart';
 import '../gen/cel/expr/value.pb.dart' as value_pb;
 import '../gen/cel/expr/eval.pb.dart';
+
+// Import Well-Known Types for test parsing
+import '../gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
+import '../gen/google/protobuf/timestamp.pb.dart' as pb_timestamp;
+import '../gen/google/protobuf/duration.pb.dart' as pb_duration;
+import '../gen/google/protobuf/any.pb.dart' as pb_any;
+import '../gen/google/protobuf/empty.pb.dart' as pb_empty;
+import '../gen/google/protobuf/struct.pb.dart' as pb_struct;
+import '../gen/google/protobuf/field_mask.pb.dart' as pb_field_mask;
+import '../gen/cel/expr/conformance/proto2/test_all_types.pb.dart' as proto2;
+import '../gen/cel/expr/conformance/proto3/test_all_types.pb.dart' as proto3;
 
 /// Test result for a single conformance test
 class TestResult {
@@ -60,7 +72,8 @@ class ConformanceTestRunner {
     if (testFile.endsWith('.json')) {
       // Parse JSON using Proto3 JSON format
       final jsonData = json.decode(content);
-      testFileProto = SimpleTestFile.create()..mergeFromProto3Json(jsonData);
+      final typeRegistry = _createTypeRegistry();
+      testFileProto = SimpleTestFile.create()..mergeFromProto3Json(jsonData, typeRegistry: typeRegistry);
     } else {
       // Parse textproto
       testFileProto = SimpleTestFile();
@@ -346,6 +359,37 @@ class ConformanceTestRunner {
       return value.substring(1, value.length - 1);
     }
     return value;
+  }
+  
+  /// Create a TypeRegistry with Well-Known Types for JSON parsing
+  pb.TypeRegistry _createTypeRegistry() {
+    final types = <pb.GeneratedMessage>[
+      // Well-Known Types
+      pb_wrappers.DoubleValue.getDefault(),
+      pb_wrappers.FloatValue.getDefault(),
+      pb_wrappers.Int64Value.getDefault(),
+      pb_wrappers.UInt64Value.getDefault(),
+      pb_wrappers.Int32Value.getDefault(),
+      pb_wrappers.UInt32Value.getDefault(),
+      pb_wrappers.BoolValue.getDefault(),
+      pb_wrappers.StringValue.getDefault(),
+      pb_wrappers.BytesValue.getDefault(),
+      
+      pb_timestamp.Timestamp.getDefault(),
+      pb_duration.Duration.getDefault(),
+      pb_any.Any.getDefault(),
+      pb_empty.Empty.getDefault(),
+      pb_struct.Struct.getDefault(),
+      pb_struct.Value.getDefault(),
+      pb_struct.ListValue.getDefault(),
+      pb_field_mask.FieldMask.getDefault(),
+      
+      // Test types
+      proto2.TestAllTypes.getDefault(),
+      proto3.TestAllTypes.getDefault(),
+    ];
+    
+    return pb.TypeRegistry(types);
   }
   
 }
