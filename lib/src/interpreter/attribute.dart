@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:protobuf/protobuf.dart';
 import '../common/types/ref/value.dart';
 import '../common/types/pb/adapter.dart';
+import '../common/types/pb/message.dart';
 import '../common/types/provider.dart' as cel_provider;
 import '../common/types/map.dart';
 import '../common/types/list.dart';
@@ -91,24 +92,28 @@ class RelativeAttribute extends Attribute {
   RelativeAttribute(this.operand);
 
   Interpretable operand;
+  final List<Qualifier> qualifiers = [];
 
   // https://github.com/google/cel-go/blob/32ac6133c6b8eca8bb76e17e6ad50a1eb757778a/interpreter/attributes.go#L570
   @override
   resolve(Activation activation) {
-    final value = operand.evaluate(activation);
-    // TODO: support qualifiers.
-    throw UnimplementedError();
+    var value = operand.evaluate(activation);
+    
+    // Apply all qualifiers to the value
+    for (final qualifier in qualifiers) {
+      value = qualifier.qualify(activation, value);
+    }
+    
+    return value;
   }
 
   @override
   void addQualifier(Qualifier qualifier) {
-    // TODO: implement addQualifier
-    throw UnimplementedError();
+    qualifiers.add(qualifier);
   }
 
   @override
-  // TODO: implement props
-  List<Object?> get props => throw UnimplementedError();
+  List<Object?> get props => [operand, qualifiers];
 }
 
 abstract class Qualifier extends Equatable {
@@ -144,6 +149,11 @@ class ProtobufFieldQualifier extends Qualifier {
   qualify(Activation activation, object) {
     if (object == null) {
       throw StateError('Trying to read field $fieldName on null');
+    }
+    
+    // Handle CEL MessageValue (protobuf messages wrapped in CEL)
+    if (object is MessageValue) {
+      return object.get(StringValue(fieldName));
     }
     
     // Handle CEL MapValue

@@ -10,3 +10,4 @@ pubspec.lock
 
 # Created by `dart doc`.
 doc/
+.conformance_snapshots/

@@ -386,13 +386,12 @@ void main() {
           final p = environment.makeProgram(ast);
           expect(p.evaluate({}), 'abcd');
         });
-        test('bytes concatenation is not supported', () {
+        test('bytes concatenation', () {
           final environment = Environment.standard();
           final ast = environment.compile('b"ab" + b"cd"');
-          expect(() {
-            final p = environment.makeProgram(ast);
-            p.evaluate({});
-          }, throwsUnimplementedError);
+          final p = environment.makeProgram(ast);
+          // ASCII values: 'a'=97, 'b'=98, 'c'=99, 'd'=100
+          expect(p.evaluate({}), [97, 98, 99, 100]);
         });
         test('lists', () {
           final environment = Environment.standard();
