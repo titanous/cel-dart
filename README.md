@@ -27,6 +27,45 @@ void main() {
 
 Prints out `true`.
 
+## Custom Functions
+
+You can extend CEL with custom functions by implementing a custom `Library`:
+
+```dart
+import 'package:cel/cel.dart';
+
+class ValidationLibrary extends Library {
+  @override
+  List<ProgramOption> get programOptions => [
+    functions([
+      Overload('isEmail', unaryOperator: (value) {
+        if (value is StringValue) {
+          final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+          return BooleanValue(emailRegex.hasMatch(value.value));
+        }
+        return BooleanValue(false);
+      }),
+    ]),
+  ];
+
+  @override
+  List<EnvironmentOption> get compileEnvironmentOptions => [];
+}
+
+void main() {
+  final env = Environment.standard();
+  final library = ValidationLibrary();
+  library.toEnvironmentOption()(env);
+  
+  final ast = env.compile('isEmail("user@example.com")');
+  final program = env.makeProgram(ast);
+  final result = program.evaluate({});
+  print(result); // true
+}
+```
+
+See `example/custom_functions_example.dart` for a complete example with multiple validation functions.
+
 ## Differences with cel-go
 
 The main difference is that cel-go supports checking types at compilation time, whereas we throw runtime errors at evaluation time. Also we don't support the `timestamps` nor `durations` Protobufs, type conversions and the `type` keyword.
