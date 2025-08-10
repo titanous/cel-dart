@@ -89,23 +89,46 @@ class LogicalAndInterpretable implements Interpretable {
   @override
   evaluate(Activation activation) {
     final left = leftHandSide.evaluate(activation);
-    if (isError(left)) return left;
-    if (left is! BooleanValue) {
-      return ErrorValue('AND operator requires boolean operands, got ${left.type.name}');
-    }
     
-    // Short-circuit evaluation: if left is false, don't evaluate right
-    if (!left.value) {
+    // Check if left is a boolean false (short-circuit)
+    if (left is BooleanValue && !left.value) {
       return BooleanValue(false);
     }
     
+    // Evaluate right side
     final right = rightHandSide.evaluate(activation);
-    if (isError(right)) return right;
-    if (right is! BooleanValue) {
+    
+    // If right is false, return false regardless of left
+    if (right is BooleanValue && !right.value) {
+      return BooleanValue(false);
+    }
+    
+    // Now handle error cases
+    // If left is an error and right is true, return the error
+    if (isError(left) && right is BooleanValue && right.value) {
+      return left;
+    }
+    
+    // If right is an error and left is true, return the error
+    if (isError(right) && left is BooleanValue && left.value) {
+      return right;
+    }
+    
+    // If both are booleans and both are true
+    if (left is BooleanValue && right is BooleanValue) {
+      return BooleanValue(true);
+    }
+    
+    // Type error cases
+    if (!isError(left) && left is! BooleanValue) {
+      return ErrorValue('AND operator requires boolean operands, got ${left.type.name}');
+    }
+    if (!isError(right) && right is! BooleanValue) {
       return ErrorValue('AND operator requires boolean operands, got ${right.type.name}');
     }
     
-    return BooleanValue(right.value);
+    // Default to returning true if we somehow get here
+    return BooleanValue(true);
   }
 }
 
@@ -118,23 +141,46 @@ class LogicalOrInterpretable implements Interpretable {
   @override
   evaluate(Activation activation) {
     final left = leftHandSide.evaluate(activation);
-    if (isError(left)) return left;
-    if (left is! BooleanValue) {
-      return ErrorValue('OR operator requires boolean operands, got ${left.type.name}');
-    }
     
-    // Short-circuit evaluation: if left is true, don't evaluate right
-    if (left.value) {
+    // Check if left is a boolean true (short-circuit)
+    if (left is BooleanValue && left.value) {
       return BooleanValue(true);
     }
     
+    // Evaluate right side
     final right = rightHandSide.evaluate(activation);
-    if (isError(right)) return right;
-    if (right is! BooleanValue) {
+    
+    // If right is true, return true regardless of left
+    if (right is BooleanValue && right.value) {
+      return BooleanValue(true);
+    }
+    
+    // Now handle error cases
+    // If left is an error and right is false, return the error
+    if (isError(left) && right is BooleanValue && !right.value) {
+      return left;
+    }
+    
+    // If right is an error and left is false, return the error
+    if (isError(right) && left is BooleanValue && !left.value) {
+      return right;
+    }
+    
+    // If both are booleans and both are false
+    if (left is BooleanValue && right is BooleanValue) {
+      return BooleanValue(false);
+    }
+    
+    // Type error cases
+    if (!isError(left) && left is! BooleanValue) {
+      return ErrorValue('OR operator requires boolean operands, got ${left.type.name}');
+    }
+    if (!isError(right) && right is! BooleanValue) {
       return ErrorValue('OR operator requires boolean operands, got ${right.type.name}');
     }
     
-    return BooleanValue(right.value);
+    // Default to returning false if we somehow get here
+    return BooleanValue(false);
   }
 }
 

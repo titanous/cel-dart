@@ -1,4 +1,5 @@
 import 'package:cel/src/common/types/bool.dart';
+import 'package:cel/src/common/types/error.dart';
 import 'package:cel/src/common/types/ref/provider.dart';
 import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/traits/container.dart';
@@ -45,9 +46,8 @@ class MapValue extends Value implements Indexer, Container, Sizer {
       // This could be either a missing key or a null value
       // We need to check if the key exists
       if (!value.containsKey(index)) {
-        // Key doesn't exist - this should be handled by the caller
-        // Return null to indicate missing key
-        return typeAdapter.nativeToValue(null);
+        // Key doesn't exist - return error like cel-go does
+        return ErrorValue('no such key: $index');
       }
     }
     return typeAdapter.nativeToValue(result);
