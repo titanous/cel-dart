@@ -20,6 +20,7 @@ import 'package:cel/src/common/types/duration.dart';
 import 'package:cel/src/common/types/pb/message.dart';
 import 'package:cel/src/common/types/pb/registry.dart';
 import 'package:cel/src/common/containers/container.dart';
+import 'package:cel/src/common/types/error.dart';
 
 // cel-go description:
 // NewRegistry accepts a list of proto message instances and returns a type
@@ -269,6 +270,11 @@ Value _nativeToValue(TypeAdapter adapter, dynamic value) {
   // Handle other protobuf messages
   if (value is GeneratedMessage) {
     return MessageValue(value, adapter);
+  }
+  
+  // Handle ErrorValue
+  if (value is ErrorValue) {
+    return value;
   }
   
   throw UnimplementedError('Unsupported type for $value: ${value.runtimeType}');

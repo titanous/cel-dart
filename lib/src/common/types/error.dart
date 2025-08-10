@@ -17,6 +17,11 @@ class ErrorValue extends Value {
   Object? get value => this;
 
   @override
+  dynamic convertToNative() {
+    throw Exception(message);
+  }
+
+  @override
   String toString() => 'error: $message';
   
   @override

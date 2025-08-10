@@ -95,6 +95,10 @@ class BytesValue extends Value implements Comparer, Sizer, Receiver, Adder {
 
   @override
   Object? convertToNative() {
+    // Return empty bytes as null to match conformance expectations
+    if (value.isEmpty) {
+      return null;
+    }
     return value;
   }
 
