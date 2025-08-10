@@ -1,4 +1,4 @@
-// Generated from CEL.g4 by ANTLR 4.11.1
+// Generated from CEL.g4 by ANTLR 4.13.2
 // ignore_for_file: unused_import, unused_local_variable, prefer_single_quotes
 import 'package:antlr4/antlr4.dart';
 
@@ -279,4 +279,22 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [CELParser.literal].
   /// [ctx] the parse tree
   void exitNull(NullContext ctx);
+
+  /// Enter a parse tree produced by the [SimpleIdentifier]
+  /// labeled alternative in [file.parserName>.escapeIdent].
+  /// [ctx] the parse tree
+  void enterSimpleIdentifier(SimpleIdentifierContext ctx);
+  /// Exit a parse tree produced by the [SimpleIdentifier]
+  /// labeled alternative in [CELParser.escapeIdent].
+  /// [ctx] the parse tree
+  void exitSimpleIdentifier(SimpleIdentifierContext ctx);
+
+  /// Enter a parse tree produced by the [EscapedIdentifier]
+  /// labeled alternative in [file.parserName>.escapeIdent].
+  /// [ctx] the parse tree
+  void enterEscapedIdentifier(EscapedIdentifierContext ctx);
+  /// Exit a parse tree produced by the [EscapedIdentifier]
+  /// labeled alternative in [CELParser.escapeIdent].
+  /// [ctx] the parse tree
+  void exitEscapedIdentifier(EscapedIdentifierContext ctx);
 }

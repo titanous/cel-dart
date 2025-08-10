@@ -1,4 +1,4 @@
-// Generated from CEL.g4 by ANTLR 4.11.1
+// Generated from CEL.g4 by ANTLR 4.13.2
 // ignore_for_file: unused_import, unused_local_variable, prefer_single_quotes
 import 'package:antlr4/antlr4.dart';
 
@@ -273,6 +273,22 @@ class CELBaseListener implements CELListener {
   /// The default implementation does nothing.
   @override
   void exitNull(NullContext ctx) {}
+
+  /// The default implementation does nothing.
+  @override
+  void enterSimpleIdentifier(SimpleIdentifierContext ctx) {}
+
+  /// The default implementation does nothing.
+  @override
+  void exitSimpleIdentifier(SimpleIdentifierContext ctx) {}
+
+  /// The default implementation does nothing.
+  @override
+  void enterEscapedIdentifier(EscapedIdentifierContext ctx) {}
+
+  /// The default implementation does nothing.
+  @override
+  void exitEscapedIdentifier(EscapedIdentifierContext ctx) {}
 
   /// The default implementation does nothing.
   @override

@@ -97,6 +97,12 @@ Expr visit(ParseTree tree) {
   if (tree is CreateMessageContext) {
     return visitCreateMessage(tree);
   }
+  if (tree is SimpleIdentifierContext) {
+    return visitSimpleIdentifier(tree);
+  }
+  if (tree is EscapedIdentifierContext) {
+    return visitEscapedIdentifier(tree);
+  }
 
   throw UnsupportedError(
       'Unknown parse element ${tree.text} of type ${tree.runtimeType}');
@@ -285,7 +291,7 @@ Expr visitMemberCall(MemberCallContext tree) {
 
 Expr visitSelect(SelectContext tree) {
   final operand = visit(tree.member()!);
-  final id = tree.id!.text!;
+  final id = getIdentifierText(tree.id!);
   return SelectExpr(field: id, operand: operand);
 }
 
@@ -413,7 +419,10 @@ List<CreateStructEntry> visitFieldInitializerList(FieldInitializerListContext ct
     }
     
     final field = fields[i];
-    final fieldName = field.IDENTIFIER()?.text;
+    // Handle both regular and escaped identifiers
+    final fieldName = field.escapeIdent() != null 
+        ? getIdentifierText(field.escapeIdent()!)
+        : null;
     if (fieldName == null) {
       continue; // Skip if no field name
     }
@@ -427,6 +436,29 @@ List<CreateStructEntry> visitFieldInitializerList(FieldInitializerListContext ct
 }
 
 String findOperator(String operator) => Operators.operators[operator]!.name;
+
+// Helper to extract the text from an identifier (regular or escaped)
+String getIdentifierText(ParseTree idContext) {
+  if (idContext is SimpleIdentifierContext) {
+    return idContext.id!.text!;
+  } else if (idContext is EscapedIdentifierContext) {
+    // Remove backticks and return the inner text
+    final text = idContext.id!.text!;
+    return text.substring(1, text.length - 1);
+  }
+  // Fallback for backward compatibility
+  return idContext.text!;
+}
+
+Expr visitSimpleIdentifier(SimpleIdentifierContext tree) {
+  return StringLiteralExpr(tree.id!.text!);
+}
+
+Expr visitEscapedIdentifier(EscapedIdentifierContext tree) {
+  // Remove backticks from escaped identifier
+  final text = tree.id!.text!;
+  return StringLiteralExpr(text.substring(1, text.length - 1));
+}
 
 // TODO: implement unescape in the unquote. See
 // https://github.com/google/cel-go/blob/442811f1e440a2052c68733a4dca0ab3e8898948/parser/parser.go#L843.
