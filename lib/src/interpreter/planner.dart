@@ -42,6 +42,9 @@ class Planner {
     if (expression is MessageExpr) {
       return planCreateMessage(expression);
     }
+    if (expression is PresenceTestExpr) {
+      return planPresenceTest(expression);
+    }
     throw Exception('Unsupported Expression type: ${expression.runtimeType}.');
   }
 
@@ -135,6 +138,22 @@ class Planner {
       attribute = relativeAttribute(operand);
     }
     final qualifier = attributeFactory.qualifier(select.field);
+    attribute.addQualifier(qualifier);
+    return attribute;
+  }
+
+  // Plan presence test for has() macro
+  Interpretable planPresenceTest(PresenceTestExpr presenceTest) {
+    final operand = plan(presenceTest.operand);
+    
+    var attribute = operand;
+    if (attribute is! AttributeValueInterpretable) {
+      // Set up a relative attribute.
+      attribute = relativeAttribute(operand);
+    }
+    
+    // Add a presence test qualifier for the field
+    final qualifier = PresenceTestQualifier(presenceTest.field);
     attribute.addQualifier(qualifier);
     return attribute;
   }

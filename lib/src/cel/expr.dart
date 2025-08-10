@@ -145,3 +145,15 @@ class MessageExpr extends Expr {
   @override
   List<Object?> get props => [typeName, entries];
 }
+
+// PresenceTest expression for has() macro
+// Represents a field presence test like has(msg.field)
+class PresenceTestExpr extends Expr {
+  PresenceTestExpr({required this.operand, required this.field});
+
+  final Expr operand;
+  final String field;
+
+  @override
+  List<Object?> get props => [operand, field];
+}

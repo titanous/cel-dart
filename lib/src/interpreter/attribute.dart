@@ -15,6 +15,7 @@ import '../common/types/int.dart';
 import '../common/types/double.dart';
 import '../common/types/uint.dart';
 import '../common/types/error.dart';
+import '../common/types/bool.dart';
 
 abstract class Attribute extends Equatable {
   dynamic resolve(Activation activation);
@@ -370,6 +371,101 @@ class ProtobufFieldQualifier extends Qualifier {
     // For now, use the default CEL type registry
     final adapter = ProtobufTypeAdapter(cel_provider.TypeRegistry());
     return adapter.getField(msg, fieldName);
+  }
+
+  @override
+  List<Object?> get props => [fieldName];
+}
+
+// Qualifier for presence testing (has() macro)
+class PresenceTestQualifier extends Qualifier {
+  PresenceTestQualifier(this.fieldName);
+
+  final String fieldName;
+
+  @override
+  qualify(Activation activation, object) {
+    if (object == null) {
+      return BooleanValue(false);
+    }
+    
+    // Handle ErrorValue - field is not present if accessing it produces an error
+    if (object is ErrorValue) {
+      return BooleanValue(false);
+    }
+    
+    // Handle CEL MessageValue (protobuf messages wrapped in CEL)
+    if (object is MessageValue) {
+      return BooleanValue(object.has(fieldName));
+    }
+    
+    // Handle CEL MapValue
+    if (object is MapValue) {
+      return object.contains(StringValue(fieldName));
+    }
+    
+    // Handle CEL ListValue (for index access, fieldName would be a number string)
+    if (object is ListValue) {
+      final index = int.tryParse(fieldName);
+      if (index != null) {
+        return BooleanValue(index >= 0 && index < object.value.length);
+      }
+      return BooleanValue(false);
+    }
+    
+    // Handle direct protobuf messages (most common case)
+    if (object is GeneratedMessage) {
+      return BooleanValue(_hasField(object));
+    }
+    
+    if (object is Value) {
+      // If it's already a CEL value, get the underlying protobuf message
+      final value = object.value;
+      if (value is GeneratedMessage) {
+        return BooleanValue(_hasField(value));
+      }
+    }
+    
+    // For other types, check if the field exists
+    try {
+      if (object is Map) {
+        return BooleanValue(object.containsKey(fieldName));
+      }
+      // For other objects, field is present if it's not null
+      final value = object[fieldName];
+      return BooleanValue(value != null);
+    } catch (_) {
+      return BooleanValue(false);
+    }
+  }
+  
+  bool _hasField(GeneratedMessage msg) {
+    final info = msg.info_;
+    try {
+      // Try both snake_case and camelCase field names
+      var field = info.byName[fieldName];
+      if (field == null) {
+        // Convert snake_case to camelCase
+        final camelCase = _snakeToCamel(fieldName);
+        field = info.byName[camelCase];
+      }
+      
+      if (field == null) {
+        return false;
+      }
+      
+      return msg.hasField(field.tagNumber);
+    } catch (_) {
+      return false;
+    }
+  }
+  
+  String _snakeToCamel(String snake) {
+    final parts = snake.split('_');
+    if (parts.isEmpty) return snake;
+    return parts[0] + parts.skip(1).map((p) => 
+      p.isEmpty ? '' : p[0].toUpperCase() + p.substring(1)
+    ).join();
   }
 
   @override

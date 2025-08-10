@@ -217,11 +217,6 @@ List<Overload> standardOverloads() {
       return string.match(regExp);
     }),
     
-    // has() function for field testing
-    // This is a macro in CEL spec but implemented as function here
-    // For now, this is a placeholder - proper macro support needed
-    // The macro expands has(msg.field) to msg.has("field")
-    
     // String functions - these use the Receiver trait
     // startsWith function for strings
     Overload('startsWith', binaryOperator: (target, arg) {
@@ -278,24 +273,6 @@ List<Overload> standardOverloads() {
         throw StateError('$value should be a DoubleValue');
       }
       return MathFunctions.isFinite(value);
-    }),
-    
-    // has() function for field presence testing
-    Overload('has', unaryOperator: (value) {
-      // The has() macro should have been expanded during parsing
-      // This is a fallback implementation for direct has() calls
-      // In practice, has() is usually called on a field selector like has(msg.field)
-      // which gets transformed into a presence test during macro expansion
-      if (value is MapValue) {
-        // For maps, has() checks if a key exists (but this is rarely used directly)
-        return BooleanValue(false);
-      }
-      if (value is MessageValue) {
-        // For messages, has() checks if a field is set (but needs field name)
-        return BooleanValue(false);
-      }
-      // Default behavior - field is present if value is not null
-      return BooleanValue(value != null);
     }),
     
     // String extension functions

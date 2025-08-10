@@ -357,9 +357,20 @@ ParseTree unnest(ParseTree t) {
 Expr visitIdentOrGlobalCall(IdentOrGlobalCallContext tree) {
   final name = '${tree.leadingDot?.text ?? ''}${tree.id!.text!}';
   if (tree.op != null) {
-    // TODO: Handle global call or macro properly.
-    return CallExpr(
-        function: name, args: tree.args!.e.map((e) => visit(e)).toList());
+    final args = tree.args!.e.map((e) => visit(e)).toList();
+    
+    // Handle has() macro expansion
+    if (name == 'has' && args.length == 1) {
+      final arg = args[0];
+      if (arg is SelectExpr) {
+        // has(msg.field) -> PresenceTestExpr
+        return PresenceTestExpr(operand: arg.operand, field: arg.field);
+      }
+      // Invalid argument to has() macro - fall through to regular function call
+      // The error will be handled at runtime
+    }
+    
+    return CallExpr(function: name, args: args);
   }
   // TODO: Check for reserved identifiers and throw errors.
 
