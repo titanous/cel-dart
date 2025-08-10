@@ -4,6 +4,7 @@ import 'package:cel/src/interpreter/errors.dart';
 import 'package:equatable/equatable.dart';
 import 'package:protobuf/protobuf.dart';
 import '../common/types/ref/value.dart';
+import '../common/types/ref/provider.dart';
 import '../common/types/pb/adapter.dart';
 import '../common/types/pb/message.dart';
 import '../common/types/provider.dart' as cel_provider;
@@ -143,6 +144,24 @@ class StringQualifier extends Qualifier {
   qualify(Activation activation, object) {
     if (object == null) {
       throw ResolutionError.missingKey(StringValue(value));
+    }
+    
+    // Handle raw protobuf messages - wrap them in MessageValue
+    if (object is GeneratedMessage) {
+      // Get the TypeRegistry from the activation if available
+      TypeAdapter? typeAdapter;
+      if (activation is EvalActivation) {
+        // Try to get the TypeRegistry if it's stored in a special key
+        // For now, we'll use the default TypeRegistry
+        typeAdapter = cel_provider.TypeRegistry();
+      }
+      final messageValue = MessageValue(object, typeAdapter);
+      final key = StringValue(value);
+      try {
+        return messageValue.get(key);
+      } catch (e) {
+        throw ResolutionError.missingKey(key);
+      }
     }
     
     // Handle CEL MapValue

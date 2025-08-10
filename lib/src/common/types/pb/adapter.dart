@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:protobuf/protobuf.dart';
+import 'package:fixnum/fixnum.dart';
 import '../ref/value.dart';
 import '../ref/provider.dart';
 import '../string.dart';
@@ -210,6 +211,9 @@ class ProtobufTypeAdapter {
     // Determine type based on runtime type
     if (value is bool) {
       return BooleanValue(value);
+    } else if (value is Int64) {
+      // Handle fixnum Int64 type
+      return IntValue(value.toInt());
     } else if (value is int) {
       // Default to signed int, but could be uint based on field definition
       return IntValue(value);
