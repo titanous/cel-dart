@@ -78,6 +78,9 @@ class ListValue extends Value implements Indexer, Container, Adder, Sizer {
 
   @override
   add(Value other) {
+    if (other is! ListValue) {
+      return ErrorValue('cannot add ${other.type.name} to list');
+    }
     return ListValue([...value, ...other.value], typeAdapter);
   }
   

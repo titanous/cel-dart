@@ -14,6 +14,7 @@ import '../bytes.dart';
 // import '../duration.dart'; // TODO: Implement when available
 import '../null_.dart';
 import 'message.dart';
+import '../../../gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
 
 /// Adapter for converting protobuf messages to CEL values
 class ProtobufTypeAdapter {
@@ -145,7 +146,13 @@ class ProtobufTypeAdapter {
     } else {
       // Handle singular fields
       if (!msg.hasField(field.tagNumber)) {
-        // Return default value for unset fields
+        // For wrapper types, return null for unset fields
+        // We check this by getting the field value and checking if it would be a wrapper
+        final defaultValue = msg.getField(field.tagNumber);
+        if (_isWrapperType(defaultValue)) {
+          return NullValue();
+        }
+        // Return default value for unset non-wrapper fields
         return _getDefaultValueForType(field.type);
       }
       final value = msg.getField(field.tagNumber);
@@ -153,10 +160,51 @@ class ProtobufTypeAdapter {
     }
   }
   
+  /// Check if a value is a wrapper type
+  bool _isWrapperType(dynamic value) {
+    if (value == null) return false;
+    return value is pb_wrappers.BoolValue ||
+           value is pb_wrappers.BytesValue ||
+           value is pb_wrappers.StringValue ||
+           value is pb_wrappers.DoubleValue ||
+           value is pb_wrappers.FloatValue ||
+           value is pb_wrappers.Int32Value ||
+           value is pb_wrappers.Int64Value ||
+           value is pb_wrappers.UInt32Value ||
+           value is pb_wrappers.UInt64Value;
+  }
+  
   /// Adapt a single value to CEL value based on its runtime type
   Value _adaptSingleValue(dynamic value) {
     if (value == null) {
       return NullValue();
+    }
+    
+    // Check for wrapper types first and auto-unwrap them
+    if (value is GeneratedMessage) {
+      // Check if this is a wrapper type
+      if (value is pb_wrappers.BoolValue) {
+        return BooleanValue(value.value);
+      } else if (value is pb_wrappers.BytesValue) {
+        return BytesValue(Uint8List.fromList(value.value));
+      } else if (value is pb_wrappers.StringValue) {
+        return StringValue(value.value);
+      } else if (value is pb_wrappers.DoubleValue) {
+        return DoubleValue(value.value);
+      } else if (value is pb_wrappers.FloatValue) {
+        return DoubleValue(value.value);
+      } else if (value is pb_wrappers.Int32Value) {
+        return IntValue(value.value);
+      } else if (value is pb_wrappers.Int64Value) {
+        return IntValue(value.value.toInt());
+      } else if (value is pb_wrappers.UInt32Value) {
+        return UintValue(value.value);
+      } else if (value is pb_wrappers.UInt64Value) {
+        return UintValue(value.value.toInt());
+      } else {
+        // Regular nested message
+        return adaptMessage(value);
+      }
     }
     
     // Determine type based on runtime type
@@ -175,9 +223,6 @@ class ProtobufTypeAdapter {
     } else if (value is ProtobufEnum) {
       // Enums are represented as integers
       return IntValue(value.value);
-    } else if (value is GeneratedMessage) {
-      // Nested message
-      return adaptMessage(value);
     } else {
       // Unknown type, return as null
       return NullValue();

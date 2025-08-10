@@ -167,6 +167,9 @@ Value _nativeToValue(TypeAdapter adapter, dynamic value) {
   }
   // Pass-through all Value types.
   // https://github.com/google/cel-go/blob/32ac6133c6b8eca8bb76e17e6ad50a1eb757778a/common/types/provider.go#L266-L289
+  if (value is NullValue) {
+    return value;
+  }
   if (value is BooleanValue) {
     return value;
   }
