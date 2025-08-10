@@ -135,3 +135,13 @@ class MapExpr extends Expr {
   @override
   List<Object?> get props => [entries];
 }
+
+class MessageExpr extends Expr {
+  MessageExpr({required this.typeName, required this.entries});
+
+  final String typeName;
+  final List<CreateStructEntry> entries;
+
+  @override
+  List<Object?> get props => [typeName, entries];
+}

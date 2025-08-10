@@ -203,3 +203,31 @@ class MapInterpretable implements Interpretable {
     return adapter.nativeToValue(map);
   }
 }
+
+// Interpretable for creating protobuf messages
+// For now, creates a map with a special type name field to distinguish from regular maps
+class MessageInterpretable implements Interpretable {
+  MessageInterpretable(this.typeName, this.keys, this.values, this.adapter);
+
+  final String typeName;
+  final List<Interpretable> keys;
+  final List<Interpretable> values;
+  final TypeAdapter adapter;
+
+  @override
+  evaluate(Activation activation) {
+    // For now, create a map with the field values plus a type indicator
+    // This will need to be enhanced when proper protobuf message creation is implemented
+    final evaluatedKeys = keys.map((k) => k.evaluate(activation)).toList();
+    final evaluatedValues = values.map((v) => v.evaluate(activation)).toList();
+    
+    final map = <Value, Value>{};
+    for (int i = 0; i < evaluatedKeys.length; i++) {
+      map[evaluatedKeys[i]] = evaluatedValues[i];
+    }
+    
+    // Add type information for later message reconstruction
+    map[adapter.nativeToValue('__message_type__')] = adapter.nativeToValue(typeName);
+    return adapter.nativeToValue(map);
+  }
+}

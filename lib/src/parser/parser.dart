@@ -94,6 +94,9 @@ Expr visit(ParseTree tree) {
   if (tree is IndexContext) {
     return visitIndex(tree);
   }
+  if (tree is CreateMessageContext) {
+    return visitCreateMessage(tree);
+  }
 
   throw UnsupportedError(
       'Unknown parse element ${tree.text} of type ${tree.runtimeType}');
@@ -347,6 +350,55 @@ Expr visitIdentOrGlobalCall(IdentOrGlobalCallContext tree) {
   // TODO: Check for reserved identifiers and throw errors.
 
   return IdentExpr(name);
+}
+
+// Based on cel-go visitCreateMessage implementation
+// https://github.com/google/cel-go/blob/442811f1e440a2052c68733a4dca0ab3e8898948/parser/parser.go#L620-L635
+Expr visitCreateMessage(CreateMessageContext tree) {
+  String messageName = '';
+  for (final id in tree.ids) {
+    if (messageName.isNotEmpty) {
+      messageName += '.';
+    }
+    messageName += id.text!;
+  }
+  if (tree.leadingDot != null) {
+    messageName = '.' + messageName;
+  }
+  
+  final entries = tree.entries != null
+      ? visitFieldInitializerList(tree.entries!)
+      : <CreateStructEntry>[];
+  
+  return MessageExpr(typeName: messageName, entries: entries);
+}
+
+// Helper method to visit field initializer list similar to cel-go
+// Based on VisitIFieldInitializerList from cel-go parser
+List<CreateStructEntry> visitFieldInitializerList(FieldInitializerListContext ctx) {
+  final result = <CreateStructEntry>[];
+  final cols = ctx.cols;
+  final vals = ctx.values;
+  final fields = ctx.fields;
+  
+  for (int i = 0; i < fields.length; i++) {
+    if (i >= cols.length || i >= vals.length) {
+      // This is the result of a syntax error detected elsewhere
+      return <CreateStructEntry>[];
+    }
+    
+    final field = fields[i];
+    final fieldName = field.IDENTIFIER()?.text;
+    if (fieldName == null) {
+      continue; // Skip if no field name
+    }
+    final value = visit(vals[i]);
+    
+    // Create a field entry - key is the field name as a string literal
+    result.add(CreateStructEntry(StringLiteralExpr(fieldName), value));
+  }
+  
+  return result;
 }
 
 String findOperator(String operator) => Operators.operators[operator]!.name;

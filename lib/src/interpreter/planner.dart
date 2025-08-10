@@ -39,6 +39,9 @@ class Planner {
     if (expression is MapExpr) {
       return planCreateMap(expression);
     }
+    if (expression is MessageExpr) {
+      return planCreateMessage(expression);
+    }
     throw Exception('Unsupported Expression type: ${expression.runtimeType}.');
   }
 
@@ -193,5 +196,14 @@ class Planner {
     // https://github.com/google/cel-go/blob/32ac6133c6b8eca8bb76e17e6ad50a1eb757778a/interpreter/planner.go#L644
     final constantValue = adapter.nativeToValue(constant.value);
     return InterpretableConst(constantValue);
+  }
+
+  // Plan message creation similar to planCreateMap but for protobuf messages
+  Interpretable planCreateMessage(MessageExpr expression) {
+    final keys = expression.entries.map((e) => plan(e.key)).toList();
+    final values = expression.entries.map((e) => plan(e.value)).toList();
+    // For now, treat message creation like map creation - this will need refinement
+    // when proper message type support is added
+    return MessageInterpretable(expression.typeName, keys, values, adapter);
   }
 }

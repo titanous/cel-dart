@@ -386,7 +386,9 @@ class ConformanceTestRunner {
       
       // Test types
       proto2.TestAllTypes.getDefault(),
+      proto2.TestAllTypes_NestedMessage.getDefault(),
       proto3.TestAllTypes.getDefault(),
+      proto3.TestAllTypes_NestedMessage.getDefault(),
     ];
     
     return pb.TypeRegistry(types);
