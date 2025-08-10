@@ -86,8 +86,13 @@ class Planner {
         return planCallBinary(expression, functionName, functionImplementation,
             interpretableArguments);
       default:
+        // Check if function has a functionOperator for variable arguments
+        if (functionImplementation.functionOperator != null) {
+          return planCallFunction(expression, functionName, functionImplementation,
+              interpretableArguments);
+        }
         throw UnsupportedError(
-            "Function $functionName. Only Binary functions are supported for now.");
+            "Function $functionName with ${interpretableArguments.length} arguments is not supported.");
     }
   }
 
@@ -157,6 +162,15 @@ class Planner {
 
   // In cel-go, it's called a Struct, but that's how it is called in the
   // Protobuf. In CEL, it's called a Map. So we use Map.
+  Interpretable planCallFunction(CallExpr expression, String functionName,
+      Overload functionImplementation, List<Interpretable> arguments) {
+    if (functionImplementation.functionOperator == null) {
+      throw Exception('No function operator implementation for function: $functionName');
+    }
+    return FunctionInterpretable(
+        functionImplementation.functionOperator!, arguments);
+  }
+
   // https://github.com/google/cel-spec/blob/master/doc/langdef.md#dynamic-values
   // https://github.com/google/cel-go/blob/442811f1e440a2052c68733a4dca0ab3e8898948/parser/parser.go#L682
   Interpretable planCreateMap(MapExpr expression) {

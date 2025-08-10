@@ -162,6 +162,19 @@ class BinaryInterpretable implements Interpretable {
   }
 }
 
+class FunctionInterpretable implements Interpretable {
+  FunctionInterpretable(this.functionOperator, this.arguments);
+
+  final FunctionOperator functionOperator;
+  final List<Interpretable> arguments;
+
+  @override
+  evaluate(Activation activation) {
+    final evaluatedArgs = arguments.map((arg) => arg.evaluate(activation)).toList();
+    return functionOperator(evaluatedArgs);
+  }
+}
+
 class ListInterpretable implements Interpretable {
   ListInterpretable(this.elements, this.adapter);
 

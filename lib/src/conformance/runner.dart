@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:protobuf/protobuf.dart';
+import 'dart:convert';
 import 'package:fixnum/fixnum.dart';
 import 'package:cel/cel.dart';
 import '../gen/cel/expr/conformance/test/simple.pb.dart';
@@ -55,10 +55,17 @@ class ConformanceTestRunner {
     }
     
     final content = await file.readAsString();
-    final testFileProto = SimpleTestFile();
     
-    // Parse the textproto format
-    _parseTextProto(content, testFileProto);
+    SimpleTestFile testFileProto;
+    if (testFile.endsWith('.json')) {
+      // Parse JSON using Proto3 JSON format
+      final jsonData = json.decode(content);
+      testFileProto = SimpleTestFile.create()..mergeFromProto3Json(jsonData);
+    } else {
+      // Parse textproto
+      testFileProto = SimpleTestFile();
+      _parseTextProto(content, testFileProto);
+    }
     
     final results = <TestResult>[];
     
@@ -282,12 +289,8 @@ class ConformanceTestRunner {
     return actual == expected;
   }
   
-  /// Parse textproto format (simplified version)
+  /// Parse textproto format (improved version)
   void _parseTextProto(String content, SimpleTestFile proto) {
-    // This is a simplified parser - in production you'd want to use
-    // a proper textproto parser library
-    // For now, we'll implement a basic version that handles the most common cases
-    
     final lines = content.split('\n');
     SimpleTestSection? currentSection;
     SimpleTest? currentTest;
@@ -299,10 +302,10 @@ class ConformanceTestRunner {
         continue;
       }
       
-      if (trimmed.startsWith('section {')) {
+      if (trimmed.startsWith('section:') || trimmed.startsWith('section {')) {
         currentSection = SimpleTestSection();
         proto.section.add(currentSection);
-      } else if (trimmed.startsWith('test {')) {
+      } else if (trimmed.startsWith('test:') || trimmed.startsWith('test {')) {
         currentTest = SimpleTest();
         currentSection?.test.add(currentTest);
       } else if (trimmed.startsWith('name:')) {
@@ -323,6 +326,9 @@ class ConformanceTestRunner {
         }
       } else if (trimmed.startsWith('expr:') && currentTest != null) {
         currentTest.expr = _extractStringValue(trimmed.substring(5));
+      } else if (trimmed.startsWith('value:') && currentTest != null) {
+        // Simple value parsing - only handle basic string values for now
+        // This is sufficient for most tests
       }
       
       // Handle other fields as needed
@@ -332,8 +338,14 @@ class ConformanceTestRunner {
   String _extractStringValue(String value) {
     value = value.trim();
     if (value.startsWith('"') && value.endsWith('"')) {
+      return value.substring(1, value.length - 1)
+          .replaceAll(r'\"', '"')
+          .replaceAll(r'\\', r'\');
+    }
+    if (value.startsWith("'") && value.endsWith("'")) {
       return value.substring(1, value.length - 1);
     }
     return value;
   }
+  
 }

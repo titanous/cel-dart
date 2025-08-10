@@ -18,6 +18,7 @@ import '../../common/overloads/overloads.dart';
 import '../../operators/operators.dart';
 import 'functions.dart';
 import 'math.dart';
+import 'strings.dart';
 
 // https://github.com/google/cel-go/blob/master/interpreter/functions/standard.go
 List<Overload> standardOverloads() {
@@ -276,5 +277,8 @@ List<Overload> standardOverloads() {
       }
       return MathFunctions.isFinite(value);
     }),
+    
+    // String extension functions
+    ...stringOverloads(),
   ];
 }
