@@ -258,9 +258,23 @@ Expr visitUnary(UnaryContext tree) {
 Expr visitMemberCall(MemberCallContext tree) {
   final operand = visit(tree.member()!);
   final id = tree.id!.text!;
+  
+  // Check if this is a namespace-qualified function call (e.g., strings.quote)
+  if (operand is IdentExpr) {
+    final namespaceName = operand.name;
+    // Create a namespace-qualified function name
+    final qualifiedFunctionName = '$namespaceName.$id';
+    
+    // Return a global function call with the qualified name
+    return CallExpr(
+        function: qualifiedFunctionName,
+        args: tree.args?.e.map((e) => visit(e)).toList() ?? []);
+  }
+  
+  // For other cases, fall back to member call behavior
   // TODO: I'm assuming it is a Select. Not parsing Member properly. See
   // https://github.com/google/cel-go/blob/442811f1e440a2052c68733a4dca0ab3e8898948/parser/parser.go#L387-L396.
-
+  
   // Skipped porting visitExprList and visitSlice. They don't seem to be useful.
   // Skipped receiverCallOrMacro.
   return CallExpr(
