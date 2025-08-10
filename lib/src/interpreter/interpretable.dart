@@ -1,7 +1,14 @@
+import 'dart:typed_data';
 import 'package:cel/src/common/types/bool.dart';
 import 'package:cel/src/common/types/traits/receiver.dart';
 import 'package:cel/src/common/types/numeric_compare.dart';
 import 'package:cel/src/common/types/error.dart';
+import 'package:cel/src/common/types/int.dart';
+import 'package:cel/src/common/types/uint.dart';
+import 'package:cel/src/common/types/double.dart';
+import 'package:cel/src/common/types/string.dart';
+import 'package:cel/src/common/types/bytes.dart';
+import 'package:cel/src/common/types/null_.dart';
 
 import '../common/types/ref/provider.dart';
 import '../common/types/ref/value.dart';
@@ -216,8 +223,21 @@ class MessageInterpretable implements Interpretable {
 
   @override
   evaluate(Activation activation) {
-    // For now, create a map with the field values plus a type indicator
-    // This will need to be enhanced when proper protobuf message creation is implemented
+    // Check if this is a wrapper type that should auto-unwrap
+    if (_isWrapperType(typeName)) {
+      // For wrapper types, evaluate and return the wrapped value directly
+      if (keys.isNotEmpty && values.isNotEmpty) {
+        final key = keys[0].evaluate(activation);
+        if (key is StringValue && key.value == 'value') {
+          // Return the wrapped value directly, not the wrapper message
+          return values[0].evaluate(activation);
+        }
+      }
+      // Empty wrapper returns default value
+      return _getWrapperDefaultValue(typeName);
+    }
+    
+    // For regular messages, create a map representation
     final evaluatedKeys = keys.map((k) => k.evaluate(activation)).toList();
     final evaluatedValues = values.map((v) => v.evaluate(activation)).toList();
     
@@ -229,5 +249,39 @@ class MessageInterpretable implements Interpretable {
     // Add type information for later message reconstruction
     map[adapter.nativeToValue('__message_type__')] = adapter.nativeToValue(typeName);
     return adapter.nativeToValue(map);
+  }
+  
+  bool _isWrapperType(String typeName) {
+    return typeName == 'google.protobuf.Int32Value' ||
+           typeName == 'google.protobuf.Int64Value' ||
+           typeName == 'google.protobuf.UInt32Value' ||
+           typeName == 'google.protobuf.UInt64Value' ||
+           typeName == 'google.protobuf.FloatValue' ||
+           typeName == 'google.protobuf.DoubleValue' ||
+           typeName == 'google.protobuf.BoolValue' ||
+           typeName == 'google.protobuf.StringValue' ||
+           typeName == 'google.protobuf.BytesValue';
+  }
+  
+  Value _getWrapperDefaultValue(String typeName) {
+    switch (typeName) {
+      case 'google.protobuf.Int32Value':
+      case 'google.protobuf.Int64Value':
+        return IntValue(0);
+      case 'google.protobuf.UInt32Value':  
+      case 'google.protobuf.UInt64Value':
+        return UintValue(0);
+      case 'google.protobuf.FloatValue':
+      case 'google.protobuf.DoubleValue':
+        return DoubleValue(0.0);
+      case 'google.protobuf.BoolValue':
+        return BooleanValue(false);
+      case 'google.protobuf.StringValue':
+        return StringValue('');
+      case 'google.protobuf.BytesValue':
+        return BytesValue(Uint8List(0));
+      default:
+        return NullValue();
+    }
   }
 }
