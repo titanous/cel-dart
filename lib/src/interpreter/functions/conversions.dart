@@ -1,0 +1,443 @@
+import 'dart:typed_data';
+
+import 'package:cel/src/common/types/bool.dart';
+import 'package:cel/src/common/types/bytes.dart';
+import 'package:cel/src/common/types/double.dart';
+import 'package:cel/src/common/types/error.dart';
+import 'package:cel/src/common/types/int.dart';
+import 'package:cel/src/common/types/string.dart';
+import 'package:cel/src/common/types/uint.dart';
+import 'package:cel/src/common/types/timestamp.dart';
+import 'package:cel/src/common/types/duration.dart';
+import 'package:cel/src/common/types/type.dart';
+import 'package:cel/src/common/types/null_.dart';
+import 'package:cel/src/common/types/list.dart';
+import 'package:cel/src/common/types/map.dart';
+import 'package:fixnum/fixnum.dart';
+
+import 'functions.dart';
+
+/// Type conversion functions for CEL
+/// Based on cel-go's type conversion implementations
+List<Overload> conversionOverloads() {
+  return [
+    // int() conversions
+    Overload('int', unaryOperator: (value) {
+      if (isError(value)) return value;
+      
+      if (value is IntValue) {
+        return value;
+      }
+      if (value is UintValue) {
+        // Convert uint to int with overflow checking
+        final uintVal = value.value;
+        // In Dart, int can hold 64-bit values, so no overflow check needed
+        if (uintVal < 0) {
+          return ErrorValue('uint overflow converting to int: $uintVal');
+        }
+        return IntValue(uintVal.toInt());
+      }
+      if (value is DoubleValue) {
+        final doubleVal = value.value;
+        if (doubleVal.isNaN || doubleVal.isInfinite) {
+          return ErrorValue('cannot convert NaN or Inf to int');
+        }
+        if (doubleVal > Int64.MAX_VALUE.toDouble() || 
+            doubleVal < Int64.MIN_VALUE.toDouble()) {
+          return ErrorValue('double overflow converting to int: $doubleVal');
+        }
+        return IntValue(doubleVal.toInt());
+      }
+      if (value is StringValue) {
+        try {
+          final parsed = int.parse(value.value);
+          return IntValue(parsed);
+        } catch (e) {
+          return ErrorValue('cannot convert string to int: "${value.value}"');
+        }
+      }
+      if (value is BooleanValue) {
+        return IntValue(value.value ? 1 : 0);
+      }
+      if (value is TimestampValue) {
+        // Convert timestamp to Unix seconds
+        return IntValue(value.dateTime.millisecondsSinceEpoch ~/ 1000);
+      }
+      
+      return ErrorValue('type conversion error from ${value.runtimeType} to int');
+    }),
+    
+    // uint() conversions
+    Overload('uint', unaryOperator: (value) {
+      if (isError(value)) return value;
+      
+      if (value is UintValue) {
+        return value;
+      }
+      if (value is IntValue) {
+        final intVal = value.value;
+        if (intVal < 0) {
+          return ErrorValue('cannot convert negative int to uint: $intVal');
+        }
+        return UintValue(intVal);
+      }
+      if (value is DoubleValue) {
+        final doubleVal = value.value;
+        if (doubleVal.isNaN || doubleVal.isInfinite) {
+          return ErrorValue('cannot convert NaN or Inf to uint');
+        }
+        if (doubleVal < 0) {
+          return ErrorValue('cannot convert negative double to uint: $doubleVal');
+        }
+        if (doubleVal > Int64.MAX_VALUE.toDouble()) {
+          return ErrorValue('double overflow converting to uint: $doubleVal');
+        }
+        return UintValue(doubleVal.toInt());
+      }
+      if (value is StringValue) {
+        try {
+          final parsed = int.parse(value.value);
+          if (parsed < 0) {
+            return ErrorValue('cannot convert negative string to uint: "${value.value}"');
+          }
+          return UintValue(parsed);
+        } catch (e) {
+          return ErrorValue('cannot convert string to uint: "${value.value}"');
+        }
+      }
+      
+      return ErrorValue('type conversion error from ${value.runtimeType} to uint');
+    }),
+    
+    // double() conversions
+    Overload('double', unaryOperator: (value) {
+      if (isError(value)) return value;
+      
+      if (value is DoubleValue) {
+        return value;
+      }
+      if (value is IntValue) {
+        return DoubleValue(value.value.toDouble());
+      }
+      if (value is UintValue) {
+        return DoubleValue(value.value.toDouble());
+      }
+      if (value is StringValue) {
+        final str = value.value;
+        // Handle special string values
+        if (str == 'NaN') {
+          return DoubleValue(double.nan);
+        }
+        if (str == 'Infinity' || str == 'Inf') {
+          return DoubleValue(double.infinity);
+        }
+        if (str == '-Infinity' || str == '-Inf') {
+          return DoubleValue(double.negativeInfinity);
+        }
+        try {
+          final parsed = double.parse(str);
+          return DoubleValue(parsed);
+        } catch (e) {
+          return ErrorValue('cannot convert string to double: "${value.value}"');
+        }
+      }
+      
+      return ErrorValue('type conversion error from ${value.runtimeType} to double');
+    }),
+    
+    // string() conversions
+    Overload('string', unaryOperator: (value) {
+      if (isError(value)) return value;
+      
+      if (value is StringValue) {
+        return value;
+      }
+      if (value is IntValue) {
+        return StringValue(value.value.toString());
+      }
+      if (value is UintValue) {
+        return StringValue(value.value.toString());
+      }
+      if (value is DoubleValue) {
+        final d = value.value;
+        if (d.isNaN) {
+          return StringValue('NaN');
+        }
+        if (d.isInfinite) {
+          return StringValue(d.isNegative ? '-Infinity' : 'Infinity');
+        }
+        // Format double to avoid unnecessary decimals for whole numbers
+        if (d == d.truncateToDouble()) {
+          return StringValue(d.toInt().toString());
+        }
+        return StringValue(d.toString());
+      }
+      if (value is BooleanValue) {
+        return StringValue(value.value ? 'true' : 'false');
+      }
+      if (value is BytesValue) {
+        // Convert bytes to string (UTF-8 decode)
+        try {
+          return StringValue(String.fromCharCodes(value.value));
+        } catch (e) {
+          return ErrorValue('invalid UTF-8 in bytes: $e');
+        }
+      }
+      if (value is TimestampValue) {
+        // Format timestamp in RFC3339 format
+        return StringValue(value.dateTime.toIso8601String());
+      }
+      if (value is DurationValue) {
+        // Format duration in CEL format (e.g., "1h30m")
+        final totalSeconds = value.duration.inSeconds;
+        if (totalSeconds == 0) {
+          return StringValue('0s');
+        }
+        
+        final parts = <String>[];
+        var seconds = totalSeconds.abs();
+        
+        // Hours
+        if (seconds >= 3600) {
+          final hours = seconds ~/ 3600;
+          parts.add('${hours}h');
+          seconds %= 3600;
+        }
+        
+        // Minutes
+        if (seconds >= 60) {
+          final minutes = seconds ~/ 60;
+          parts.add('${minutes}m');
+          seconds %= 60;
+        }
+        
+        // Seconds
+        if (seconds > 0 || parts.isEmpty) {
+          parts.add('${seconds}s');
+        }
+        
+        final result = parts.join();
+        return StringValue(totalSeconds < 0 ? '-$result' : result);
+      }
+      
+      return ErrorValue('type conversion error from ${value.runtimeType} to string');
+    }),
+    
+    // bool() conversions
+    Overload('bool', unaryOperator: (value) {
+      if (isError(value)) return value;
+      
+      if (value is BooleanValue) {
+        return value;
+      }
+      if (value is StringValue) {
+        final str = value.value.toLowerCase();
+        if (str == 'true') {
+          return BooleanValue(true);
+        }
+        if (str == 'false') {
+          return BooleanValue(false);
+        }
+        return ErrorValue('cannot convert string to bool: "${value.value}"');
+      }
+      
+      return ErrorValue('type conversion error from ${value.runtimeType} to bool');
+    }),
+    
+    // bytes() conversions
+    Overload('bytes', unaryOperator: (value) {
+      if (isError(value)) return value;
+      
+      if (value is BytesValue) {
+        return value;
+      }
+      if (value is StringValue) {
+        // Convert string to bytes (UTF-8 encode)
+        // Convert string to bytes (UTF-8 encode)
+        final bytes = value.value.codeUnits.map((c) => c).toList();
+        return BytesValue(Uint8List.fromList(bytes));
+      }
+      
+      return ErrorValue('type conversion error from ${value.runtimeType} to bytes');
+    }),
+    
+    // type() function - returns the type of a value
+    Overload('type', unaryOperator: (value) {
+      if (isError(value)) return value;
+      
+      if (value is IntValue) {
+        return TypeValue('int');
+      }
+      if (value is UintValue) {
+        return TypeValue('uint');
+      }
+      if (value is DoubleValue) {
+        return TypeValue('double');
+      }
+      if (value is StringValue) {
+        return TypeValue('string');
+      }
+      if (value is BooleanValue) {
+        return TypeValue('bool');
+      }
+      if (value is BytesValue) {
+        return TypeValue('bytes');
+      }
+      if (value is NullValue) {
+        return TypeValue('null_type');
+      }
+      if (value is TimestampValue) {
+        return TypeValue('google.protobuf.Timestamp');
+      }
+      if (value is DurationValue) {
+        return TypeValue('google.protobuf.Duration');
+      }
+      if (value is ListValue) {
+        return TypeValue('list');
+      }
+      if (value is MapValue) {
+        return TypeValue('map');
+      }
+      
+      // For unknown types, return the runtime type name
+      return TypeValue(value.runtimeType.toString());
+    }),
+    
+    // dyn() function - marks a value as dynamic type
+    // This is already in standard.dart but adding here for completeness
+    Overload('dyn', unaryOperator: (value) {
+      // In CEL, dyn() essentially returns the value as-is but marks it as dynamic
+      // This allows for operations between different types without explicit conversion
+      return value;
+    }),
+    
+    // duration conversions
+    Overload('duration', unaryOperator: (value) {
+      if (isError(value)) return value;
+      
+      if (value is DurationValue) {
+        return value;
+      }
+      if (value is StringValue) {
+        // Parse duration string (e.g., "1h30m", "45s", "100ms")
+        try {
+          return _parseDuration(value.value);
+        } catch (e) {
+          return ErrorValue('cannot parse duration: "${value.value}"');
+        }
+      }
+      
+      return ErrorValue('type conversion error from ${value.runtimeType} to duration');
+    }),
+    
+    // timestamp conversions
+    Overload('timestamp', unaryOperator: (value) {
+      if (isError(value)) return value;
+      
+      if (value is TimestampValue) {
+        return value;
+      }
+      if (value is IntValue) {
+        // Convert Unix seconds to timestamp
+        return TimestampValue(
+          DateTime.fromMillisecondsSinceEpoch(value.value * 1000, isUtc: true)
+        );
+      }
+      if (value is StringValue) {
+        // Parse RFC3339 timestamp
+        try {
+          return TimestampValue(DateTime.parse(value.value));
+        } catch (e) {
+          return ErrorValue('cannot parse timestamp: "${value.value}"');
+        }
+      }
+      
+      return ErrorValue('type conversion error from ${value.runtimeType} to timestamp');
+    }),
+  ];
+}
+
+/// Parse a duration string like "1h30m45s" into a DurationValue
+DurationValue _parseDuration(String str) {
+  if (str.isEmpty) {
+    throw FormatException('empty duration string');
+  }
+  
+  var totalMilliseconds = 0;
+  var currentNumber = '';
+  var isNegative = false;
+  
+  if (str[0] == '-') {
+    isNegative = true;
+    str = str.substring(1);
+  }
+  
+  for (var i = 0; i < str.length; i++) {
+    final char = str[i];
+    
+    if (_isDigit(char) || char == '.') {
+      currentNumber += char;
+    } else {
+      if (currentNumber.isEmpty) {
+        throw FormatException('invalid duration format');
+      }
+      
+      final value = double.parse(currentNumber);
+      currentNumber = '';
+      
+      switch (char) {
+        case 'h':
+          totalMilliseconds += (value * 3600000).round();
+          break;
+        case 'm':
+          // Check if followed by 's' for milliseconds
+          if (i + 1 < str.length && str[i + 1] == 's') {
+            totalMilliseconds += value.round();
+            i++; // Skip the 's'
+          } else {
+            // Minutes
+            totalMilliseconds += (value * 60000).round();
+          }
+          break;
+        case 's':
+          totalMilliseconds += (value * 1000).round();
+          break;
+        case 'u':
+          // Microseconds - check for 's' suffix
+          if (i + 1 < str.length && str[i + 1] == 's') {
+            totalMilliseconds += (value / 1000).round();
+            i++; // Skip the 's'
+          } else {
+            throw FormatException('invalid duration unit: $char');
+          }
+          break;
+        case 'n':
+          // Nanoseconds - check for 's' suffix
+          if (i + 1 < str.length && str[i + 1] == 's') {
+            totalMilliseconds += (value / 1000000).round();
+            i++; // Skip the 's'
+          } else {
+            throw FormatException('invalid duration unit: $char');
+          }
+          break;
+        default:
+          throw FormatException('invalid duration unit: $char');
+      }
+    }
+  }
+  
+  if (currentNumber.isNotEmpty) {
+    throw FormatException('duration string missing unit');
+  }
+  
+  if (isNegative) {
+    totalMilliseconds = -totalMilliseconds;
+  }
+  
+  return DurationValue(Duration(milliseconds: totalMilliseconds));
+}
+
+bool _isDigit(String char) {
+  final code = char.codeUnitAt(0);
+  return code >= 48 && code <= 57; // '0' to '9'
+}

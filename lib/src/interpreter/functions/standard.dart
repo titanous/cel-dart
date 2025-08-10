@@ -7,7 +7,6 @@ import 'package:cel/src/common/types/string.dart';
 import 'package:cel/src/common/types/error.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
 import 'package:cel/src/common/types/traits/container.dart';
-import 'package:cel/src/common/types/traits/field_tester.dart';
 import 'package:cel/src/common/types/traits/indexer.dart';
 import 'package:cel/src/common/types/traits/matcher.dart';
 import 'package:cel/src/common/types/traits/math.dart';
@@ -19,6 +18,7 @@ import '../../operators/operators.dart';
 import 'functions.dart';
 import 'math.dart';
 import 'strings.dart';
+import 'conversions.dart';
 
 // https://github.com/google/cel-go/blob/master/interpreter/functions/standard.go
 List<Overload> standardOverloads() {
@@ -280,5 +280,8 @@ List<Overload> standardOverloads() {
     
     // String extension functions
     ...stringOverloads(),
+    
+    // Type conversion functions
+    ...conversionOverloads(),
   ];
 }
