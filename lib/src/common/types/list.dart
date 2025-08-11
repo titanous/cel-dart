@@ -41,7 +41,7 @@ class ListValue extends Value implements Indexer, Container, Adder, Sizer {
     if (index is IntValue) {
       indexValue = index.value;
     } else if (index is UintValue) {
-      indexValue = index.value;
+      indexValue = index.value.toInt();
     } else if (index is DoubleValue) {
       // Allow double values that are actually integers
       final doubleVal = index.value;

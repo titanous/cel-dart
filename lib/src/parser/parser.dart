@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:antlr4/antlr4.dart';
+import 'package:fixnum/fixnum.dart';
 import 'package:cel/src/operators/operators.dart';
 
 import '../cel/expr.dart';
@@ -195,8 +196,14 @@ Expr visitInt(IntContext tree) {
 Expr visitUint(UintContext tree) {
   // trim the 'u' designator included in the uint literal.
   final text = tree.text.substring(0, tree.text.length - 1);
-  // Small shortcut: reuse IntLiteralExpr.
-  return IntLiteralExpr((int.parse(text)));
+  // Use Int64.parseInt to support full uint64 range
+  // Handle hexadecimal format by parsing with BigInt first then converting
+  if (text.startsWith('0x') || text.startsWith('0X')) {
+    final bigInt = BigInt.parse(text);
+    return UintLiteralExpr(Int64(bigInt.toInt()));
+  } else {
+    return UintLiteralExpr(Int64.parseInt(text));
+  }
 }
 
 Expr visitNull(NullContext tree) {

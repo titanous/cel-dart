@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:fixnum/fixnum.dart';
 import 'package:protobuf/protobuf.dart' as pb;
 import 'package:cel/cel.dart';
 import 'package:cel/src/common/types/pb/registry.dart';

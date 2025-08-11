@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:fixnum/fixnum.dart';
 
 abstract class Expr extends Equatable {
   @override
@@ -42,6 +43,16 @@ class IntLiteralExpr extends Equatable implements ConstExpression {
 
   @override
   final int value;
+
+  @override
+  List<Object?> get props => [value];
+}
+
+class UintLiteralExpr extends Equatable implements ConstExpression {
+  UintLiteralExpr(this.value);
+
+  @override
+  final Int64 value;
 
   @override
   List<Object?> get props => [value];

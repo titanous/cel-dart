@@ -19,6 +19,7 @@ void main() {
     final testSuites = [
       'basic',
       'comparisons', 
+      'conversions',
       'logic',
       'string',
       'string_ext',

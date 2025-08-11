@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:fixnum/fixnum.dart';
 
 import 'package:cel/src/common/types/bool.dart';
 import 'package:cel/src/common/types/bytes.dart';
@@ -13,7 +15,6 @@ import 'package:cel/src/common/types/type.dart';
 import 'package:cel/src/common/types/null_.dart';
 import 'package:cel/src/common/types/list.dart';
 import 'package:cel/src/common/types/map.dart';
-import 'package:fixnum/fixnum.dart';
 
 import 'functions.dart';
 
@@ -31,9 +32,10 @@ List<Overload> conversionOverloads() {
       if (value is UintValue) {
         // Convert uint to int with overflow checking
         final uintVal = value.value;
-        // In Dart, int can hold 64-bit values, so no overflow check needed
-        if (uintVal < 0) {
-          return ErrorValue('uint overflow converting to int: $uintVal');
+        // If the Int64 is negative, it means the original uint64 value
+        // was larger than Int64.MAX_VALUE (i.e., >= 2^63), so it can't fit in int64
+        if (uintVal.isNegative) {
+          return ErrorValue('range error');
         }
         return IntValue(uintVal.toInt());
       }
@@ -42,9 +44,13 @@ List<Overload> conversionOverloads() {
         if (doubleVal.isNaN || doubleVal.isInfinite) {
           return ErrorValue('cannot convert NaN or Inf to int');
         }
-        if (doubleVal > Int64.MAX_VALUE.toDouble() || 
-            doubleVal < Int64.MIN_VALUE.toDouble()) {
-          return ErrorValue('double overflow converting to int: $doubleVal');
+        // Check for exact range of int64: -9223372036854775808 to 9223372036854775807
+        // But CEL requires range errors for values at the boundary when cast from double
+        // because the exact double representation may be outside the exact int64 range
+        const maxInt64AsDouble = 9223372036854775808.0; // 2^63, just above max int64
+        const minInt64AsDouble = -9223372036854775809.0; // -2^63-1, just below min int64
+        if (doubleVal >= maxInt64AsDouble || doubleVal <= minInt64AsDouble) {
+          return ErrorValue('range');
         }
         return IntValue(doubleVal.toInt());
       }
@@ -77,7 +83,7 @@ List<Overload> conversionOverloads() {
       if (value is IntValue) {
         final intVal = value.value;
         if (intVal < 0) {
-          return ErrorValue('cannot convert negative int to uint: $intVal');
+          return ErrorValue('range error');
         }
         return UintValue(intVal);
       }
@@ -87,20 +93,32 @@ List<Overload> conversionOverloads() {
           return ErrorValue('cannot convert NaN or Inf to uint');
         }
         if (doubleVal < 0) {
-          return ErrorValue('cannot convert negative double to uint: $doubleVal');
+          return ErrorValue('range error');
         }
-        if (doubleVal > Int64.MAX_VALUE.toDouble()) {
-          return ErrorValue('double overflow converting to uint: $doubleVal');
+        // Check for uint64 max (18446744073709551615)
+        const maxUint64AsDouble = 18446744073709551616.0; // 2^64, slightly above max uint64
+        if (doubleVal >= maxUint64AsDouble) {
+          return ErrorValue('range error');
         }
         return UintValue(doubleVal.toInt());
       }
       if (value is StringValue) {
         try {
-          final parsed = int.parse(value.value);
-          if (parsed < 0) {
-            return ErrorValue('cannot convert negative string to uint: "${value.value}"');
+          // Use BigInt to handle values that might exceed int range
+          final bigInt = BigInt.tryParse(value.value);
+          if (bigInt == null) {
+            return ErrorValue('cannot convert string to uint: "${value.value}"');
           }
-          return UintValue(parsed);
+          if (bigInt < BigInt.zero) {
+            return ErrorValue('range error');
+          }
+          // Check for uint64 max (18446744073709551615)
+          final maxUint64 = (BigInt.from(1) << 64) - BigInt.one; // 2^64 - 1
+          if (bigInt > maxUint64) {
+            return ErrorValue('Positive input exceeds the limit of integer\n$bigInt');
+          }
+          // Convert BigInt to Int64 to support full uint64 range
+          return UintValue.fromInt64(Int64.parseInt(value.value));
         } catch (e) {
           return ErrorValue('cannot convert string to uint: "${value.value}"');
         }
@@ -166,6 +184,23 @@ List<Overload> conversionOverloads() {
         if (d.isInfinite) {
           return StringValue(d.isNegative ? '-Infinity' : 'Infinity');
         }
+        
+        // Handle special formatting for small scientific notation numbers
+        final str = d.toString();
+        // Convert scientific notation like -4.5e-3 to decimal form -0.0045
+        if (str.contains('e')) {
+          // Let Dart handle the conversion but ensure proper formatting
+          if (d == d.truncateToDouble() && d.abs() < 1e15) {
+            // For whole numbers that aren't too large, show without decimal
+            return StringValue(d.toInt().toString());
+          }
+          // For scientific notation, convert to decimal if reasonable
+          if (d.abs() >= 1e-6 && d.abs() < 1e6) {
+            final decimal = d.toStringAsFixed(10).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+            return StringValue(decimal);
+          }
+        }
+        
         // Format double to avoid unnecessary decimals for whole numbers
         if (d == d.truncateToDouble()) {
           return StringValue(d.toInt().toString());
@@ -178,9 +213,10 @@ List<Overload> conversionOverloads() {
       if (value is BytesValue) {
         // Convert bytes to string (UTF-8 decode)
         try {
-          return StringValue(String.fromCharCodes(value.value));
+          final str = utf8.decode(value.value);
+          return StringValue(str);
         } catch (e) {
-          return ErrorValue('invalid UTF-8 in bytes: $e');
+          return ErrorValue('invalid UTF-8');
         }
       }
       if (value is TimestampValue) {
@@ -231,14 +267,26 @@ List<Overload> conversionOverloads() {
         return value;
       }
       if (value is StringValue) {
-        final str = value.value.toLowerCase();
-        if (str == 'true') {
-          return BooleanValue(true);
+        final str = value.value;
+        // Support all variants that Go's strconv.ParseBool supports
+        switch (str) {
+          case '1':
+          case 't':
+          case 'T':
+          case 'true':
+          case 'TRUE':
+          case 'True':
+            return BooleanValue(true);
+          case '0':
+          case 'f':
+          case 'F':
+          case 'false':
+          case 'FALSE':
+          case 'False':
+            return BooleanValue(false);
+          default:
+            return ErrorValue('Type conversion error');
         }
-        if (str == 'false') {
-          return BooleanValue(false);
-        }
-        return ErrorValue('cannot convert string to bool: "${value.value}"');
       }
       
       return ErrorValue('type conversion error from ${value.runtimeType} to bool');
@@ -253,8 +301,7 @@ List<Overload> conversionOverloads() {
       }
       if (value is StringValue) {
         // Convert string to bytes (UTF-8 encode)
-        // Convert string to bytes (UTF-8 encode)
-        final bytes = value.value.codeUnits.map((c) => c).toList();
+        final bytes = utf8.encode(value.value);
         return BytesValue(Uint8List.fromList(bytes));
       }
       
@@ -354,6 +401,7 @@ List<Overload> conversionOverloads() {
       
       return ErrorValue('type conversion error from ${value.runtimeType} to timestamp');
     }),
+    
   ];
 }
 

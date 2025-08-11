@@ -773,7 +773,7 @@ String _formatBinary(Value value) {
   if (value is IntValue) {
     n = BigInt.from(value.value);
   } else if (value is UintValue) {
-    n = BigInt.from(value.value);
+    n = BigInt.from(value.value.toInt());
   } else {
     throw FormatException('Cannot format $value as binary');
   }
@@ -798,7 +798,7 @@ String _formatHex(Value value, bool uppercase) {
   if (value is IntValue) {
     n = BigInt.from(value.value);
   } else if (value is UintValue) {
-    n = BigInt.from(value.value);
+    n = BigInt.from(value.value.toInt());
   } else {
     throw FormatException('Cannot format $value as hex');
   }
@@ -811,7 +811,7 @@ String _formatOctal(Value value) {
   if (value is IntValue) {
     n = BigInt.from(value.value);
   } else if (value is UintValue) {
-    n = BigInt.from(value.value);
+    n = BigInt.from(value.value.toInt());
   } else {
     throw FormatException('Cannot format $value as octal');
   }

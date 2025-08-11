@@ -202,6 +202,10 @@ Value _nativeToValue(TypeAdapter adapter, dynamic value) {
   if (value is int) {
     return IntValue(value);
   }
+  // Handle Int64 from fixnum as uint values (since they represent uint literals)
+  if (value is Int64) {
+    return UintValue.fromInt64(value);
+  }
   if (value is double) {
     return DoubleValue(value);
   }

@@ -1,3 +1,4 @@
+import 'package:fixnum/fixnum.dart';
 import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/int.dart';
 import 'package:cel/src/common/types/error.dart';
@@ -24,8 +25,17 @@ class NumericCompare {
   }
   
   static num _getNumericValue(Value value) {
-    if (value.type.name == 'int' || value.type.name == 'uint') {
+    if (value.type.name == 'int') {
       return value.value as int;
+    } else if (value.type.name == 'uint') {
+      // Handle both int and Int64 values in UintValue
+      final uintVal = value.value;
+      if (uintVal is int) {
+        return uintVal;
+      } else {
+        // Int64 case - convert to int for comparison
+        return (uintVal as Int64).toInt();
+      }
     } else if (value.type.name == 'double') {
       return value.value as double;
     }
