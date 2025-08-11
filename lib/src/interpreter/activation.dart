@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:cel/src/gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
+import 'package:protobuf/protobuf.dart';
 import '../common/types/ref/provider.dart';
 
 abstract class Activation extends Equatable {
@@ -38,6 +39,11 @@ class EvalActivation extends Activation {
     } else if (value is pb_wrappers.StringValue) {
       return value.value;
     } else if (value is pb_wrappers.BytesValue) {
+      return value.value;
+    }
+    
+    // Handle protobuf enums - convert to integer values
+    if (value is ProtobufEnum) {
       return value.value;
     }
     
