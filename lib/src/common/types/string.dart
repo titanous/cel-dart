@@ -1,5 +1,6 @@
 import 'package:cel/src/common/types/bool.dart';
 import 'package:cel/src/common/types/int.dart';
+import 'package:cel/src/common/types/list.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
 import 'package:cel/src/common/types/traits/matcher.dart';
 import 'package:cel/src/common/types/traits/math.dart';
@@ -9,6 +10,7 @@ import 'package:cel/src/common/types/traits/traits.dart';
 import '../overloads/overloads.dart';
 import 'ref/value.dart';
 import 'traits/receiver.dart';
+import '../../interpreter/functions/strings.dart' as string_funcs;
 
 // https://github.com/google/cel-go/blob/377a0bba20d07926e0583b4e604509ca7f3583b7/common/types/string.go
 
@@ -25,7 +27,21 @@ class StringValue extends Value implements Receiver, Matcher, Adder, Comparer, S
 
   @override
   receive(String function, String overload, List<Value> arguments) {
-    return stringOneArgOverloads[function]!(value, arguments.first);
+    // Handle format function separately as it takes a list
+    if (function == 'format') {
+      // The format function expects the format string as first arg and the arguments list as second
+      if (arguments.isNotEmpty && arguments.first is ListValue) {
+        return string_funcs.stringFormat([this, arguments.first]);
+      }
+      throw Exception('format requires a list argument');
+    }
+    
+    // Handle single-argument string functions
+    if (stringOneArgOverloads.containsKey(function)) {
+      return stringOneArgOverloads[function]!(value, arguments.first);
+    }
+    
+    throw Exception('No overload found for function: $function on StringValue');
   }
 
   @override

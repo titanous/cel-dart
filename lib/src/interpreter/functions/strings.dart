@@ -4,8 +4,10 @@ import 'package:cel/src/common/types/double.dart';
 import 'package:cel/src/common/types/error.dart';
 import 'package:cel/src/common/types/int.dart';
 import 'package:cel/src/common/types/list.dart';
+import 'package:cel/src/common/types/map.dart';
 import 'package:cel/src/common/types/null_.dart';
 import 'package:cel/src/common/types/string.dart';
+import 'package:cel/src/common/types/type.dart';
 import 'package:cel/src/common/types/uint.dart';
 import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/provider.dart';
@@ -87,7 +89,10 @@ List<Overload> stringOverloads() {
         }
         
         final runes = strValue.runes.toList();
-        if (start >= runes.length) {
+        if (start > runes.length) {
+          return ErrorValue('index out of range: $start');
+        }
+        if (start == runes.length) {
           return IntValue(-1);
         }
         
@@ -148,7 +153,10 @@ List<Overload> stringOverloads() {
         final end = endArg.value.toInt();
         
         if (end < 0) {
-          return ErrorValue('lastIndexOf end must be non-negative');
+          return ErrorValue('index out of range: $end');
+        }
+        if (end > runes.length) {
+          return ErrorValue('index out of range: $end');
         }
         
         if (substrValue.isEmpty) {
@@ -670,13 +678,45 @@ String _formatString(Value value) {
   if (value is BytesValue) return String.fromCharCodes(value.value);
   if (value is BooleanValue) return value.value ? 'true' : 'false';
   if (value is NullValue) return 'null';
+  if (value is IntValue) return value.value.toString();
+  if (value is UintValue) return value.value.toString();
+  if (value is DoubleValue) {
+    if (value.value.isNaN) return 'NaN';
+    if (value.value.isInfinite) {
+      return value.value > 0 ? 'Infinity' : '-Infinity';
+    }
+    return value.value.toString();
+  }
+  if (value is ListValue) {
+    final items = value.value.map((v) => _formatString(v)).join(', ');
+    return '[$items]';
+  }
+  if (value is MapValue) {
+    final entries = <String>[];
+    for (final entry in value.value.entries) {
+      final key = _formatString(entry.key);
+      final val = _formatString(entry.value);
+      entries.add('$key: $val');
+    }
+    entries.sort();
+    return '{${entries.join(', ')}}';
+  }
+  if (value is TypeValue) {
+    return value.typeName;
+  }
   return value.toString();
 }
 
 String _formatInt(Value value) {
   if (value is IntValue) return value.value.toString();
   if (value is UintValue) return value.value.toString();
-  if (value is DoubleValue) return value.value.toInt().toString();
+  if (value is DoubleValue) {
+    if (value.value.isNaN) return 'NaN';
+    if (value.value.isInfinite) {
+      return value.value > 0 ? 'Infinity' : '-Infinity';
+    }
+    return value.value.toInt().toString();
+  }
   if (value is BooleanValue) return value.value ? '1' : '0';
   throw FormatException('Cannot format $value as integer');
 }
@@ -706,10 +746,29 @@ String _formatScientific(Value value, int precision) {
   } else {
     throw FormatException('Cannot format $value as scientific');
   }
-  return d.toStringAsExponential(precision);
+  if (d.isNaN) return 'NaN';
+  if (d.isInfinite) {
+    return d > 0 ? 'Infinity' : '-Infinity';
+  }
+  String result = d.toStringAsExponential(precision);
+  // Ensure exponent has at least 2 digits (e+00 instead of e+0)
+  final expIndex = result.lastIndexOf('e');
+  if (expIndex != -1) {
+    final parts = result.split('e');
+    if (parts.length == 2) {
+      final sign = parts[1][0] == '+' || parts[1][0] == '-' ? parts[1][0] : '+';
+      final exp = parts[1].substring(sign == '+' || sign == '-' ? 1 : 0);
+      final paddedExp = exp.padLeft(2, '0');
+      result = '${parts[0]}e$sign$paddedExp';
+    }
+  }
+  return result;
 }
 
 String _formatBinary(Value value) {
+  if (value is BooleanValue) {
+    return value.value ? '1' : '0';
+  }
   BigInt n;
   if (value is IntValue) {
     n = BigInt.from(value.value);
@@ -722,16 +781,24 @@ String _formatBinary(Value value) {
 }
 
 String _formatHex(Value value, bool uppercase) {
+  if (value is StringValue) {
+    final bytes = value.value.codeUnits;
+    final hex = bytes
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join();
+    return uppercase ? hex.toUpperCase() : hex;
+  }
+  if (value is BytesValue) {
+    final hex = value.value
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join();
+    return uppercase ? hex.toUpperCase() : hex;
+  }
   BigInt n;
   if (value is IntValue) {
     n = BigInt.from(value.value);
   } else if (value is UintValue) {
     n = BigInt.from(value.value);
-  } else if (value is BytesValue) {
-    final hex = value.value
-        .map((b) => b.toRadixString(16).padLeft(2, '0'))
-        .join();
-    return uppercase ? hex.toUpperCase() : hex;
   } else {
     throw FormatException('Cannot format $value as hex');
   }
@@ -806,12 +873,10 @@ dynamic _quoteFunction(dynamic str) {
         } else if (rune <= 0xFF) {
           result.write(r'\x');
           result.write(rune.toRadixString(16).padLeft(2, '0'));
-        } else if (rune <= 0xFFFF) {
-          result.write(r'\u');
-          result.write(rune.toRadixString(16).padLeft(4, '0'));
         } else {
-          result.write(r'\U');
-          result.write(rune.toRadixString(16).padLeft(8, '0'));
+          // For characters above 0xFF, output them directly (Unicode characters)
+          // This includes emojis and other special characters
+          result.writeCharCode(rune);
         }
     }
   }
