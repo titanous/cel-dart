@@ -268,21 +268,24 @@ Expr visitMemberCall(MemberCallContext tree) {
   // Check if this is a namespace-qualified function call (e.g., strings.quote)
   if (operand is IdentExpr) {
     final namespaceName = operand.name;
-    // Create a namespace-qualified function name
-    final qualifiedFunctionName = '$namespaceName.$id';
     
-    // Return a global function call with the qualified name
-    return CallExpr(
-        function: qualifiedFunctionName,
-        args: tree.args?.e.map((e) => visit(e)).toList() ?? []);
+    // Only treat known namespaces as namespace qualifiers
+    // Current known namespaces: strings, math, sets, etc.
+    const knownNamespaces = {'strings', 'math', 'sets'};
+    
+    if (knownNamespaces.contains(namespaceName)) {
+      // Create a namespace-qualified function name
+      final qualifiedFunctionName = '$namespaceName.$id';
+      
+      // Return a global function call with the qualified name
+      return CallExpr(
+          function: qualifiedFunctionName,
+          args: tree.args?.e.map((e) => visit(e)).toList() ?? []);
+    }
   }
   
-  // For other cases, fall back to member call behavior
-  // TODO: I'm assuming it is a Select. Not parsing Member properly. See
-  // https://github.com/google/cel-go/blob/442811f1e440a2052c68733a4dca0ab3e8898948/parser/parser.go#L387-L396.
-  
-  // Skipped porting visitExprList and visitSlice. They don't seem to be useful.
-  // Skipped receiverCallOrMacro.
+  // For variables and other operands, use member call behavior
+  // This handles cases like str_var.format([...]) properly
   return CallExpr(
       function: id,
       target: operand,

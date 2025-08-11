@@ -17,6 +17,7 @@ import 'package:cel/src/common/types/provider.dart';
 import '../common/types/ref/provider.dart';
 import '../common/types/ref/value.dart';
 import 'activation.dart';
+import 'dispatcher.dart';
 import 'attribute.dart';
 import 'functions/functions.dart';
 
@@ -232,6 +233,46 @@ class BinaryInterpretable implements Interpretable {
     return binaryOperator != null
         ? binaryOperator!(leftValue, rightValue)
         : (leftValue as Receiver).receive(functionName, '', [rightValue]);
+  }
+}
+
+/// Type-aware binary interpretable that dispatches based on argument types (CEL-ES style)
+class TypeAwareBinaryInterpretable implements Interpretable {
+  TypeAwareBinaryInterpretable(this.functionName, this.dispatcher, this.leftHandSide, this.rightHandSide);
+
+  final String functionName;
+  final Dispatcher dispatcher;
+  final Interpretable leftHandSide;
+  final Interpretable rightHandSide;
+
+  @override
+  evaluate(Activation activation) {
+    final leftValue = leftHandSide.evaluate(activation);
+    final rightValue = rightHandSide.evaluate(activation);
+    
+    // Try to find the best overload based on argument types
+    final overload = dispatcher.findOverloadByTypes(functionName, [leftValue, rightValue]);
+    
+    if (overload == null) {
+      return ErrorValue('No overload found for function: $functionName with ${[leftValue, rightValue].map((v) => v.runtimeType).join(', ')}');
+    }
+    
+    // If it's a binary operator, call it directly
+    if (overload.binaryOperator != null) {
+      return overload.binaryOperator!(leftValue, rightValue);
+    }
+    
+    // If it's a function operator, call it with arguments
+    if (overload.functionOperator != null) {
+      return overload.functionOperator!([leftValue, rightValue]);
+    }
+    
+    // Fall back to receiver pattern if the left value implements Receiver
+    if (leftValue is Receiver) {
+      return (leftValue as Receiver).receive(functionName, '', [rightValue]);
+    }
+    
+    return ErrorValue('No suitable implementation found for function: $functionName');
   }
 }
 

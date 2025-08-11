@@ -1,4 +1,6 @@
 import 'functions/functions.dart';
+import '../common/types/error.dart';
+import '../common/types/ref/value.dart';
 
 class Dispatcher {
   Dispatcher(List<Overload> overloads) {
@@ -49,6 +51,25 @@ class Dispatcher {
     // No suitable overload found
     return null;
   }
+
+  /// Find the best overload based on argument types (CEL-ES style)
+  Overload? findOverloadByTypes(String name, List<Value> args) {
+    final overloads = _overloads[name];
+    if (overloads == null || overloads.isEmpty) {
+      return null;
+    }
+
+    // Try to find an exact type match first
+    for (final overload in overloads) {
+      if (overload.matchesArgumentTypes(args)) {
+        return overload;
+      }
+    }
+
+    // If no exact match found, return null (don't fall back)
+    // This forces proper type-based dispatch
+    return null;
+  }
   
   // Get all overloads for a function name (for handling null returns)
   List<Overload>? findAllOverloads(String name) {
@@ -60,4 +81,5 @@ class Dispatcher {
       _overloads.putIfAbsent(o.name, () => []).add(o);
     }
   }
+
 }

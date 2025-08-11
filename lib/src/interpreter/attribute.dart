@@ -198,7 +198,14 @@ class StringQualifier extends Qualifier {
       if (!object.containsKey(value)) {
         return ErrorValue('no such key: ${StringValue(value)}');
       }
-      return object[value];
+      // Convert Dart value to CEL Value using TypeAdapter
+      // Get a default TypeAdapter if one isn't available
+      final adapter = (activation is EvalActivation && activation.typeAdapter != null) 
+          ? activation.typeAdapter! 
+          : cel_provider.TypeRegistry();
+      final rawValue = object[value];
+      final result = adapter.nativeToValue(rawValue);
+      return result;
     }
     
     // Handle primitive types that don't support field selection

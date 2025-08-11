@@ -18,7 +18,26 @@ class AttributeFactory {
   Attribute maybeAttribute(String name) {
     // Generate candidate attribute names for qualified identifier resolution
     final candidates = _generateQualifiedCandidates(name);
-    return MaybeAttribute(candidates.map((candidate) => AbsoluteAttribute(candidate)).toList());
+    final namespaceAttributes = <AbsoluteAttribute>[];
+    
+    for (final candidate in candidates) {
+      final attr = AbsoluteAttribute(candidate);
+      
+      // If candidate is shorter than the original name, add qualifiers for the remaining parts
+      if (candidate != name) {
+        final candidateParts = candidate.split('.');
+        final nameParts = name.split('.');
+        
+        // Add qualifiers for the remaining parts
+        for (int i = candidateParts.length; i < nameParts.length; i++) {
+          attr.addQualifier(StringQualifier(nameParts[i]));
+        }
+      }
+      
+      namespaceAttributes.add(attr);
+    }
+    
+    return MaybeAttribute(namespaceAttributes);
   }
   
   /// Generate qualified identifier candidates

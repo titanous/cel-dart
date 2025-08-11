@@ -9,7 +9,7 @@ export 'src/cel/program.dart';
 // Library Extension API exports for custom function registration
 export 'src/cel/library.dart' show Library;
 export 'src/cel/options.dart' show EnvironmentOption, ProgramOption, functions;
-export 'src/interpreter/functions/functions.dart' show Overload, UnaryOperator, BinaryOperator, FunctionOperator;
+export 'src/interpreter/functions/functions.dart' show Overload, UnaryOperator, BinaryOperator, FunctionOperator, CelType;
 
 // CEL Value Types exports for function implementations
 export 'src/common/types/bool.dart' show BooleanValue;

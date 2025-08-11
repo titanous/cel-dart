@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:cel/src/gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
+import '../common/types/ref/provider.dart';
 
 abstract class Activation extends Equatable {
   dynamic resolveName(dynamic namespaceName);
@@ -9,9 +10,10 @@ abstract class Activation extends Equatable {
 }
 
 class EvalActivation extends Activation {
-  EvalActivation(this.input);
+  EvalActivation(this.input, {this.typeAdapter});
 
   final Map<String, dynamic> input;
+  final TypeAdapter? typeAdapter;
 
   @override
   dynamic resolveName(dynamic namespaceName) {
@@ -46,5 +48,5 @@ class EvalActivation extends Activation {
   }
 
   @override
-  List<Object?> get props => [input];
+  List<Object?> get props => [input, typeAdapter];
 }

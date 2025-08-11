@@ -173,5 +173,59 @@ void main() {
       result = program.evaluate({});
       expect(result, equals('function-many'));
     });
+
+    test('CEL-ES style type-based overload resolution', () {
+      final env = Environment.standard();
+      
+      // Define multiple binary overloads with explicit type signatures (CEL-ES style)
+      env.programOptions.add(functions([
+        Overload('isIpPrefix',
+          parameterTypes: [CelType.string, CelType.int],
+          returnType: CelType.bool,
+          binaryOperator: (prefix, version) {
+            if (prefix is StringValue && version is IntValue) {
+              // Simplified logic for testing
+              return BooleanValue(prefix.value == '0.0.0.0/0' && version.value == 4);
+            }
+            return ErrorValue('Expected string and int');
+          }
+        ),
+        Overload('isIpPrefix',
+          parameterTypes: [CelType.string, CelType.bool],
+          returnType: CelType.bool,
+          binaryOperator: (prefix, strict) {
+            if (prefix is StringValue && strict is BooleanValue) {
+              // Simplified logic for testing
+              return BooleanValue(prefix.value == '0.0.0.0/0' && strict.value);
+            }
+            return ErrorValue('Expected string and bool');
+          }
+        ),
+      ]));
+
+      // Test int version
+      var ast = env.compile('"0.0.0.0/0".isIpPrefix(4)');
+      var program = env.makeProgram(ast);
+      var result = program.evaluate({});
+      expect(result, isTrue);
+
+      // Test bool version
+      ast = env.compile('"0.0.0.0/0".isIpPrefix(true)');
+      program = env.makeProgram(ast);
+      result = program.evaluate({});
+      expect(result, isTrue);
+      
+      // Test with wrong type (should fail gracefully)
+      ast = env.compile('"0.0.0.0/0".isIpPrefix("invalid")');
+      program = env.makeProgram(ast);
+      try {
+        result = program.evaluate({});
+        // Should be an error or false, not throw exception
+        expect(result is String && result.contains('No overload found'), isTrue);
+      } catch (e) {
+        // Acceptable if it throws with a descriptive error
+        expect(e.toString().contains('overload'), isTrue);
+      }
+    });
   });
 }

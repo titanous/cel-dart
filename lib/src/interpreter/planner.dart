@@ -82,6 +82,11 @@ class Planner {
     final functionImplementation = dispatcher.findOverload(functionName, 
         argCount: interpretableArguments.length);
     if (functionImplementation == null) {
+      // If no overload found and this is a method call with a target,
+      // try the receiver pattern (e.g., str_var.format([args]))
+      if (expression.target != null && interpretableArguments.length == 2) {
+        return BinaryInterpretable(functionName, null, interpretableArguments[0], interpretableArguments[1]);
+      }
       throw Exception('No overload found for function: $functionName with ${interpretableArguments.length} arguments');
     }
     
@@ -98,6 +103,17 @@ class Planner {
         }
         throw Exception('No unary operator implementation for function: $functionName');
       case 2:
+        // Check if there are multiple overloads with explicit type signatures that need type-based dispatch
+        final allOverloads = dispatcher.findAllOverloads(functionName);
+        if (allOverloads != null && allOverloads.length > 1) {
+          // Only use type-aware dispatch if at least one overload has parameter types
+          final hasTypedOverloads = allOverloads.any((o) => o.parameterTypes != null);
+          if (hasTypedOverloads) {
+            return TypeAwareBinaryInterpretable(functionName, dispatcher, 
+                interpretableArguments[0], interpretableArguments[1]);
+          }
+        }
+        
         if (functionImplementation.binaryOperator != null) {
           return planCallBinary(expression, functionName, functionImplementation,
               interpretableArguments);
