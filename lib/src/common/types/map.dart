@@ -43,14 +43,14 @@ class MapValue extends Value implements Indexer, Container, Sizer {
     // First try direct key lookup
     final result = value[index];
     if (result != null || value.containsKey(index)) {
-      return typeAdapter.nativeToValue(result);
+      return result!; // result is already a Value, don't convert again
     }
     
     // If direct lookup fails, try to find a compatible key
     // This handles cases where keys are equivalent but not identical (e.g., 1, 1u, 1.0)
     for (final entry in value.entries) {
       if (_keysEqual(entry.key, index)) {
-        return typeAdapter.nativeToValue(entry.value);
+        return entry.value; // entry.value is already a Value, don't convert again
       }
     }
     

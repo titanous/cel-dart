@@ -45,7 +45,7 @@ class Planner {
     if (expression is PresenceTestExpr) {
       return planPresenceTest(expression);
     }
-    throw Exception('Unsupported Expression type: ${expression.runtimeType}.');
+    return ErrorInterpretable('Unsupported Expression type: ${expression.runtimeType}');
   }
 
   Interpretable planIdent(IdentExpr ident) {
@@ -87,7 +87,7 @@ class Planner {
       if (expression.target != null && interpretableArguments.length == 2) {
         return BinaryInterpretable(functionName, null, interpretableArguments[0], interpretableArguments[1]);
       }
-      throw Exception('No overload found for function: $functionName with ${interpretableArguments.length} arguments');
+      return ErrorInterpretable('No overload found for function: $functionName with ${interpretableArguments.length} arguments');
     }
     
     // Check the argument count and use the appropriate operator
@@ -101,7 +101,7 @@ class Planner {
           return planCallFunction(expression, functionName, functionImplementation,
               interpretableArguments);
         }
-        throw Exception('No unary operator implementation for function: $functionName');
+        return ErrorInterpretable('No unary operator implementation for function: $functionName');
       case 2:
         // Check if there are multiple overloads with explicit type signatures that need type-based dispatch
         final allOverloads = dispatcher.findAllOverloads(functionName);
@@ -121,7 +121,7 @@ class Planner {
           return planCallFunction(expression, functionName, functionImplementation,
               interpretableArguments);
         }
-        throw Exception('No binary operator implementation for function: $functionName');
+        return ErrorInterpretable('No binary operator implementation for function: $functionName');
       default:
         if (functionImplementation.functionOperator != null) {
           return planCallFunction(expression, functionName, functionImplementation,
@@ -243,7 +243,7 @@ class Planner {
   Interpretable planCallUnary(CallExpr expression, String functionName,
       Overload functionImplementation, List<Interpretable> arguments) {
     if (functionImplementation.unaryOperator == null) {
-      throw Exception('No unary operator implementation for function: $functionName');
+      return ErrorInterpretable('No unary operator implementation for function: $functionName');
     }
     return UnaryInterpretable(
         functionImplementation.unaryOperator!, arguments[0]);
@@ -254,7 +254,7 @@ class Planner {
   Interpretable planCallFunction(CallExpr expression, String functionName,
       Overload functionImplementation, List<Interpretable> arguments) {
     if (functionImplementation.functionOperator == null) {
-      throw Exception('No function operator implementation for function: $functionName');
+      return ErrorInterpretable('No function operator implementation for function: $functionName');
     }
     return FunctionInterpretable(
         functionImplementation.functionOperator!, arguments);

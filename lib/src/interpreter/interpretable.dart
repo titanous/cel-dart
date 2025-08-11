@@ -36,6 +36,18 @@ class InterpretableConst implements Interpretable {
   }
 }
 
+class ErrorInterpretable implements Interpretable {
+  ErrorInterpretable(this.errorMessage, [this.cause]);
+
+  final String errorMessage;
+  final Object? cause;
+
+  @override
+  evaluate(Activation activation) {
+    return ErrorValue(errorMessage, cause);
+  }
+}
+
 // Port of https://github.com/google/cel-go/blob/32ac6133c6b8eca8bb76e17e6ad50a1eb757778a/interpreter/interpretable.go#L1219.
 class AttributeValueInterpretable implements Interpretable {
   AttributeValueInterpretable(this.attribute, this.typeAdapter);
@@ -45,7 +57,12 @@ class AttributeValueInterpretable implements Interpretable {
 
   @override
   evaluate(Activation activation) {
-    return typeAdapter.nativeToValue(attribute.resolve(activation));
+    final result = attribute.resolve(activation);
+    // If result is already a Value, don't convert again
+    if (result is Value) {
+      return result;
+    }
+    return typeAdapter.nativeToValue(result);
   }
 
   void addQualifier(Qualifier qualifier) {
@@ -229,10 +246,18 @@ class BinaryInterpretable implements Interpretable {
   evaluate(Activation activation) {
     final leftValue = leftHandSide.evaluate(activation);
     final rightValue = rightHandSide.evaluate(activation);
-    assert(binaryOperator != null || leftValue is Receiver);
-    return binaryOperator != null
-        ? binaryOperator!(leftValue, rightValue)
-        : (leftValue as Receiver).receive(functionName, '', [rightValue]);
+    
+    if (binaryOperator != null) {
+      return binaryOperator!(leftValue, rightValue);
+    }
+    
+    // Only use receiver pattern if the left value implements Receiver
+    if (leftValue is Receiver) {
+      return (leftValue as Receiver).receive(functionName, '', [rightValue]);
+    }
+    
+    // If no binary operator and left value is not a receiver, return error
+    return ErrorValue('No implementation found for function: $functionName on ${leftValue.runtimeType}');
   }
 }
 

@@ -18,7 +18,9 @@ class ErrorValue extends Value {
 
   @override
   dynamic convertToNative() {
-    throw Exception(message);
+    // Return the error value itself rather than throwing
+    // This allows error values to be propagated without exceptions
+    return this;
   }
 
   @override

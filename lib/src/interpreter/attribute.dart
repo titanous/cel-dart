@@ -383,7 +383,7 @@ class ProtobufFieldQualifier extends Qualifier {
     try {
       return object[fieldName];
     } catch (_) {
-      throw StateError('Cannot access field $fieldName on ${object.runtimeType}');
+      return ErrorValue('Cannot access field $fieldName on ${object.runtimeType}');
     }
   }
   

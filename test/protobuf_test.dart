@@ -231,10 +231,9 @@ void main() {
       final ast = env.compile('undefined_var == 42');
       final program = env.makeProgram(ast);
       
-      expect(
-        () => program.evaluate({'this': MessageValue(msg)}),
-        throwsA(isA<Exception>()),
-      );
+      final result = program.evaluate({'this': MessageValue(msg)});
+      expect(result, isA<ErrorValue>());
+      expect(result.toString(), contains('no such attribute'));
     });
     
     test('can handle enum fields', () {

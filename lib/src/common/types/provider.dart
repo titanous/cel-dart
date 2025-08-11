@@ -317,6 +317,11 @@ Value _nativeToValue(TypeAdapter adapter, dynamic value) {
     return DurationValue(Duration(microseconds: microseconds));
   }
   
+  // Handle protobuf enums - convert to IntValue
+  if (value is ProtobufEnum) {
+    return IntValue(value.value);
+  }
+  
   // Handle other protobuf messages
   if (value is GeneratedMessage) {
     return MessageValue(value, adapter);

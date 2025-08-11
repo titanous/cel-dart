@@ -218,14 +218,10 @@ void main() {
       // Test with wrong type (should fail gracefully)
       ast = env.compile('"0.0.0.0/0".isIpPrefix("invalid")');
       program = env.makeProgram(ast);
-      try {
-        result = program.evaluate({});
-        // Should be an error or false, not throw exception
-        expect(result is String && result.contains('No overload found'), isTrue);
-      } catch (e) {
-        // Acceptable if it throws with a descriptive error
-        expect(e.toString().contains('overload'), isTrue);
-      }
+      result = program.evaluate({});
+      // Should now return an ErrorValue with overload information
+      expect(result, isA<ErrorValue>());
+      expect(result.toString().toLowerCase(), contains('overload'));
     });
   });
 }
