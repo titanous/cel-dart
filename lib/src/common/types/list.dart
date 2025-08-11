@@ -10,6 +10,7 @@ import 'package:cel/src/common/types/error.dart';
 import 'package:cel/src/common/types/int.dart';
 import 'package:cel/src/common/types/double.dart';
 import 'package:cel/src/common/types/uint.dart';
+import 'package:cel/src/common/types/numeric_compare.dart';
 
 // https://github.com/google/cel-go/blob/377a0bba20d07926e0583b4e604509ca7f3583b7/common/types/list.go
 
@@ -73,7 +74,13 @@ class ListValue extends Value implements Indexer, Container, Adder, Sizer {
 
   @override
   BooleanValue contains(Value value) {
-    return BooleanValue(this.value.contains(value));
+    // Use NumericCompare.equals for proper cross-type numeric comparison
+    for (final item in this.value) {
+      if (NumericCompare.equals(item, value)) {
+        return BooleanValue(true);
+      }
+    }
+    return BooleanValue(false);
   }
 
   @override
