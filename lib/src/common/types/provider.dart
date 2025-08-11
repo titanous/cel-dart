@@ -84,14 +84,54 @@ class TypeRegistry implements TypeAdapter {
     // This is a heuristic - ideally we'd check the actual field type
     final fieldName = fieldInfo.name as String;
     
-    if (fieldName.contains('Int32Wrapper') && value is int) {
-      return pb_wrappers.Int32Value()..value = value;
+    
+    if (fieldName.contains('Int32Wrapper')) {
+      // Handle both int and Int64 types for int32
+      int intValue;
+      if (value is int) {
+        intValue = value;
+      } else if (value is Int64) {
+        intValue = value.toInt();
+      } else {
+        return value; // Not a numeric type we can validate
+      }
+      
+      // Validate int32 range: -2147483648 to 2147483647 (2^31)
+      if (intValue < -2147483648 || intValue > 2147483647) {
+        return ErrorValue('range error');
+      }
+      return pb_wrappers.Int32Value()..value = intValue;
     } else if (fieldName.contains('Int64Wrapper') && value is int) {
+      // Note: Dart int is already limited to int64 range, so no additional validation needed
       return pb_wrappers.Int64Value()..value = Int64(value);
-    } else if (fieldName.contains('Uint32Wrapper') && value is int) {
-      return pb_wrappers.UInt32Value()..value = value;
+    } else if (fieldName.contains('Uint32Wrapper')) {
+      // Handle both int and Int64 types for uint32
+      int intValue;
+      if (value is int) {
+        intValue = value;
+      } else if (value is Int64) {
+        intValue = value.toInt();
+      } else {
+        return value; // Not a numeric type we can validate
+      }
+      
+      // Validate uint32 range: 0 to 4294967295 (2^32-1)
+      if (intValue < 0 || intValue > 4294967295) {
+        return ErrorValue('range error');
+      }
+      return pb_wrappers.UInt32Value()..value = intValue;
     } else if (fieldName.contains('Uint64Wrapper') && value is int) {
-      return pb_wrappers.UInt64Value()..value = Int64(value);
+      // Validate uint64 range: 0 to max uint64
+      if (value < 0) {
+        return ErrorValue('range error');
+      }
+      // For large values, need to check if they exceed uint64 max
+      final int64Val = Int64(value);
+      if (int64Val.isNegative && value > 0) {
+        // This indicates overflow beyond uint64 range
+        return ErrorValue('range error');
+      }
+      return pb_wrappers.UInt64Value()..value = int64Val;
     } else if (fieldName.contains('FloatWrapper') && value is double) {
       return pb_wrappers.FloatValue()..value = value;
     } else if (fieldName.contains('DoubleWrapper') && value is double) {
@@ -107,8 +147,9 @@ class TypeRegistry implements TypeAdapter {
     return value;
   }
   
-  // Create a message from a type name and field values
-  GeneratedMessage? createMessage(String typeName, Map<String, dynamic> fields) {
+  // Create a message from a type name and field values  
+  // Returns GeneratedMessage on success, null if type not found, or ErrorValue on validation error
+  dynamic createMessage(String typeName, Map<String, dynamic> fields) {
     if (protoRegistry == null) return null;
     
     // Try resolving the type name with the container if available
@@ -149,6 +190,11 @@ class TypeRegistry implements TypeAdapter {
         if (value != null) {
           // Check if this field expects a wrapper type
           final fieldValue = _wrapValueIfNeeded(fieldInfo, value);
+          // Check if range validation failed
+          if (fieldValue is ErrorValue) {
+            // Return the error value directly
+            return fieldValue;
+          }
           message.setField(fieldInfo.tagNumber, fieldValue);
         }
       } catch (e) {

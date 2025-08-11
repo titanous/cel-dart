@@ -379,16 +379,39 @@ class MessageInterpretable implements Interpretable {
   evaluate(Activation activation) {
     // Check if this is a wrapper type that should auto-unwrap
     if (_isWrapperType(typeName)) {
-      // For wrapper types, evaluate and return the wrapped value directly
-      if (keys.isNotEmpty && values.isNotEmpty) {
-        final key = keys[0].evaluate(activation);
-        if (key is StringValue && key.value == 'value') {
-          // Return the wrapped value directly, not the wrapper message
-          return values[0].evaluate(activation);
+      // Handle complex wrapper types (ListValue, Struct)
+      if (typeName == 'google.protobuf.ListValue') {
+        if (keys.isNotEmpty && values.isNotEmpty) {
+          final key = keys[0].evaluate(activation);
+          if (key is StringValue && key.value == 'values') {
+            // Return the list values directly as a native CEL list
+            return values[0].evaluate(activation);
+          }
         }
+        // Empty ListValue returns empty list
+        return adapter.nativeToValue([]);
+      } else if (typeName == 'google.protobuf.Struct') {
+        if (keys.isNotEmpty && values.isNotEmpty) {
+          final key = keys[0].evaluate(activation);
+          if (key is StringValue && key.value == 'fields') {
+            // Return the struct fields directly as a native CEL map
+            return values[0].evaluate(activation);
+          }
+        }
+        // Empty Struct returns empty map
+        return adapter.nativeToValue({});
+      } else {
+        // Handle primitive wrapper types (Int32Value, StringValue, etc.)
+        if (keys.isNotEmpty && values.isNotEmpty) {
+          final key = keys[0].evaluate(activation);
+          if (key is StringValue && key.value == 'value') {
+            // Return the wrapped value directly, not the wrapper message
+            return values[0].evaluate(activation);
+          }
+        }
+        // Empty wrapper returns default value
+        return _getWrapperDefaultValue(typeName);
       }
-      // Empty wrapper returns default value
-      return _getWrapperDefaultValue(typeName);
     }
     
     // For regular messages, try to create a real protobuf message
@@ -413,10 +436,13 @@ class MessageInterpretable implements Interpretable {
       
       // Try to resolve the type name using the proto registry
       // The proto registry should handle namespace resolution
-      final message = typeRegistry.createMessage(typeName, fieldMap);
-      if (message != null) {
+      final result = typeRegistry.createMessage(typeName, fieldMap);
+      if (result is ErrorValue) {
+        // Range validation or other error occurred
+        return result;
+      } else if (result != null) {
         // Return the message wrapped in a MessageValue
-        return MessageValue(message, adapter);
+        return MessageValue(result, adapter);
       }
     }
     
@@ -468,7 +494,9 @@ class MessageInterpretable implements Interpretable {
            typeName == 'google.protobuf.DoubleValue' ||
            typeName == 'google.protobuf.BoolValue' ||
            typeName == 'google.protobuf.StringValue' ||
-           typeName == 'google.protobuf.BytesValue';
+           typeName == 'google.protobuf.BytesValue' ||
+           typeName == 'google.protobuf.ListValue' ||
+           typeName == 'google.protobuf.Struct';
   }
   
   Value _getWrapperDefaultValue(String typeName) {
@@ -488,6 +516,10 @@ class MessageInterpretable implements Interpretable {
         return StringValue('');
       case 'google.protobuf.BytesValue':
         return BytesValue(Uint8List(0));
+      case 'google.protobuf.ListValue':
+        return adapter.nativeToValue([]);
+      case 'google.protobuf.Struct':
+        return adapter.nativeToValue({});
       default:
         return NullValue();
     }

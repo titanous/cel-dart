@@ -170,6 +170,24 @@ class ConformanceTestRunner {
       // Evaluate
       final result = program.evaluate(bindings);
       
+      // Check if the result is an ErrorValue (which should be treated as evaluation error for conformance testing)
+      if (result is ErrorValue) {
+        if (test.hasEvalError()) {
+          // We expected an error and got one
+          return TestResult(
+            name: test.name,
+            passed: true,
+          );
+        } else {
+          // We didn't expect an error but got one
+          return TestResult(
+            name: test.name,
+            passed: false,
+            error: 'Unexpected evaluation error: ${result.message}',
+          );
+        }
+      }
+      
       // Check the result
       if (test.hasEvalError()) {
         // We expected an error but didn't get one
