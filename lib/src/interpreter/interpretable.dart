@@ -61,7 +61,13 @@ class EqualInterpretable implements Interpretable {
   @override
   evaluate(Activation activation) {
     final left = leftHandSide.evaluate(activation);
+    if (isError(left)) {
+      return left;
+    }
     final right = rightHandSide.evaluate(activation);
+    if (isError(right)) {
+      return right;
+    }
     return BooleanValue(NumericCompare.equals(left, right));
   }
 }
@@ -75,7 +81,13 @@ class NotEqualInterpretable implements Interpretable {
   @override
   evaluate(Activation activation) {
     final left = leftHandSide.evaluate(activation);
+    if (isError(left)) {
+      return left;
+    }
     final right = rightHandSide.evaluate(activation);
+    if (isError(right)) {
+      return right;
+    }
     return BooleanValue(!NumericCompare.equals(left, right));
   }
 }
@@ -103,31 +115,33 @@ class LogicalAndInterpretable implements Interpretable {
       return BooleanValue(false);
     }
     
-    // Now handle error cases
-    // If left is an error and right is true, return the error
-    if (isError(left) && right is BooleanValue && right.value) {
-      return left;
+    // Both sides have been evaluated, now handle non-boolean cases
+    
+    // Collect error if left is not a boolean
+    Value? err;
+    if (left is! BooleanValue) {
+      if (isError(left)) {
+        err = left;
+      } else {
+        err = ErrorValue('no matching overload');
+      }
     }
     
-    // If right is an error and left is true, return the error
-    if (isError(right) && left is BooleanValue && left.value) {
-      return right;
+    // If right is not a boolean and we don't have an error yet, use right's error
+    if (right is! BooleanValue && err == null) {
+      if (isError(right)) {
+        err = right;
+      } else {
+        err = ErrorValue('no matching overload');
+      }
     }
     
-    // If both are booleans and both are true
-    if (left is BooleanValue && right is BooleanValue) {
-      return BooleanValue(true);
+    // If we have an error, return it
+    if (err != null) {
+      return err;
     }
     
-    // Type error cases
-    if (!isError(left) && left is! BooleanValue) {
-      return ErrorValue('AND operator requires boolean operands, got ${left.type.name}');
-    }
-    if (!isError(right) && right is! BooleanValue) {
-      return ErrorValue('AND operator requires boolean operands, got ${right.type.name}');
-    }
-    
-    // Default to returning true if we somehow get here
+    // Both are true booleans
     return BooleanValue(true);
   }
 }
@@ -155,31 +169,33 @@ class LogicalOrInterpretable implements Interpretable {
       return BooleanValue(true);
     }
     
-    // Now handle error cases
-    // If left is an error and right is false, return the error
-    if (isError(left) && right is BooleanValue && !right.value) {
-      return left;
+    // Both sides have been evaluated, now handle non-boolean cases
+    
+    // Collect error if left is not a boolean
+    Value? err;
+    if (left is! BooleanValue) {
+      if (isError(left)) {
+        err = left;
+      } else {
+        err = ErrorValue('no matching overload');
+      }
     }
     
-    // If right is an error and left is false, return the error
-    if (isError(right) && left is BooleanValue && !left.value) {
-      return right;
+    // If right is not a boolean and we don't have an error yet, use right's error
+    if (right is! BooleanValue && err == null) {
+      if (isError(right)) {
+        err = right;
+      } else {
+        err = ErrorValue('no matching overload');
+      }
     }
     
-    // If both are booleans and both are false
-    if (left is BooleanValue && right is BooleanValue) {
-      return BooleanValue(false);
+    // If we have an error, return it
+    if (err != null) {
+      return err;
     }
     
-    // Type error cases
-    if (!isError(left) && left is! BooleanValue) {
-      return ErrorValue('OR operator requires boolean operands, got ${left.type.name}');
-    }
-    if (!isError(right) && right is! BooleanValue) {
-      return ErrorValue('OR operator requires boolean operands, got ${right.type.name}');
-    }
-    
-    // Default to returning false if we somehow get here
+    // Both are false booleans
     return BooleanValue(false);
   }
 }

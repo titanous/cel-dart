@@ -12,8 +12,6 @@ import 'package:cel/src/common/types/traits/matcher.dart';
 import 'package:cel/src/common/types/traits/math.dart';
 import 'package:cel/src/common/types/traits/receiver.dart';
 import 'package:cel/src/common/types/traits/sizer.dart';
-import 'package:cel/src/common/types/traits/field_tester.dart';
-import 'package:cel/src/common/types/pb/message.dart';
 
 import '../../common/overloads/overloads.dart';
 import '../../operators/operators.dart';
@@ -29,10 +27,15 @@ List<Overload> standardOverloads() {
     Overload(
       Operators.logicalNot.name,
       unaryOperator: (value) {
-        if (value is! Negater) {
-          throw StateError('$value should be a Negater');
+        // Handle errors
+        if (value is ErrorValue) {
+          return value;
         }
-        return value.negate();
+        // Only works with boolean values
+        if (value is! BooleanValue) {
+          return ErrorValue('no matching overload');
+        }
+        return BooleanValue(!value.value);
       },
     ),
 
