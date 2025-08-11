@@ -20,7 +20,6 @@ class MessageValue extends Value implements Indexer, FieldTester {
     _adapter = ProtobufTypeAdapter(this.typeAdapter);
   }
   
-  @override
   String get celTypeValue => message.info_.qualifiedMessageName;
   
   @override
@@ -32,7 +31,6 @@ class MessageValue extends Value implements Indexer, FieldTester {
   @override
   Value convertToNative() => this;
   
-  @override
   bool equal(Value other) {
     if (other is MessageValue) {
       return message == other.message;
@@ -45,6 +43,12 @@ class MessageValue extends Value implements Indexer, FieldTester {
   
   @override
   int get hashCode => message.hashCode;
+  
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is MessageValue && message == other.message;
+  }
   
   /// Get a field value by name
   @override

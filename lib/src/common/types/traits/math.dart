@@ -1,6 +1,6 @@
 /// https://github.com/google/cel-go/blob/7d206a43b28ca86004ae0791cf874c9da7f2c44d/common/types/traits/math.go
 
-import 'package:cel/src/common/types/ref/value.dart';
+import '../ref/value.dart';
 
 /// Adder interface to support '+' operator overloads.
 abstract class Adder {

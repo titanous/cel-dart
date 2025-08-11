@@ -65,7 +65,14 @@ class ProtobufTypeAdapter {
     }
     
     // Also try converting the given name to see if it matches
-    if (_toCamelCase(name) == field.name) {
+    final camelFromSnake = _toCamelCase(name);
+    if (camelFromSnake == field.name) {
+      return true;
+    }
+    
+    // Additional check: try converting the Dart name to snake_case and compare
+    final snakeCase = _toSnakeCase(field.name);
+    if (snakeCase == name) {
       return true;
     }
     
@@ -74,19 +81,23 @@ class ProtobufTypeAdapter {
   
   /// Get the proto field name for a field
   String _getProtoFieldName(FieldInfo field) {
-    // Try to get the proto name from the field's protoName property if it exists
-    // Otherwise, convert the Dart name to snake_case
+    // For protobuf.dart, the FieldInfo.name is typically the Dart property name (camelCase)
+    // The original proto field name (snake_case) can be derived by converting to snake_case
+    // unless it was explicitly set differently in the .proto file
+    
+    // First try to get the proto name if it exists as a property
     try {
-      // FieldInfo has a protoName getter that returns the original proto field name
+      // Some versions of protobuf.dart may have a protoName property
       final dynamic fieldDynamic = field;
-      if (fieldDynamic.protoName != null) {
+      if (fieldDynamic.hasProperty('protoName') && fieldDynamic.protoName != null) {
         return fieldDynamic.protoName as String;
       }
     } catch (_) {
-      // protoName might not exist in older versions
+      // Ignore if protoName doesn't exist
     }
     
     // Fallback: convert camelCase to snake_case
+    // This should work for most standard protobuf field names
     return _toSnakeCase(field.name);
   }
   
@@ -151,20 +162,28 @@ class ProtobufTypeAdapter {
       return MapValue(entries, typeAdapter);
     } else {
       // Handle singular fields
-      if (!msg.hasField(field.tagNumber)) {
-        // For wrapper types, return null for unset fields
-        // We check this by getting the field value and checking if it would be a wrapper
-        final defaultValue = msg.getField(field.tagNumber);
-        if (_isWrapperType(defaultValue)) {
-          return NullValue();
+      final hasField = msg.hasField(field.tagNumber);
+      final value = msg.getField(field.tagNumber);
+      
+      if (!hasField) {
+        // For wrapper types, check if they have been explicitly set with a value
+        if (_isWrapperType(value)) {
+          // For wrapper types, check if they contain a non-default value
+          if (_hasWrapperValue(value)) {
+            // Wrapper has a value, process it normally
+            return _adaptSingleValue(value);
+          } else {
+            // Wrapper is unset/default, return null
+            return NullValue();
+          }
         }
         // Return default value for unset non-wrapper fields
         return _getDefaultValueForType(field.type);
       }
-      final value = msg.getField(field.tagNumber);
       return _adaptSingleValue(value);
     }
   }
+  
   
   /// Check if a value is a wrapper type
   bool _isWrapperType(dynamic value) {
@@ -178,6 +197,34 @@ class ProtobufTypeAdapter {
            value is pb_wrappers.Int64Value ||
            value is pb_wrappers.UInt32Value ||
            value is pb_wrappers.UInt64Value;
+  }
+  
+  /// Check if a wrapper type has a non-default value
+  bool _hasWrapperValue(dynamic value) {
+    if (value == null) return false;
+    
+    // Check each wrapper type and see if it has a non-default value
+    if (value is pb_wrappers.BoolValue) {
+      return value.hasValue();
+    } else if (value is pb_wrappers.BytesValue) {
+      return value.hasValue();
+    } else if (value is pb_wrappers.StringValue) {
+      return value.hasValue();
+    } else if (value is pb_wrappers.DoubleValue) {
+      return value.hasValue();
+    } else if (value is pb_wrappers.FloatValue) {
+      return value.hasValue();
+    } else if (value is pb_wrappers.Int32Value) {
+      return value.hasValue();
+    } else if (value is pb_wrappers.Int64Value) {
+      return value.hasValue();
+    } else if (value is pb_wrappers.UInt32Value) {
+      return value.hasValue();
+    } else if (value is pb_wrappers.UInt64Value) {
+      return value.hasValue();
+    }
+    
+    return false;
   }
   
   /// Adapt a single value to CEL value based on its runtime type
