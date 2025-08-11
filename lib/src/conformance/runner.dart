@@ -5,7 +5,11 @@ import 'package:protobuf/protobuf.dart' as pb;
 import 'package:cel/cel.dart';
 import 'package:cel/src/common/types/pb/registry.dart';
 import 'package:cel/src/common/types/pb/message.dart';
+import 'package:cel/src/common/types/pb/adapter.dart';
 import 'package:cel/src/common/types/provider.dart';
+import 'package:cel/src/common/types/ref/value.dart' as cel_value;
+// Import UintValue which might not be exported by main cel.dart
+import 'package:cel/src/common/types/uint.dart';
 import '../gen/cel/expr/conformance/test/simple.pb.dart';
 import '../gen/cel/expr/value.pb.dart' as value_pb;
 import '../gen/cel/expr/eval.pb.dart';
@@ -266,14 +270,28 @@ class ConformanceTestRunner {
     } else if (value.hasBytesValue()) {
       return value.bytesValue;
     } else if (value.hasObjectValue()) {
-      // For objectValue, the Any message itself was created from JSON parsing
-      // and doesn't contain the actual protobuf bytes.
-      // We need to reconstruct the message from the JSON representation
-      // that was stored when the test was parsed.
+      // For objectValue, we have an Any message that might need to be unpacked
+      final anyMessage = value.objectValue;
       
-      // For now, just return the Any message
-      // The actual unpacking will need to happen elsewhere
-      return value.objectValue;
+      // Only unpack if this looks like a well-known protobuf type that should be converted
+      if (anyMessage.typeUrl.contains('google.protobuf') && 
+          (anyMessage.typeUrl.contains('Value') || anyMessage.typeUrl.contains('Wrapper') || 
+           anyMessage.typeUrl.contains('Struct') || anyMessage.typeUrl.contains('ListValue'))) {
+        try {
+          final unpackedMessage = _unpackAnyMessage(anyMessage);
+          if (unpackedMessage != null) {
+            // Use the protobuf adapter to properly convert the message
+            final adapter = ProtobufTypeAdapter(environment.adapter);
+            final adaptedValue = adapter.adaptValue(unpackedMessage);
+            return _celValueToNative(adaptedValue);
+          }
+        } catch (e) {
+          // If unpacking fails, fall through to default behavior
+        }
+      }
+      
+      // For non-wrapper types or if unpacking fails, return the Any message as-is
+      return anyMessage;
     } else if (value.hasListValue()) {
       return value.listValue.values.map(_valueFromCelValue).toList();
     } else if (value.hasMapValue()) {
@@ -441,6 +459,114 @@ class ConformanceTestRunner {
     ];
     
     return pb.TypeRegistry(types);
+  }
+  
+  /// Unpack Any message to the actual protobuf message
+  pb.GeneratedMessage? _unpackAnyMessage(pb_any.Any anyMessage) {
+    try {
+      // Check the type URL to determine the message type
+      final typeUrl = anyMessage.typeUrl;
+      if (typeUrl.isEmpty) return null;
+      
+      // Extract the type name from the URL (format: type.googleapis.com/PackageName.MessageName)
+      final parts = typeUrl.split('/');
+      if (parts.length != 2) return null;
+      
+      final fullTypeName = parts[1];
+      
+      // Map known types to their constructors
+      switch (fullTypeName) {
+        case 'google.protobuf.Int32Value':
+          final msg = pb_wrappers.Int32Value();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        case 'google.protobuf.Int64Value':
+          final msg = pb_wrappers.Int64Value();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        case 'google.protobuf.UInt32Value':
+          final msg = pb_wrappers.UInt32Value();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        case 'google.protobuf.UInt64Value':
+          final msg = pb_wrappers.UInt64Value();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        case 'google.protobuf.BoolValue':
+          final msg = pb_wrappers.BoolValue();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        case 'google.protobuf.StringValue':
+          final msg = pb_wrappers.StringValue();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        case 'google.protobuf.BytesValue':
+          final msg = pb_wrappers.BytesValue();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        case 'google.protobuf.DoubleValue':
+          final msg = pb_wrappers.DoubleValue();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        case 'google.protobuf.FloatValue':
+          final msg = pb_wrappers.FloatValue();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        case 'google.protobuf.ListValue':
+          final msg = pb_struct.ListValue();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        case 'google.protobuf.Struct':
+          final msg = pb_struct.Struct();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        // Add test types
+        case 'cel.expr.conformance.proto2.TestAllTypes':
+          final msg = proto2.TestAllTypes();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        case 'cel.expr.conformance.proto3.TestAllTypes':
+          final msg = proto3.TestAllTypes();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        default:
+          return null;
+      }
+    } catch (e) {
+      // If unpacking fails, return null
+      return null;
+    }
+  }
+  
+  /// Convert a CEL Value to a native Dart value for comparison
+  dynamic _celValueToNative(cel_value.Value celValue) {
+    // Convert CEL values back to native Dart values
+    if (celValue is BooleanValue) {
+      return celValue.value;
+    } else if (celValue is StringValue) {
+      return celValue.value;
+    } else if (celValue is IntValue) {
+      return celValue.value;
+    } else if (celValue is UintValue) {
+      return celValue.value;
+    } else if (celValue is DoubleValue) {
+      return celValue.value;
+    } else if (celValue is BytesValue) {
+      return celValue.value;
+    } else if (celValue is ListValue) {
+      return celValue.value.map(_celValueToNative).toList();
+    } else if (celValue is MapValue) {
+      final result = <dynamic, dynamic>{};
+      for (final entry in celValue.value.entries) {
+        result[_celValueToNative(entry.key)] = _celValueToNative(entry.value);
+      }
+      return result;
+    } else if (celValue.runtimeType.toString() == 'NullValue') {
+      return null;
+    } else {
+      // For other types, return the value as-is
+      return celValue;
+    }
   }
   
 }

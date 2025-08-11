@@ -28,6 +28,11 @@ class ProtobufTypeAdapter {
     return MessageValue(msg);
   }
 
+  /// Convert any value to a CEL Value (public wrapper for _adaptSingleValue)
+  Value adaptValue(dynamic value) {
+    return _adaptSingleValue(value);
+  }
+
   /// Get a field value from a message
   Value getField(GeneratedMessage msg, String fieldName) {
     final info = msg.info_;
@@ -203,7 +208,8 @@ class ProtobufTypeAdapter {
       } else if (value is pb_wrappers.UInt64Value) {
         return UintValue(value.value.toInt());
       } else {
-        // Regular nested message
+        // Check for other well-known types that need special handling
+        // Import struct types at top of file
         return adaptMessage(value);
       }
     }
