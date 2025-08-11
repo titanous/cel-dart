@@ -79,26 +79,38 @@ class Planner {
     }
     // TODO: implement indexer, optSelect, optIndex.
 
-    final functionImplementation = dispatcher.findOverload(functionName);
+    final functionImplementation = dispatcher.findOverload(functionName, 
+        argCount: interpretableArguments.length);
     if (functionImplementation == null) {
-      throw Exception('No overload found for function: $functionName');
-    }
-    // Check if function has a functionOperator first (works for any argument count)
-    if (functionImplementation.functionOperator != null) {
-      return planCallFunction(expression, functionName, functionImplementation,
-          interpretableArguments);
+      throw Exception('No overload found for function: $functionName with ${interpretableArguments.length} arguments');
     }
     
-    // Fall back to argument-count-based logic for traditional operators
+    // Check the argument count and use the appropriate operator
     switch (interpretableArguments.length) {
       // TODO: handle zero functions.
       case 1:
-        return planCallUnary(expression, functionName, functionImplementation,
-            interpretableArguments);
+        if (functionImplementation.unaryOperator != null) {
+          return planCallUnary(expression, functionName, functionImplementation,
+              interpretableArguments);
+        } else if (functionImplementation.functionOperator != null) {
+          return planCallFunction(expression, functionName, functionImplementation,
+              interpretableArguments);
+        }
+        throw Exception('No unary operator implementation for function: $functionName');
       case 2:
-        return planCallBinary(expression, functionName, functionImplementation,
-            interpretableArguments);
+        if (functionImplementation.binaryOperator != null) {
+          return planCallBinary(expression, functionName, functionImplementation,
+              interpretableArguments);
+        } else if (functionImplementation.functionOperator != null) {
+          return planCallFunction(expression, functionName, functionImplementation,
+              interpretableArguments);
+        }
+        throw Exception('No binary operator implementation for function: $functionName');
       default:
+        if (functionImplementation.functionOperator != null) {
+          return planCallFunction(expression, functionName, functionImplementation,
+              interpretableArguments);
+        }
         throw UnsupportedError(
             "Function $functionName with ${interpretableArguments.length} arguments is not supported.");
     }

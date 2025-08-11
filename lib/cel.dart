@@ -19,3 +19,4 @@ export 'src/common/types/double.dart' show DoubleValue;
 export 'src/common/types/list.dart' show ListValue;
 export 'src/common/types/map.dart' show MapValue;
 export 'src/common/types/bytes.dart' show BytesValue;
+export 'src/common/types/error.dart' show ErrorValue;
