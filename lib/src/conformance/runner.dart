@@ -334,6 +334,8 @@ class ConformanceTestRunner {
         map[key] = val;
       }
       return map;
+    } else if (value.hasTypeValue()) {
+      return {'typeValue': value.typeValue};
     }
 
     // Handle other types as needed
@@ -390,6 +392,11 @@ class ConformanceTestRunner {
         if (!_valuesMatch(actual[key], expected[key])) return false;
       }
       return true;
+    }
+
+    // Handle type values: actual is a string, expected is {'typeValue': string}
+    if (actual is String && expected is Map && expected.containsKey('typeValue')) {
+      return actual == expected['typeValue'];
     }
 
     // For numbers, allow some tolerance for floating point

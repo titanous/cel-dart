@@ -187,14 +187,41 @@ class TypeRegistry implements TypeAdapter {
 
         // Set the field value
         if (value != null) {
-          // Check if this field expects a wrapper type
-          final fieldValue = _wrapValueIfNeeded(fieldInfo, value);
-          // Check if range validation failed
-          if (fieldValue is ErrorValue) {
-            // Return the error value directly
-            return fieldValue;
+          // Handle different field types appropriately
+          if (fieldInfo.isRepeated) {
+            // For repeated fields, we need to add elements to the list
+            if (value is List) {
+              final list = message.getField(fieldInfo.tagNumber) as List;
+              for (final element in value) {
+                final fieldValue = _wrapValueIfNeeded(fieldInfo, element);
+                if (fieldValue is ErrorValue) {
+                  return fieldValue;
+                }
+                list.add(fieldValue);
+              }
+            }
+          } else if (fieldInfo.isMapField) {
+            // For map fields, we need to populate the map entries
+            if (value is Map) {
+              final map = message.getField(fieldInfo.tagNumber) as Map;
+              for (final entry in value.entries) {
+                final keyValue = _wrapValueIfNeeded(fieldInfo, entry.key);
+                final valueValue = _wrapValueIfNeeded(fieldInfo, entry.value);
+                if (keyValue is ErrorValue) return keyValue;
+                if (valueValue is ErrorValue) return valueValue;
+                map[keyValue] = valueValue;
+              }
+            }
+          } else {
+            // For singular fields, use the existing logic
+            final fieldValue = _wrapValueIfNeeded(fieldInfo, value);
+            // Check if range validation failed
+            if (fieldValue is ErrorValue) {
+              // Return the error value directly
+              return fieldValue;
+            }
+            message.setField(fieldInfo.tagNumber, fieldValue);
           }
-          message.setField(fieldInfo.tagNumber, fieldValue);
         }
       } catch (e) {
         // Skip fields that can't be set

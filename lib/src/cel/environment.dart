@@ -45,7 +45,7 @@ class Environment {
                 env.protoRegistry = registry;
                 // Pass the container to the TypeRegistry
                 if (env.adapter is TypeRegistry) {
-                  (env.adapter as TypeRegistry).container = env.container;
+                  (env.adapter as TypeRegistry).container = env._container;
                 }
               }
             ]);
@@ -55,7 +55,16 @@ class Environment {
   final List<ProgramOption> programOptions = [];
   final TypeAdapter adapter;
   ProtoTypeRegistry? protoRegistry;
-  Container container = defaultContainer;
+  Container _container = defaultContainer;
+
+  Container get container => _container;
+  set container(Container newContainer) {
+    _container = newContainer;
+    // Also update the TypeRegistry's container if we have one
+    if (adapter is TypeRegistry) {
+      (adapter as TypeRegistry).container = newContainer;
+    }
+  }
 
   Ast compile(String text) {
     return Ast(Parser().parse(text));

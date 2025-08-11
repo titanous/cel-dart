@@ -46,10 +46,19 @@ class ProtoTypeRegistry {
   }
 
   /// Create a new message instance by type name
-  MessageValue? createMessage(String typeName) {
+  MessageValue? createMessage(String typeName, [Map<String, dynamic>? fields]) {
     final constructor = _constructors[typeName];
     if (constructor != null) {
-      return MessageValue(constructor(), typeAdapter);
+      final message = constructor();
+      
+      // If fields are provided, set them on the message
+      if (fields != null) {
+        for (final entry in fields.entries) {
+          _setFieldValue(message, entry.key, entry.value);
+        }
+      }
+      
+      return MessageValue(message, typeAdapter);
     }
     return null;
   }
@@ -67,6 +76,86 @@ class ProtoTypeRegistry {
   /// Convert a protobuf message to CEL value
   Value adaptMessage(GeneratedMessage msg) {
     return _adapter.adaptMessage(msg);
+  }
+
+  /// Set a field value on a protobuf message
+  void _setFieldValue(GeneratedMessage message, String fieldName, dynamic value) {
+    final info = message.info_;
+    
+    // Find the field by name (try both snake_case and camelCase)
+    FieldInfo? matchingField;
+    for (final field in info.fieldInfo.values) {
+      if (_matchesFieldName(field, fieldName)) {
+        matchingField = field;
+        break;
+      }
+    }
+    
+    if (matchingField != null) {
+      // Convert the value to the appropriate protobuf type and set it
+      message.setField(matchingField.tagNumber, value);
+    }
+  }
+
+  /// Check if a field matches the given name (either proto name or Dart property name)
+  bool _matchesFieldName(FieldInfo field, String name) {
+    // Check Dart property name (camelCase)
+    if (field.name == name) {
+      return true;
+    }
+
+    // Check proto field name (snake_case)
+    final snakeCase = _toSnakeCase(field.name);
+    if (snakeCase == name) {
+      return true;
+    }
+
+    // Also try converting the given name to camelCase
+    final camelCase = _toCamelCase(name);
+    if (camelCase == field.name) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Convert snake_case to camelCase
+  String _toCamelCase(String snakeCase) {
+    if (!snakeCase.contains('_')) {
+      return snakeCase;
+    }
+
+    final parts = snakeCase.split('_');
+    if (parts.isEmpty) return snakeCase;
+
+    final result = StringBuffer(parts[0]);
+    for (int i = 1; i < parts.length; i++) {
+      if (parts[i].isNotEmpty) {
+        result.write(parts[i][0].toUpperCase());
+        if (parts[i].length > 1) {
+          result.write(parts[i].substring(1));
+        }
+      }
+    }
+    return result.toString();
+  }
+
+  /// Convert camelCase to snake_case
+  String _toSnakeCase(String camelCase) {
+    final result = StringBuffer();
+    for (int i = 0; i < camelCase.length; i++) {
+      final char = camelCase[i];
+      if (char.toUpperCase() == char && char.toLowerCase() != char) {
+        // It's an uppercase letter
+        if (i > 0) {
+          result.write('_');
+        }
+        result.write(char.toLowerCase());
+      } else {
+        result.write(char);
+      }
+    }
+    return result.toString();
   }
 
   /// Register all Well-Known Types

@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:cel/src/gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
 import 'package:protobuf/protobuf.dart';
 import '../common/types/ref/provider.dart';
+import '../common/types/type.dart';
 
 abstract class Activation extends Equatable {
   dynamic resolveName(dynamic namespaceName);
@@ -23,6 +24,32 @@ class EvalActivation extends Activation {
 
   @override
   dynamic resolveName(dynamic namespaceName) {
+    // Check for built-in type denotations first
+    if (namespaceName is String) {
+      switch (namespaceName) {
+        case 'bool':
+          return TypeValue('bool');
+        case 'int':
+          return TypeValue('int');
+        case 'uint':
+          return TypeValue('uint');
+        case 'double':
+          return TypeValue('double');
+        case 'string':
+          return TypeValue('string');
+        case 'bytes':
+          return TypeValue('bytes');
+        case 'list':
+          return TypeValue('list');
+        case 'map':
+          return TypeValue('map');
+        case 'type':
+          return TypeValue('type');
+        case 'null_type':
+          return TypeValue('null_type');
+      }
+    }
+    
     // Get the value from input
     final value = input[namespaceName];
 

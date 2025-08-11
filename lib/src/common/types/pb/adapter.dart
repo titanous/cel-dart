@@ -178,7 +178,16 @@ class ProtobufTypeAdapter {
             return NullValue();
           }
         }
-        // Return default value for unset non-wrapper fields
+        
+        // For proto3 message fields that aren't set, we should return the default instance
+        // Check if this is a message field by examining the field type
+        if (_isMessageField(field)) {
+          // Return the default message instance even though the field isn't set
+          // This matches proto3 semantics where unset message fields return their default instances
+          return _adaptSingleValue(value);
+        }
+        
+        // Return default value for unset non-wrapper, non-message fields
         return _getDefaultValueForType(field.type);
       }
       return _adaptSingleValue(value);
@@ -197,6 +206,15 @@ class ProtobufTypeAdapter {
         value is pb_wrappers.Int64Value ||
         value is pb_wrappers.UInt32Value ||
         value is pb_wrappers.UInt64Value;
+  }
+
+  /// Check if a field is a message field (not a wrapper type)
+  bool _isMessageField(FieldInfo field) {
+    // Message fields have the MESSAGE_BIT set in their type
+    const MESSAGE_BIT = 0x200000;
+    const MODIFIER_MASK = 0x400007;
+    final baseType = field.type & ~MODIFIER_MASK;
+    return (baseType & MESSAGE_BIT) != 0;
   }
 
   /// Check if a wrapper type has a non-default value

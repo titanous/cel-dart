@@ -475,7 +475,7 @@ class MessageInterpretable implements Interpretable {
         // Range validation or other error occurred
         return result;
       } else if (result != null) {
-        // Return the message wrapped in a MessageValue
+        // Result is already a GeneratedMessage, wrap it in a MessageValue
         return MessageValue(result, adapter);
       }
     }

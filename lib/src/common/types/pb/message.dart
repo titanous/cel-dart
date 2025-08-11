@@ -66,6 +66,8 @@ class MessageValue extends Value implements Indexer, FieldTester {
   /// Delegates to the underlying protobuf library's hasField() method,
   /// which now handles proto2 vs proto3 semantics automatically based
   /// on the field's presence information.
+  /// 
+  /// Throws an exception if the field does not exist on the message type.
   bool has(String fieldName) {
     final info = message.info_;
 
@@ -76,7 +78,8 @@ class MessageValue extends Value implements Indexer, FieldTester {
       }
     }
 
-    return false;
+    // Field not found - this should be an error in CEL
+    throw Exception('no_such_field: $fieldName');
   }
 
   /// Check if a field matches the given name (either proto name or Dart property name)
