@@ -38,7 +38,8 @@ class PolicySpec_Import extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'PolicySpec.Import',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.policy'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -98,9 +99,12 @@ class PolicySpec_Variable extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'PolicySpec.Variable',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.policy'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..aOS(2, _omitFieldNames ? '' : 'description')
-    ..aOS(3, _omitFieldNames ? '' : 'expression')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'description',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(3, _omitFieldNames ? '' : 'expression',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -180,8 +184,9 @@ class PolicySpec_Rule extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'PolicySpec.Rule',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.policy'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'id')
-    ..aOS(2, _omitFieldNames ? '' : 'description')
+    ..aOS(1, _omitFieldNames ? '' : 'id', presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'description',
+        presence: $pb.FieldPresence.implicit)
     ..pc<PolicySpec_Variable>(
         3, _omitFieldNames ? '' : 'variables', $pb.PbFieldType.PM,
         subBuilder: PolicySpec_Variable.create)
@@ -277,7 +282,8 @@ class PolicySpec_Match extends $pb.GeneratedMessage {
     ..aOS(2, _omitFieldNames ? '' : 'output')
     ..aOM<PolicySpec_Rule>(3, _omitFieldNames ? '' : 'rule',
         subBuilder: PolicySpec_Rule.create)
-    ..aOS(4, _omitFieldNames ? '' : 'explanation')
+    ..aOS(4, _omitFieldNames ? '' : 'explanation',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -381,7 +387,8 @@ class PolicySpec extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'PolicySpec',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.policy'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
     ..pc<PolicySpec_Import>(
         2, _omitFieldNames ? '' : 'imports', $pb.PbFieldType.PM,
         subBuilder: PolicySpec_Import.create)

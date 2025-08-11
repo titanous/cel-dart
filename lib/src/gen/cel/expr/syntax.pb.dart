@@ -121,7 +121,8 @@ class Expr_Ident extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'Expr.Ident',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -186,8 +187,10 @@ class Expr_Select extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
     ..aOM<Expr>(1, _omitFieldNames ? '' : 'operand', subBuilder: Expr.create)
-    ..aOS(2, _omitFieldNames ? '' : 'field')
-    ..aOB(3, _omitFieldNames ? '' : 'testOnly')
+    ..aOS(2, _omitFieldNames ? '' : 'field',
+        presence: $pb.FieldPresence.implicit)
+    ..aOB(3, _omitFieldNames ? '' : 'testOnly',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -281,7 +284,8 @@ class Expr_Call extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
     ..aOM<Expr>(1, _omitFieldNames ? '' : 'target', subBuilder: Expr.create)
-    ..aOS(2, _omitFieldNames ? '' : 'function')
+    ..aOS(2, _omitFieldNames ? '' : 'function',
+        presence: $pb.FieldPresence.implicit)
     ..pc<Expr>(3, _omitFieldNames ? '' : 'args', $pb.PbFieldType.PM,
         subBuilder: Expr.create)
     ..hasRequiredFields = false;
@@ -442,11 +446,13 @@ class Expr_CreateStruct_Entry extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
     ..oo(0, [2, 3])
-    ..aInt64(1, _omitFieldNames ? '' : 'id')
+    ..aInt64(1, _omitFieldNames ? '' : 'id',
+        presence: $pb.FieldPresence.implicit)
     ..aOS(2, _omitFieldNames ? '' : 'fieldKey')
     ..aOM<Expr>(3, _omitFieldNames ? '' : 'mapKey', subBuilder: Expr.create)
     ..aOM<Expr>(4, _omitFieldNames ? '' : 'value', subBuilder: Expr.create)
-    ..aOB(5, _omitFieldNames ? '' : 'optionalEntry')
+    ..aOB(5, _omitFieldNames ? '' : 'optionalEntry',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -566,7 +572,8 @@ class Expr_CreateStruct extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'Expr.CreateStruct',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'messageName')
+    ..aOS(1, _omitFieldNames ? '' : 'messageName',
+        presence: $pb.FieldPresence.implicit)
     ..pc<Expr_CreateStruct_Entry>(
         2, _omitFieldNames ? '' : 'entries', $pb.PbFieldType.PM,
         subBuilder: Expr_CreateStruct_Entry.create)
@@ -701,15 +708,18 @@ class Expr_Comprehension extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'Expr.Comprehension',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'iterVar')
+    ..aOS(1, _omitFieldNames ? '' : 'iterVar',
+        presence: $pb.FieldPresence.implicit)
     ..aOM<Expr>(2, _omitFieldNames ? '' : 'iterRange', subBuilder: Expr.create)
-    ..aOS(3, _omitFieldNames ? '' : 'accuVar')
+    ..aOS(3, _omitFieldNames ? '' : 'accuVar',
+        presence: $pb.FieldPresence.implicit)
     ..aOM<Expr>(4, _omitFieldNames ? '' : 'accuInit', subBuilder: Expr.create)
     ..aOM<Expr>(5, _omitFieldNames ? '' : 'loopCondition',
         subBuilder: Expr.create)
     ..aOM<Expr>(6, _omitFieldNames ? '' : 'loopStep', subBuilder: Expr.create)
     ..aOM<Expr>(7, _omitFieldNames ? '' : 'result', subBuilder: Expr.create)
-    ..aOS(8, _omitFieldNames ? '' : 'iterVar2')
+    ..aOS(8, _omitFieldNames ? '' : 'iterVar2',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -910,7 +920,8 @@ class Expr extends $pb.GeneratedMessage {
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
     ..oo(0, [3, 4, 5, 6, 7, 8, 9])
-    ..aInt64(2, _omitFieldNames ? '' : 'id')
+    ..aInt64(2, _omitFieldNames ? '' : 'id',
+        presence: $pb.FieldPresence.implicit)
     ..aOM<Constant>(3, _omitFieldNames ? '' : 'constExpr',
         subBuilder: Constant.create)
     ..aOM<Expr_Ident>(4, _omitFieldNames ? '' : 'identExpr',
@@ -1302,8 +1313,10 @@ class SourceInfo_Extension_Version extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'SourceInfo.Extension.Version',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
-    ..aInt64(1, _omitFieldNames ? '' : 'major')
-    ..aInt64(2, _omitFieldNames ? '' : 'minor')
+    ..aInt64(1, _omitFieldNames ? '' : 'major',
+        presence: $pb.FieldPresence.implicit)
+    ..aInt64(2, _omitFieldNames ? '' : 'minor',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1382,7 +1395,7 @@ class SourceInfo_Extension extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'SourceInfo.Extension',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'id')
+    ..aOS(1, _omitFieldNames ? '' : 'id', presence: $pb.FieldPresence.implicit)
     ..pc<SourceInfo_Extension_Component>(
         2, _omitFieldNames ? '' : 'affectedComponents', $pb.PbFieldType.KE,
         valueOf: SourceInfo_Extension_Component.valueOf,
@@ -1479,8 +1492,10 @@ class SourceInfo extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'SourceInfo',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'syntaxVersion')
-    ..aOS(2, _omitFieldNames ? '' : 'location')
+    ..aOS(1, _omitFieldNames ? '' : 'syntaxVersion',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'location',
+        presence: $pb.FieldPresence.implicit)
     ..p<$core.int>(3, _omitFieldNames ? '' : 'lineOffsets', $pb.PbFieldType.K3)
     ..m<$fixnum.Int64, $core.int>(4, _omitFieldNames ? '' : 'positions',
         entryClassName: 'SourceInfo.PositionsEntry',

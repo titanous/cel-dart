@@ -61,19 +61,17 @@ class MessageValue extends Value implements Indexer, FieldTester {
     return _adapter.getField(message, fieldName);
   }
   
-  /// Check if a field is set
+  /// Check if a field is set.
+  /// 
+  /// Delegates to the underlying protobuf library's hasField() method,
+  /// which now handles proto2 vs proto3 semantics automatically based
+  /// on the field's presence information.
   bool has(String fieldName) {
     final info = message.info_;
     
-    // Find the field info - try both proto field name and Dart property name
+    // Find the field by name and get its tag number
     for (final field in info.fieldInfo.values) {
       if (_matchesFieldName(field, fieldName)) {
-        // For repeated fields, check if not empty
-        if (field.isRepeated) {
-          final list = message.getField(field.tagNumber) as List;
-          return list.isNotEmpty;
-        }
-        // For singular fields, check if set
         return message.hasField(field.tagNumber);
       }
     }

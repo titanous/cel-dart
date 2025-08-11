@@ -51,7 +51,8 @@ class TestAllTypes_NestedMessage extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance.proto3'),
       createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'bb', $pb.PbFieldType.O3)
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'bb', $pb.PbFieldType.O3,
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -863,39 +864,54 @@ class TestAllTypes extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..oo(0, [21, 22])
     ..oo(1, [400, 401, 402])
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'singleInt32', $pb.PbFieldType.O3)
-    ..aInt64(2, _omitFieldNames ? '' : 'singleInt64')
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'singleInt32', $pb.PbFieldType.O3,
+        presence: $pb.FieldPresence.implicit)
+    ..aInt64(2, _omitFieldNames ? '' : 'singleInt64',
+        presence: $pb.FieldPresence.implicit)
     ..a<$core.int>(
-        3, _omitFieldNames ? '' : 'singleUint32', $pb.PbFieldType.OU3)
+        3, _omitFieldNames ? '' : 'singleUint32', $pb.PbFieldType.OU3,
+        presence: $pb.FieldPresence.implicit)
     ..a<$fixnum.Int64>(
         4, _omitFieldNames ? '' : 'singleUint64', $pb.PbFieldType.OU6,
+        presence: $pb.FieldPresence.implicit,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.int>(
-        5, _omitFieldNames ? '' : 'singleSint32', $pb.PbFieldType.OS3)
+        5, _omitFieldNames ? '' : 'singleSint32', $pb.PbFieldType.OS3,
+        presence: $pb.FieldPresence.implicit)
     ..a<$fixnum.Int64>(
         6, _omitFieldNames ? '' : 'singleSint64', $pb.PbFieldType.OS6,
+        presence: $pb.FieldPresence.implicit,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.int>(
-        7, _omitFieldNames ? '' : 'singleFixed32', $pb.PbFieldType.OF3)
+        7, _omitFieldNames ? '' : 'singleFixed32', $pb.PbFieldType.OF3,
+        presence: $pb.FieldPresence.implicit)
     ..a<$fixnum.Int64>(
         8, _omitFieldNames ? '' : 'singleFixed64', $pb.PbFieldType.OF6,
+        presence: $pb.FieldPresence.implicit,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.int>(
-        9, _omitFieldNames ? '' : 'singleSfixed32', $pb.PbFieldType.OSF3)
+        9, _omitFieldNames ? '' : 'singleSfixed32', $pb.PbFieldType.OSF3,
+        presence: $pb.FieldPresence.implicit)
     ..a<$fixnum.Int64>(
         10, _omitFieldNames ? '' : 'singleSfixed64', $pb.PbFieldType.OSF6,
+        presence: $pb.FieldPresence.implicit,
         defaultOrMaker: $fixnum.Int64.ZERO)
     ..a<$core.double>(
-        11, _omitFieldNames ? '' : 'singleFloat', $pb.PbFieldType.OF)
+        11, _omitFieldNames ? '' : 'singleFloat', $pb.PbFieldType.OF,
+        presence: $pb.FieldPresence.implicit)
     ..a<$core.double>(
-        12, _omitFieldNames ? '' : 'singleDouble', $pb.PbFieldType.OD)
-    ..aOB(13, _omitFieldNames ? '' : 'singleBool')
-    ..aOS(14, _omitFieldNames ? '' : 'singleString')
+        12, _omitFieldNames ? '' : 'singleDouble', $pb.PbFieldType.OD,
+        presence: $pb.FieldPresence.implicit)
+    ..aOB(13, _omitFieldNames ? '' : 'singleBool',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(14, _omitFieldNames ? '' : 'singleString',
+        presence: $pb.FieldPresence.implicit)
     ..a<$core.List<$core.int>>(
-        15, _omitFieldNames ? '' : 'singleBytes', $pb.PbFieldType.OY)
+        15, _omitFieldNames ? '' : 'singleBytes', $pb.PbFieldType.OY,
+        presence: $pb.FieldPresence.implicit)
     ..aOB(16, _omitFieldNames ? '' : 'optionalBool')
     ..aOS(17, _omitFieldNames ? '' : 'optionalString')
-    ..aOB(18, _omitFieldNames ? '' : 'in')
+    ..aOB(18, _omitFieldNames ? '' : 'in', presence: $pb.FieldPresence.implicit)
     ..aOM<TestAllTypes_NestedMessage>(
         21, _omitFieldNames ? '' : 'singleNestedMessage',
         subBuilder: TestAllTypes_NestedMessage.create)
@@ -909,6 +925,7 @@ class TestAllTypes extends $pb.GeneratedMessage {
         subBuilder: TestAllTypes_NestedMessage.create)
     ..e<TestAllTypes_NestedEnum>(
         24, _omitFieldNames ? '' : 'standaloneEnum', $pb.PbFieldType.OE,
+        presence: $pb.FieldPresence.implicit,
         defaultOrMaker: TestAllTypes_NestedEnum.FOO,
         valueOf: TestAllTypes_NestedEnum.valueOf,
         enumValues: TestAllTypes_NestedEnum.values)
@@ -1217,6 +1234,7 @@ class TestAllTypes extends $pb.GeneratedMessage {
         subBuilder: $3.ListValue.create)
     ..e<$3.NullValue>(
         115, _omitFieldNames ? '' : 'nullValue', $pb.PbFieldType.OE,
+        presence: $pb.FieldPresence.implicit,
         defaultOrMaker: $3.NullValue.NULL_VALUE,
         valueOf: $3.NullValue.valueOf,
         enumValues: $3.NullValue.values)

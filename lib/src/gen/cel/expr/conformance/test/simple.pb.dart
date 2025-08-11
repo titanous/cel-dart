@@ -52,8 +52,10 @@ class SimpleTestFile extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance.test'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..aOS(2, _omitFieldNames ? '' : 'description')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'description',
+        presence: $pb.FieldPresence.implicit)
     ..pc<SimpleTestSection>(
         3, _omitFieldNames ? '' : 'section', $pb.PbFieldType.PM,
         subBuilder: SimpleTestSection.create)
@@ -136,8 +138,10 @@ class SimpleTestSection extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance.test'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..aOS(2, _omitFieldNames ? '' : 'description')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'description',
+        presence: $pb.FieldPresence.implicit)
     ..pc<SimpleTest>(3, _omitFieldNames ? '' : 'test', $pb.PbFieldType.PM,
         subBuilder: SimpleTest.create)
     ..hasRequiredFields = false;
@@ -265,11 +269,16 @@ class SimpleTest extends $pb.GeneratedMessage {
           _omitMessageNames ? '' : 'cel.expr.conformance.test'),
       createEmptyInstance: create)
     ..oo(0, [8, 9, 10, 11, 12, 16])
-    ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..aOS(2, _omitFieldNames ? '' : 'description')
-    ..aOS(3, _omitFieldNames ? '' : 'expr')
-    ..aOB(4, _omitFieldNames ? '' : 'disableMacros')
-    ..aOB(5, _omitFieldNames ? '' : 'disableCheck')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'description',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(3, _omitFieldNames ? '' : 'expr',
+        presence: $pb.FieldPresence.implicit)
+    ..aOB(4, _omitFieldNames ? '' : 'disableMacros',
+        presence: $pb.FieldPresence.implicit)
+    ..aOB(5, _omitFieldNames ? '' : 'disableCheck',
+        presence: $pb.FieldPresence.implicit)
     ..pc<$0.Decl>(6, _omitFieldNames ? '' : 'typeEnv', $pb.PbFieldType.PM,
         subBuilder: $0.Decl.create)
     ..m<$core.String, $2.ExprValue>(7, _omitFieldNames ? '' : 'bindings',
@@ -289,9 +298,12 @@ class SimpleTest extends $pb.GeneratedMessage {
         subBuilder: $2.UnknownSet.create)
     ..aOM<UnknownSetMatcher>(12, _omitFieldNames ? '' : 'anyUnknowns',
         subBuilder: UnknownSetMatcher.create)
-    ..aOS(13, _omitFieldNames ? '' : 'container')
-    ..aOS(14, _omitFieldNames ? '' : 'locale')
-    ..aOB(15, _omitFieldNames ? '' : 'checkOnly')
+    ..aOS(13, _omitFieldNames ? '' : 'container',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(14, _omitFieldNames ? '' : 'locale',
+        presence: $pb.FieldPresence.implicit)
+    ..aOB(15, _omitFieldNames ? '' : 'checkOnly',
+        presence: $pb.FieldPresence.implicit)
     ..aOM<TypedResult>(16, _omitFieldNames ? '' : 'typedResult',
         subBuilder: TypedResult.create)
     ..hasRequiredFields = false;

@@ -50,7 +50,8 @@ class Environment_Import extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -110,7 +111,8 @@ class Environment_ContextVariable extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'typeName')
+    ..aOS(1, _omitFieldNames ? '' : 'typeName',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -201,9 +203,12 @@ class Environment extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..aOS(2, _omitFieldNames ? '' : 'description')
-    ..aOS(3, _omitFieldNames ? '' : 'container')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'description',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(3, _omitFieldNames ? '' : 'container',
+        presence: $pb.FieldPresence.implicit)
     ..pc<Environment_Import>(
         4, _omitFieldNames ? '' : 'imports', $pb.PbFieldType.PM,
         subBuilder: Environment_Import.create)
@@ -220,11 +225,13 @@ class Environment extends $pb.GeneratedMessage {
         subBuilder: Validator.create)
     ..pc<Feature>(10, _omitFieldNames ? '' : 'features', $pb.PbFieldType.PM,
         subBuilder: Feature.create)
-    ..aOB(11, _omitFieldNames ? '' : 'disableStandardCelDeclarations')
+    ..aOB(11, _omitFieldNames ? '' : 'disableStandardCelDeclarations',
+        presence: $pb.FieldPresence.implicit)
     ..aOM<$1.FileDescriptorSet>(
         12, _omitFieldNames ? '' : 'messageTypeExtension',
         subBuilder: $1.FileDescriptorSet.create)
-    ..aOB(13, _omitFieldNames ? '' : 'enableMacroCallTracking');
+    ..aOB(13, _omitFieldNames ? '' : 'enableMacroCallTracking',
+        presence: $pb.FieldPresence.implicit);
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Environment clone() => Environment()..mergeFromMessage(this);
@@ -415,7 +422,8 @@ class Validator extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
     ..m<$core.String, $2.Value>(2, _omitFieldNames ? '' : 'config',
         entryClassName: 'Validator.ConfigEntry',
         keyFieldType: $pb.PbFieldType.OS,
@@ -488,8 +496,10 @@ class Feature extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..aOB(2, _omitFieldNames ? '' : 'enabled')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
+    ..aOB(2, _omitFieldNames ? '' : 'enabled',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -559,8 +569,10 @@ class Extension extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..aOS(2, _omitFieldNames ? '' : 'version')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'version',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -640,8 +652,10 @@ class LibrarySubset extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance'),
       createEmptyInstance: create)
-    ..aOB(1, _omitFieldNames ? '' : 'disabled')
-    ..aOB(2, _omitFieldNames ? '' : 'disableMacros')
+    ..aOB(1, _omitFieldNames ? '' : 'disabled',
+        presence: $pb.FieldPresence.implicit)
+    ..aOB(2, _omitFieldNames ? '' : 'disableMacros',
+        presence: $pb.FieldPresence.implicit)
     ..pPS(3, _omitFieldNames ? '' : 'includeMacros')
     ..pPS(4, _omitFieldNames ? '' : 'excludeMacros')
     ..pc<$0.Decl>(

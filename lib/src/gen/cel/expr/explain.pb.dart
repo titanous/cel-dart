@@ -44,8 +44,10 @@ class Explain_ExprStep extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'Explain.ExprStep',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
-    ..aInt64(1, _omitFieldNames ? '' : 'id')
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'valueIndex', $pb.PbFieldType.O3)
+    ..aInt64(1, _omitFieldNames ? '' : 'id',
+        presence: $pb.FieldPresence.implicit)
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'valueIndex', $pb.PbFieldType.O3,
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')

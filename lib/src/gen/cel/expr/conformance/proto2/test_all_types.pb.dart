@@ -3529,7 +3529,8 @@ class TestRequired extends $pb.GeneratedMessage {
           _omitMessageNames ? '' : 'cel.expr.conformance.proto2'),
       createEmptyInstance: create)
     ..a<$core.int>(
-        1, _omitFieldNames ? '' : 'requiredInt32', $pb.PbFieldType.Q3);
+        1, _omitFieldNames ? '' : 'requiredInt32', $pb.PbFieldType.Q3,
+        presence: $pb.FieldPresence.legacyRequired);
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TestRequired clone() => TestRequired()..mergeFromMessage(this);

@@ -56,10 +56,14 @@ class ParseRequest extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'celSource')
-    ..aOS(2, _omitFieldNames ? '' : 'syntaxVersion')
-    ..aOS(3, _omitFieldNames ? '' : 'sourceLocation')
-    ..aOB(4, _omitFieldNames ? '' : 'disableMacros')
+    ..aOS(1, _omitFieldNames ? '' : 'celSource',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'syntaxVersion',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(3, _omitFieldNames ? '' : 'sourceLocation',
+        presence: $pb.FieldPresence.implicit)
+    ..aOB(4, _omitFieldNames ? '' : 'disableMacros',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -228,8 +232,10 @@ class CheckRequest extends $pb.GeneratedMessage {
         subBuilder: $0.ParsedExpr.create)
     ..pc<$2.Decl>(2, _omitFieldNames ? '' : 'typeEnv', $pb.PbFieldType.PM,
         subBuilder: $2.Decl.create)
-    ..aOS(3, _omitFieldNames ? '' : 'container')
-    ..aOB(4, _omitFieldNames ? '' : 'noStdEnv')
+    ..aOS(3, _omitFieldNames ? '' : 'container',
+        presence: $pb.FieldPresence.implicit)
+    ..aOB(4, _omitFieldNames ? '' : 'noStdEnv',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -415,7 +421,8 @@ class EvalRequest extends $pb.GeneratedMessage {
         valueCreator: $3.ExprValue.create,
         valueDefaultOrMaker: $3.ExprValue.getDefault,
         packageName: const $pb.PackageName('cel.expr.conformance'))
-    ..aOS(4, _omitFieldNames ? '' : 'container')
+    ..aOS(4, _omitFieldNames ? '' : 'container',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -585,10 +592,14 @@ class SourcePosition extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'location')
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'offset', $pb.PbFieldType.O3)
-    ..a<$core.int>(3, _omitFieldNames ? '' : 'line', $pb.PbFieldType.O3)
-    ..a<$core.int>(4, _omitFieldNames ? '' : 'column', $pb.PbFieldType.O3)
+    ..aOS(1, _omitFieldNames ? '' : 'location',
+        presence: $pb.FieldPresence.implicit)
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'offset', $pb.PbFieldType.O3,
+        presence: $pb.FieldPresence.implicit)
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'line', $pb.PbFieldType.O3,
+        presence: $pb.FieldPresence.implicit)
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'column', $pb.PbFieldType.O3,
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -687,12 +698,14 @@ class IssueDetails extends $pb.GeneratedMessage {
       createEmptyInstance: create)
     ..e<IssueDetails_Severity>(
         1, _omitFieldNames ? '' : 'severity', $pb.PbFieldType.OE,
+        presence: $pb.FieldPresence.implicit,
         defaultOrMaker: IssueDetails_Severity.SEVERITY_UNSPECIFIED,
         valueOf: IssueDetails_Severity.valueOf,
         enumValues: IssueDetails_Severity.values)
     ..aOM<SourcePosition>(2, _omitFieldNames ? '' : 'position',
         subBuilder: SourcePosition.create)
-    ..aInt64(3, _omitFieldNames ? '' : 'id')
+    ..aInt64(3, _omitFieldNames ? '' : 'id',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')

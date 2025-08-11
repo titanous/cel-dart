@@ -52,8 +52,10 @@ class TestSuite extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance.test'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..aOS(2, _omitFieldNames ? '' : 'description')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'description',
+        presence: $pb.FieldPresence.implicit)
     ..pc<TestSection>(3, _omitFieldNames ? '' : 'sections', $pb.PbFieldType.PM,
         subBuilder: TestSection.create);
 
@@ -130,8 +132,10 @@ class TestSection extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance.test'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..aOS(2, _omitFieldNames ? '' : 'description')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'description',
+        presence: $pb.FieldPresence.implicit)
     ..pc<TestCase>(3, _omitFieldNames ? '' : 'tests', $pb.PbFieldType.PM,
         subBuilder: TestCase.create);
 
@@ -225,9 +229,12 @@ class TestCase extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance.test'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
-    ..aOS(2, _omitFieldNames ? '' : 'description')
-    ..aOS(3, _omitFieldNames ? '' : 'expr')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'description',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(3, _omitFieldNames ? '' : 'expr',
+        presence: $pb.FieldPresence.implicit)
     ..aOM<$0.Environment>(4, _omitFieldNames ? '' : 'env',
         subBuilder: $0.Environment.create)
     ..m<$core.String, InputValue>(5, _omitFieldNames ? '' : 'input',
@@ -243,7 +250,8 @@ class TestCase extends $pb.GeneratedMessage {
         subBuilder: TestOutput.create)
     ..aOM<$1.Type>(8, _omitFieldNames ? '' : 'deducedType',
         subBuilder: $1.Type.create)
-    ..aOB(9, _omitFieldNames ? '' : 'disableCheck');
+    ..aOB(9, _omitFieldNames ? '' : 'disableCheck',
+        presence: $pb.FieldPresence.implicit);
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TestCase clone() => TestCase()..mergeFromMessage(this);

@@ -51,8 +51,10 @@ class Status extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'Status',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'google.rpc'),
       createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'code', $pb.PbFieldType.O3)
-    ..aOS(2, _omitFieldNames ? '' : 'message')
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'code', $pb.PbFieldType.O3,
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'message',
+        presence: $pb.FieldPresence.implicit)
     ..pc<$0.Any>(3, _omitFieldNames ? '' : 'details', $pb.PbFieldType.PM,
         subBuilder: $0.Any.create)
     ..hasRequiredFields = false;

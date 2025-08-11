@@ -303,8 +303,10 @@ class EnumValue extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'google.api.expr.v1alpha1'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'type')
-    ..a<$core.int>(2, _omitFieldNames ? '' : 'value', $pb.PbFieldType.O3)
+    ..aOS(1, _omitFieldNames ? '' : 'type',
+        presence: $pb.FieldPresence.implicit)
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'value', $pb.PbFieldType.O3,
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')

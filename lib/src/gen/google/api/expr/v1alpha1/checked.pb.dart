@@ -73,7 +73,8 @@ class CheckedExpr extends $pb.GeneratedMessage {
     ..aOM<$0.Expr>(4, _omitFieldNames ? '' : 'expr', subBuilder: $0.Expr.create)
     ..aOM<$0.SourceInfo>(5, _omitFieldNames ? '' : 'sourceInfo',
         subBuilder: $0.SourceInfo.create)
-    ..aOS(6, _omitFieldNames ? '' : 'exprVersion')
+    ..aOS(6, _omitFieldNames ? '' : 'exprVersion',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -397,7 +398,8 @@ class Type_AbstractType extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'google.api.expr.v1alpha1'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
     ..pc<Type>(2, _omitFieldNames ? '' : 'parameterTypes', $pb.PbFieldType.PM,
         subBuilder: Type.create)
     ..hasRequiredFields = false;
@@ -773,7 +775,7 @@ class Decl_IdentDecl extends $pb.GeneratedMessage {
     ..aOM<Type>(1, _omitFieldNames ? '' : 'type', subBuilder: Type.create)
     ..aOM<$0.Constant>(2, _omitFieldNames ? '' : 'value',
         subBuilder: $0.Constant.create)
-    ..aOS(3, _omitFieldNames ? '' : 'doc')
+    ..aOS(3, _omitFieldNames ? '' : 'doc', presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -877,13 +879,15 @@ class Decl_FunctionDecl_Overload extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'google.api.expr.v1alpha1'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'overloadId')
+    ..aOS(1, _omitFieldNames ? '' : 'overloadId',
+        presence: $pb.FieldPresence.implicit)
     ..pc<Type>(2, _omitFieldNames ? '' : 'params', $pb.PbFieldType.PM,
         subBuilder: Type.create)
     ..pPS(3, _omitFieldNames ? '' : 'typeParams')
     ..aOM<Type>(4, _omitFieldNames ? '' : 'resultType', subBuilder: Type.create)
-    ..aOB(5, _omitFieldNames ? '' : 'isInstanceFunction')
-    ..aOS(6, _omitFieldNames ? '' : 'doc')
+    ..aOB(5, _omitFieldNames ? '' : 'isInstanceFunction',
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(6, _omitFieldNames ? '' : 'doc', presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -1082,7 +1086,8 @@ class Decl extends $pb.GeneratedMessage {
           _omitMessageNames ? '' : 'google.api.expr.v1alpha1'),
       createEmptyInstance: create)
     ..oo(0, [2, 3])
-    ..aOS(1, _omitFieldNames ? '' : 'name')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
     ..aOM<Decl_IdentDecl>(2, _omitFieldNames ? '' : 'ident',
         subBuilder: Decl_IdentDecl.create)
     ..aOM<Decl_FunctionDecl>(3, _omitFieldNames ? '' : 'function',
@@ -1183,7 +1188,8 @@ class Reference extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'google.api.expr.v1alpha1'),
       createEmptyInstance: create)
-    ..aOS(1, _omitFieldNames ? '' : 'name')
+    ..aOS(1, _omitFieldNames ? '' : 'name',
+        presence: $pb.FieldPresence.implicit)
     ..pPS(3, _omitFieldNames ? '' : 'overloadId')
     ..aOM<$0.Constant>(4, _omitFieldNames ? '' : 'value',
         subBuilder: $0.Constant.create)

@@ -46,8 +46,10 @@ class EvalState_Result extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'google.api.expr.v1alpha1'),
       createEmptyInstance: create)
-    ..aInt64(1, _omitFieldNames ? '' : 'expr')
-    ..aInt64(2, _omitFieldNames ? '' : 'value')
+    ..aInt64(1, _omitFieldNames ? '' : 'expr',
+        presence: $pb.FieldPresence.implicit)
+    ..aInt64(2, _omitFieldNames ? '' : 'value',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')

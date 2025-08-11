@@ -45,8 +45,10 @@ class EvalState_Result extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'EvalState.Result',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
-    ..aInt64(1, _omitFieldNames ? '' : 'expr')
-    ..aInt64(2, _omitFieldNames ? '' : 'value')
+    ..aInt64(1, _omitFieldNames ? '' : 'expr',
+        presence: $pb.FieldPresence.implicit)
+    ..aInt64(2, _omitFieldNames ? '' : 'value',
+        presence: $pb.FieldPresence.implicit)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -382,8 +384,10 @@ class Status extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'Status',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
-    ..a<$core.int>(1, _omitFieldNames ? '' : 'code', $pb.PbFieldType.O3)
-    ..aOS(2, _omitFieldNames ? '' : 'message')
+    ..a<$core.int>(1, _omitFieldNames ? '' : 'code', $pb.PbFieldType.O3,
+        presence: $pb.FieldPresence.implicit)
+    ..aOS(2, _omitFieldNames ? '' : 'message',
+        presence: $pb.FieldPresence.implicit)
     ..pc<$1.Any>(3, _omitFieldNames ? '' : 'details', $pb.PbFieldType.PM,
         subBuilder: $1.Any.create)
     ..hasRequiredFields = false;
