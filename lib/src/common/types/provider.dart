@@ -268,6 +268,14 @@ Value _nativeToValue(TypeAdapter adapter, dynamic value) {
   if (value is List<Value>) {
     return ListValue(value, adapter);
   }
+  // Handle PbList - convert to ListValue (must come before List<int> check)
+  if (value is List && value.runtimeType.toString().startsWith('PbList<')) {
+    final elements = <Value>[];
+    for (final element in value) {
+      elements.add(_nativeToValue(adapter, element));
+    }
+    return ListValue(elements, adapter);
+  }
   // Handle List<int> as bytes (CodeUnits type from parser)
   if (value is List<int>) {
     return BytesValue.fromCodeUnits(value);

@@ -45,7 +45,7 @@ List<Overload> standardOverloads() {
       if (isError(leftHandSide)) return leftHandSide;
       if (isError(rightHandSide)) return rightHandSide;
       if (leftHandSide is! Comparer) {
-        throw StateError('$leftHandSide should be a Comparer');
+        return ErrorValue('no matching overload for \'<\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
       }
       final result = leftHandSide.compare(rightHandSide);
       if (isError(result)) return result;
@@ -58,7 +58,7 @@ List<Overload> standardOverloads() {
       if (isError(leftHandSide)) return leftHandSide;
       if (isError(rightHandSide)) return rightHandSide;
       if (leftHandSide is! Comparer) {
-        throw StateError('$leftHandSide should be a Comparer');
+        return ErrorValue('no matching overload for \'\'<=\'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
       }
       final result = leftHandSide.compare(rightHandSide);
       if (isError(result)) return result;
@@ -71,7 +71,7 @@ List<Overload> standardOverloads() {
       if (isError(leftHandSide)) return leftHandSide;
       if (isError(rightHandSide)) return rightHandSide;
       if (leftHandSide is! Comparer) {
-        throw StateError('$leftHandSide should be a Comparer');
+        return ErrorValue('no matching overload for \'\'>\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
       }
       final result = leftHandSide.compare(rightHandSide);
       if (isError(result)) return result;
@@ -84,7 +84,7 @@ List<Overload> standardOverloads() {
       if (isError(leftHandSide)) return leftHandSide;
       if (isError(rightHandSide)) return rightHandSide;
       if (leftHandSide is! Comparer) {
-        throw StateError('$leftHandSide should be a Comparer');
+        return ErrorValue('no matching overload for \'\'>=\'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
       }
       final result = leftHandSide.compare(rightHandSide);
       if (isError(result)) return result;
@@ -93,8 +93,10 @@ List<Overload> standardOverloads() {
 
     // Add operator
     Overload(Operators.add.name, binaryOperator: (leftHandSide, rightHandSide) {
+      if (isError(leftHandSide)) return leftHandSide;
+      if (isError(rightHandSide)) return rightHandSide;
       if (leftHandSide is! Adder) {
-        throw StateError('$leftHandSide should be an Adder');
+        return ErrorValue('no matching overload for \'\'+ \'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
       }
       return leftHandSide.add(rightHandSide);
     }),
@@ -102,8 +104,10 @@ List<Overload> standardOverloads() {
     // Subtract operators
     Overload(Operators.subtract.name,
         binaryOperator: (leftHandSide, rightHandSide) {
+      if (isError(leftHandSide)) return leftHandSide;
+      if (isError(rightHandSide)) return rightHandSide;
       if (leftHandSide is! Subtractor) {
-        throw StateError('$leftHandSide should be an Subtractor');
+        return ErrorValue('no matching overload for \'\'- \'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
       }
       return leftHandSide.subtract(rightHandSide);
     }),
@@ -111,8 +115,10 @@ List<Overload> standardOverloads() {
     // Multiply operator
     Overload(Operators.multiply.name,
         binaryOperator: (leftHandSide, rightHandSide) {
+      if (isError(leftHandSide)) return leftHandSide;
+      if (isError(rightHandSide)) return rightHandSide;
       if (leftHandSide is! Multiplier) {
-        throw StateError('$leftHandSide should be an Multiplier');
+        return ErrorValue('no matching overload for \'\'* \'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
       }
       return leftHandSide.multiply(rightHandSide);
     }),
@@ -120,8 +126,10 @@ List<Overload> standardOverloads() {
     // Divide operator
     Overload(Operators.divide.name,
         binaryOperator: (leftHandSide, rightHandSide) {
+      if (isError(leftHandSide)) return leftHandSide;
+      if (isError(rightHandSide)) return rightHandSide;
       if (leftHandSide is! Divider) {
-        throw StateError('$leftHandSide should be an Divider');
+        return ErrorValue('no matching overload for \'\'/ \'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
       }
       return leftHandSide.divide(rightHandSide);
     }),
@@ -129,8 +137,10 @@ List<Overload> standardOverloads() {
     // Modulo operator
     Overload(Operators.modulo.name,
         binaryOperator: (leftHandSide, rightHandSide) {
+      if (isError(leftHandSide)) return leftHandSide;
+      if (isError(rightHandSide)) return rightHandSide;
       if (leftHandSide is! Modder) {
-        throw StateError('$leftHandSide should be an Modder');
+        return ErrorValue('no matching overload for \'\'% \'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
       }
       return leftHandSide.modulo(rightHandSide);
     }),
@@ -141,7 +151,7 @@ List<Overload> standardOverloads() {
       unaryOperator: (value) {
         if (isError(value)) return value;
         if (value is! Negater) {
-          throw StateError('$value should be a Negater');
+          return ErrorValue('no matching overload for unary \'\'- \'\'\' with operand type ${value.type.name}');
         }
         return value.negate();
       },
@@ -150,24 +160,28 @@ List<Overload> standardOverloads() {
     // Index operator
     // https://github.com/google/cel-go/blob/92fda7d38a37f42d4154147896cfd4ebbf8f846e/interpreter/functions/standard.go#L149
     Overload(Operators.index_.name, binaryOperator: (target, index) {
+      if (isError(target)) return target;
+      if (isError(index)) return index;
       if (target is! Indexer) {
-        throw StateError('$target should be an Indexer');
+        return ErrorValue('no matching overload for operator \'\'[_] \'\'\' with operand types ${target.type.name} and ${index.type.name}');
       }
       return target.get(index);
     }),
 
     // Size function
     Overload('size', unaryOperator: (value) {
+      if (isError(value)) return value;
       if (value is! Sizer) {
-        throw StateError('$value should be a Sizer');
+        return ErrorValue('no matching overload for function \'\'size\'\'\' with operand type ${value.type.name}');
       }
       return IntValue(value.size());
     }),
 
     // Unique function - checks if all elements in a list are unique
     Overload('unique', unaryOperator: (value) {
+      if (isError(value)) return value;
       if (value is! ListValue) {
-        throw StateError('$value should be a ListValue');
+        return ErrorValue('no matching overload for function \'\'unique\'\'\' with operand type ${value.type.name}');
       }
       final seen = <dynamic>{};
       for (final item in value.value) {
@@ -189,11 +203,11 @@ List<Overload> standardOverloads() {
         if (fieldName is StringValue) {
           return target.get(fieldName);
         }
-        throw StateError('Field name must be a string');
+        return ErrorValue('Field name must be a string, got ${fieldName.type.name}');
       }
       // For protobuf messages (when implemented), we'd handle them here
       // For now, we support map-based field access
-      throw StateError('getField requires a map or message type');
+      return ErrorValue('getField requires a map or message type, got ${target.type.name}');
     }),
 
     // Dyn function - converts a value to dynamic type for cross-type operations
@@ -207,16 +221,20 @@ List<Overload> standardOverloads() {
     // In operator
     // https://github.com/google/cel-go/blob/92fda7d38a37f42d4154147896cfd4ebbf8f846e/interpreter/functions/standard.go#L163
     Overload(Operators.in_.name, binaryOperator: (element, object) {
+      if (isError(element)) return element;
+      if (isError(object)) return object;
       if (object is! Container) {
-        throw StateError('$object should be a Container');
+        return ErrorValue('no matching overload for operator \'\'in \'\'\' with operand types ${element.type.name} and ${object.type.name}');
       }
       return object.contains(element);
     }),
 
     // Matches function
     Overload(Overloads.matches.name, binaryOperator: (string, regExp) {
+      if (isError(string)) return string;
+      if (isError(regExp)) return regExp;
       if (string is! Matcher) {
-        throw StateError('The first parameter should be a Matcher');
+        return ErrorValue('no matching overload for function \'\'matches\'\'\' with operand types ${string.type.name} and ${regExp.type.name}');
       }
       return string.match(regExp);
     }),
@@ -224,32 +242,39 @@ List<Overload> standardOverloads() {
     // String functions - these use the Receiver trait
     // startsWith function for strings
     Overload('startsWith', binaryOperator: (target, arg) {
+      if (isError(target)) return target;
+      if (isError(arg)) return arg;
       if (target is! Receiver) {
-        throw StateError('$target should be a Receiver');
+        return ErrorValue('no matching overload for function \'\'startsWith\'\'\' with operand types ${target.type.name} and ${arg.type.name}');
       }
       return target.receive('startsWith', 'startsWith', [arg]);
     }),
 
     // endsWith function for strings
     Overload('endsWith', binaryOperator: (target, arg) {
+      if (isError(target)) return target;
+      if (isError(arg)) return arg;
       if (target is! Receiver) {
-        throw StateError('$target should be a Receiver');
+        return ErrorValue('no matching overload for function \'\'endsWith\'\'\' with operand types ${target.type.name} and ${arg.type.name}');
       }
       return target.receive('endsWith', 'endsWith', [arg]);
     }),
 
     // contains function for strings
     Overload('contains', binaryOperator: (target, arg) {
+      if (isError(target)) return target;
+      if (isError(arg)) return arg;
       if (target is! Receiver) {
-        throw StateError('$target should be a Receiver');
+        return ErrorValue('no matching overload for function \'\'contains\'\'\' with operand types ${target.type.name} and ${arg.type.name}');
       }
       return target.receive('contains', 'contains', [arg]);
     }),
 
     // Math functions
     Overload('isNan', unaryOperator: (value) {
+      if (isError(value)) return value;
       if (value is! DoubleValue) {
-        throw StateError('$value should be a DoubleValue');
+        return ErrorValue('no matching overload for function \'\'isNan\'\'\' with operand type ${value.type.name}');
       }
       return MathFunctions.isNan(value);
     }),
@@ -257,25 +282,29 @@ List<Overload> standardOverloads() {
     Overload(
       'isInf',
       unaryOperator: (value) {
+        if (isError(value)) return value;
         if (value is! DoubleValue) {
-          throw StateError('$value should be a DoubleValue');
+          return ErrorValue('no matching overload for function \'\'isInf\'\'\' with operand type ${value.type.name}');
         }
         return MathFunctions.isInf(value);
       },
       binaryOperator: (value, sign) {
+        if (isError(value)) return value;
+        if (isError(sign)) return sign;
         if (value is! DoubleValue) {
-          throw StateError('$value should be a DoubleValue');
+          return ErrorValue('no matching overload for function \'\'isInf\'\'\' with operand types ${value.type.name} and ${sign.type.name}');
         }
         if (sign is! IntValue) {
-          throw StateError('$sign should be an IntValue');
+          return ErrorValue('no matching overload for function \'\'isInf\'\'\' with operand types ${value.type.name} and ${sign.type.name}');
         }
         return MathFunctions.isInf(value, sign);
       },
     ),
 
     Overload('isFinite', unaryOperator: (value) {
+      if (isError(value)) return value;
       if (value is! DoubleValue) {
-        throw StateError('$value should be a DoubleValue');
+        return ErrorValue('no matching overload for function \'\'isFinite\'\'\' with operand type ${value.type.name}');
       }
       return MathFunctions.isFinite(value);
     }),
