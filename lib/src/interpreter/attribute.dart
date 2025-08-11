@@ -158,13 +158,12 @@ class StringQualifier extends Qualifier {
     
     // Handle raw protobuf messages - wrap them in MessageValue
     if (object is GeneratedMessage) {
-      // Get the TypeRegistry from the activation if available
+      // Get the TypeAdapter from the activation if available
       TypeAdapter? typeAdapter;
       if (activation is EvalActivation) {
-        // Try to get the TypeRegistry if it's stored in a special key
-        // For now, we'll use the default TypeRegistry
-        typeAdapter = cel_provider.TypeRegistry();
+        typeAdapter = activation.typeAdapter;
       }
+      typeAdapter ??= cel_provider.TypeRegistry();
       final messageValue = MessageValue(object, typeAdapter);
       final key = StringValue(value);
       try {

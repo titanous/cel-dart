@@ -302,10 +302,11 @@ class ConformanceTestRunner {
       // For objectValue, we have an Any message that might need to be unpacked
       final anyMessage = value.objectValue;
       
-      // Only unpack if this looks like a well-known protobuf type that should be converted
-      if (anyMessage.typeUrl.contains('google.protobuf') && 
+      // Only unpack if this looks like a well-known protobuf type or test type that should be converted
+      if ((anyMessage.typeUrl.contains('google.protobuf') && 
           (anyMessage.typeUrl.contains('Value') || anyMessage.typeUrl.contains('Wrapper') || 
-           anyMessage.typeUrl.contains('Struct') || anyMessage.typeUrl.contains('ListValue'))) {
+           anyMessage.typeUrl.contains('Struct') || anyMessage.typeUrl.contains('ListValue'))) ||
+          anyMessage.typeUrl.contains('cel.expr.conformance')) {
         try {
           final unpackedMessage = _unpackAnyMessage(anyMessage);
           if (unpackedMessage != null) {
