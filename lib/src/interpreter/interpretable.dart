@@ -255,9 +255,56 @@ class MapInterpretable implements Interpretable {
 
   @override
   evaluate(Activation activation) {
-    final map = Map.fromIterables(keys.map((k) => k.evaluate(activation)),
-        values.map((v) => v.evaluate(activation)));
+    final evaluatedKeys = <Value>[];
+    final evaluatedValues = <Value>[];
+    
+    for (int i = 0; i < keys.length; i++) {
+      final key = keys[i].evaluate(activation);
+      final value = values[i].evaluate(activation);
+      
+      // Check for unsupported key types
+      if (key is NullValue) {
+        return ErrorValue('unsupported key type');
+      }
+      if (key is DoubleValue) {
+        // Float keys are not allowed in CEL maps
+        return ErrorValue('unsupported key type');
+      }
+      
+      // Simple duplicate key check - check if we've seen this exact key
+      for (int j = 0; j < evaluatedKeys.length; j++) {
+        final existing = evaluatedKeys[j];
+        // Check for duplicate by comparing native values
+        if (_areKeysEqual(existing, key)) {
+          return ErrorValue('Failed with repeated key');
+        }
+      }
+      
+      evaluatedKeys.add(key);
+      evaluatedValues.add(value);
+    }
+    
+    final map = Map.fromIterables(evaluatedKeys, evaluatedValues);
     return adapter.nativeToValue(map);
+  }
+  
+  // Check if two keys are equal for map purposes
+  bool _areKeysEqual(Value k1, Value k2) {
+    // Handle cross-type equality for int/uint only (1 == 1u)
+    // Note: doubles use exact equality, no cross-type comparison
+    if ((k1 is IntValue || k1 is UintValue) && (k2 is IntValue || k2 is UintValue)) {
+      // Compare integer values
+      final v1 = k1 is IntValue ? k1.value : (k1 as UintValue).value.toInt();
+      final v2 = k2 is IntValue ? k2.value : (k2 as UintValue).value.toInt();
+      return v1 == v2;
+    }
+    
+    // For other types, use native value comparison
+    try {
+      return k1.convertToNative() == k2.convertToNative();
+    } catch (_) {
+      return false;
+    }
   }
 }
 

@@ -130,6 +130,16 @@ class Planner {
 
   // https://github.com/google/cel-go/blob/32ac6133c6b8eca8bb76e17e6ad50a1eb757778a/interpreter/planner.go#L179
   Interpretable planSelect(SelectExpr select) {
+    // Try to build the full qualified identifier name and check if it can be resolved
+    // This handles cases like a.b.c where "a.b.c" might be a single variable name
+    final qualifiedName = _buildQualifiedName(select);
+    if (qualifiedName != null) {
+      // Create an enhanced MaybeAttribute that tries the qualified name first
+      final qualifiedAttr = attributeFactory.maybeAttribute(qualifiedName);
+      return AttributeValueInterpretable(qualifiedAttr, adapter);
+    }
+    
+    // Fall back to traditional select planning
     final operand = plan(select.operand);
 
     var attribute = operand;
@@ -140,6 +150,33 @@ class Planner {
     final qualifier = attributeFactory.qualifier(select.field);
     attribute.addQualifier(qualifier);
     return attribute;
+  }
+  
+  /// Build qualified identifier name from nested select expressions
+  /// For SelectExpr(operand: SelectExpr(operand: IdentExpr("a"), field: "b"), field: "c")
+  /// returns "a.b.c"
+  String? _buildQualifiedName(SelectExpr select) {
+    final parts = <String>[];
+    
+    // Add the current field
+    parts.insert(0, select.field);
+    
+    // Walk up the operand chain
+    Expr current = select.operand;
+    while (true) {
+      if (current is SelectExpr) {
+        parts.insert(0, current.field);
+        current = current.operand;
+      } else if (current is IdentExpr) {
+        parts.insert(0, current.name);
+        break;
+      } else {
+        // Not a simple qualified identifier - has complex expressions
+        return null;
+      }
+    }
+    
+    return parts.join('.');
   }
 
   // Plan presence test for has() macro

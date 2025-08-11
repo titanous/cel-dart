@@ -201,6 +201,20 @@ class StringQualifier extends Qualifier {
       return object[value];
     }
     
+    // Handle primitive types that don't support field selection
+    if (object is int || object is double || object is String || 
+        object is bool || object is List) {
+      final typeName = object.runtimeType.toString().toLowerCase();
+      return ErrorValue("type '$typeName' does not support field selection");
+    }
+    
+    // Handle CEL Value types that don't support field selection
+    if (object is IntValue || object is UintValue || object is DoubleValue ||
+        object is StringValue || object is BooleanValue || object is ListValue) {
+      final typeName = object.type.name + '_type';
+      return ErrorValue("type '$typeName' does not support field selection");
+    }
+    
     // Try indexed access for other types
     try {
       return object[value];

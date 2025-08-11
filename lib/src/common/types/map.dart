@@ -40,17 +40,56 @@ class MapValue extends Value implements Indexer, Container, Sizer {
 
   @override
   Value get(Value index) {
-    // Simplified compared to https://github.com/google/cel-go/blob/377a0bba20d07926e0583b4e604509ca7f3583b7/common/types/map.go#L272.
+    // First try direct key lookup
     final result = value[index];
-    if (result == null) {
-      // This could be either a missing key or a null value
-      // We need to check if the key exists
-      if (!value.containsKey(index)) {
-        // Key doesn't exist - return error like cel-go does
-        return ErrorValue('no such key: $index');
+    if (result != null || value.containsKey(index)) {
+      return typeAdapter.nativeToValue(result);
+    }
+    
+    // If direct lookup fails, try to find a compatible key
+    // This handles cases where keys are equivalent but not identical (e.g., 1, 1u, 1.0)
+    for (final entry in value.entries) {
+      if (_keysEqual(entry.key, index)) {
+        return typeAdapter.nativeToValue(entry.value);
       }
     }
-    return typeAdapter.nativeToValue(result);
+    
+    // Key doesn't exist - return error like cel-go does
+    return ErrorValue('no such key');
+  }
+  
+  /// Check if two Value keys are equal for map lookup purposes
+  /// This implements CEL's key equality semantics where int and uint types
+  /// can be cross-compared (1 == 1u) but NOT with doubles
+  bool _keysEqual(Value key1, Value key2) {
+    // First check direct equality
+    if (key1 == key2) return true;
+    
+    // Handle cross-type comparisons ONLY for int/uint
+    // Doubles as map keys use exact equality only
+    if (_isIntOrUint(key1) && _isIntOrUint(key2)) {
+      return _intEqual(key1, key2);
+    }
+    
+    return false;
+  }
+  
+  /// Check if a Value represents an integer type (int or uint)
+  bool _isIntOrUint(Value val) {
+    return val.type.name == 'int' || val.type.name == 'uint';
+  }
+  
+  /// Compare two integer values for equality (int/uint cross-comparison)
+  bool _intEqual(Value val1, Value val2) {
+    final n1 = val1.convertToNative();
+    final n2 = val2.convertToNative();
+    
+    // Both should be integers
+    if (n1 is! int || n2 is! int) {
+      return false;
+    }
+    
+    return n1 == n2;
   }
 
   @override
@@ -62,8 +101,20 @@ class MapValue extends Value implements Indexer, Container, Sizer {
   }
 
   @override
-  BooleanValue contains(Value value) {
-    return BooleanValue(this.value.containsKey(value));
+  BooleanValue contains(Value searchValue) {
+    // First try direct key lookup
+    if (value.containsKey(searchValue)) {
+      return BooleanValue(true);
+    }
+    
+    // If direct lookup fails, try to find a compatible key
+    for (final key in value.keys) {
+      if (_keysEqual(key, searchValue)) {
+        return BooleanValue(true);
+      }
+    }
+    
+    return BooleanValue(false);
   }
   
   @override

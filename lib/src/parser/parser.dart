@@ -354,7 +354,6 @@ ParseTree unnest(ParseTree t) {
     return unnest(t.literal()!);
   }
   // TODO: port the remaining types.
-  // print('unnest: Unknown type ${t.runtimeType}');
   return t;
 }
 

@@ -56,7 +56,24 @@ class NumericCompare {
       return _mapsEqual(left.value as Map, right.value as Map);
     }
     
-    // For non-numeric types, use standard equality
+    // Handle bytes equality
+    if (_isBytes(left) && _isBytes(right)) {
+      return _bytesEqual(left, right);
+    }
+    
+    // For proto messages, handle specially to avoid infinite recursion
+    // MessageValue types should use their underlying protobuf equality
+    final leftTypeName = left.type.name;
+    final rightTypeName = right.type.name;
+    
+    // Check if both are proto message types (not primitive types)
+    if (leftTypeName == rightTypeName && 
+        !['int', 'uint', 'double', 'bool', 'string', 'bytes', 'list', 'map', 'null', 'duration', 'timestamp'].contains(leftTypeName)) {
+      // For proto messages, compare the underlying message values
+      return left.value == right.value;
+    }
+    
+    // For non-numeric types, use standard value equality
     return left.value == right.value;
   }
   
@@ -72,6 +89,15 @@ class NumericCompare {
   
   static bool _isMap(Value value) {
     return value.type.name == 'map';
+  }
+  
+  static bool _isBytes(Value value) {
+    return value.type.name == 'bytes';
+  }
+  
+  static bool _bytesEqual(Value left, Value right) {
+    // Compare byte values directly
+    return left.value == right.value;
   }
   
   static bool _listsEqual(List left, List right) {

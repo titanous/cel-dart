@@ -7,11 +7,36 @@ import '../common/types/string.dart';
 import '../common/types/ref/value.dart';
 
 class AttributeFactory {
+  /// Known variable names from the environment bindings
+  /// This allows the attribute factory to attempt qualified identifier resolution
+  Set<String> knownVariables = <String>{};
+  
+  void setKnownVariables(Set<String> variables) {
+    knownVariables = variables;
+  }
+  
   Attribute maybeAttribute(String name) {
-    return MaybeAttribute([
-      // Skipped `this.container.ResolveCandidateNames(name)`.
-      AbsoluteAttribute(name)
-    ]);
+    // Generate candidate attribute names for qualified identifier resolution
+    final candidates = _generateQualifiedCandidates(name);
+    return MaybeAttribute(candidates.map((candidate) => AbsoluteAttribute(candidate)).toList());
+  }
+  
+  /// Generate qualified identifier candidates
+  /// For input "a.b.c", returns ["a.b.c", "a.b", "a"] in that order
+  /// This allows trying the longest match first
+  List<String> _generateQualifiedCandidates(String name) {
+    final candidates = <String>[];
+    
+    // Split the name by dots
+    final parts = name.split('.');
+    
+    // Generate candidates from longest to shortest
+    for (int i = parts.length; i > 0; i--) {
+      final candidate = parts.sublist(0, i).join('.');
+      candidates.add(candidate);
+    }
+    
+    return candidates;
   }
 
   Attribute relativeAttribute(Interpretable eval) {
