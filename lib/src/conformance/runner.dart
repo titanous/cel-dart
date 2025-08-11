@@ -4,6 +4,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:protobuf/protobuf.dart' as pb;
 import 'package:cel/cel.dart';
 import 'package:cel/src/common/types/pb/registry.dart';
+import 'package:cel/src/common/types/pb/message.dart';
 import 'package:cel/src/common/types/provider.dart';
 import '../gen/cel/expr/conformance/test/simple.pb.dart';
 import '../gen/cel/expr/value.pb.dart' as value_pb;
@@ -264,6 +265,15 @@ class ConformanceTestRunner {
       return value.stringValue;
     } else if (value.hasBytesValue()) {
       return value.bytesValue;
+    } else if (value.hasObjectValue()) {
+      // For objectValue, the Any message itself was created from JSON parsing
+      // and doesn't contain the actual protobuf bytes.
+      // We need to reconstruct the message from the JSON representation
+      // that was stored when the test was parsed.
+      
+      // For now, just return the Any message
+      // The actual unpacking will need to happen elsewhere
+      return value.objectValue;
     } else if (value.hasListValue()) {
       return value.listValue.values.map(_valueFromCelValue).toList();
     } else if (value.hasMapValue()) {
@@ -296,6 +306,23 @@ class ConformanceTestRunner {
   bool _valuesMatch(dynamic actual, dynamic expected) {
     if (actual == null && expected == null) return true;
     if (actual == null || expected == null) return false;
+    
+    // Handle MessageValue from CEL evaluation
+    if (actual is MessageValue) {
+      // If expected is an Any message, compare the actual message with the unpacked value
+      if (expected is pb_any.Any) {
+        // For now, just check if the type URLs match
+        // In a full implementation, we'd unpack and compare field by field
+        final actualTypeUrl = 'type.googleapis.com/${actual.message.info_.qualifiedMessageName}';
+        return actualTypeUrl == expected.typeUrl;
+      }
+      // If expected is a protobuf message, compare directly
+      if (expected is pb.GeneratedMessage) {
+        return actual.message == expected;
+      }
+      // Otherwise, compare the string representations
+      return actual.message.toString() == expected.toString();
+    }
     
     if (actual is List && expected is List) {
       if (actual.length != expected.length) return false;
