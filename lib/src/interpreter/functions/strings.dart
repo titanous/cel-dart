@@ -11,6 +11,7 @@ import 'package:cel/src/common/types/type.dart';
 import 'package:cel/src/common/types/uint.dart';
 import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/provider.dart';
+import 'package:cel/src/common/types/pb/message.dart';
 
 import 'functions.dart';
 
@@ -572,7 +573,7 @@ Value stringFormat(List<Value> args) {
   try {
     return StringValue(_doFormat(formatStr.value, formatArgs.value));
   } catch (e) {
-    return ErrorValue('format error: $e');
+    return ErrorValue('error during formatting: $e');
   }
 }
 
@@ -704,6 +705,13 @@ String _formatString(Value value) {
   if (value is TypeValue) {
     return value.typeName;
   }
+  // Check for unsupported protobuf message types
+  if (value is MessageValue) {
+    final typeName = value.celTypeValue;
+    throw FormatException('string clause can only be used on strings, bools, bytes, ints, doubles, maps, lists, types, durations, and timestamps, was given $typeName');
+  }
+  
+  // For other supported types (duration, timestamp, etc.), use their string representation
   return value.toString();
 }
 
