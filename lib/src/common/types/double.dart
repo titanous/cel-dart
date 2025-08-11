@@ -16,7 +16,14 @@ final doubleType = Type_('double', {
 });
 
 class DoubleValue extends Value
-    implements Comparer, Adder, Divider, Multiplier, Subtractor, Modder, Negater {
+    implements
+        Comparer,
+        Adder,
+        Divider,
+        Multiplier,
+        Subtractor,
+        Modder,
+        Negater {
   DoubleValue(this.value);
 
   @override

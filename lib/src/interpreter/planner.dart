@@ -45,7 +45,11 @@ class Planner {
     if (expression is PresenceTestExpr) {
       return planPresenceTest(expression);
     }
-    return ErrorInterpretable('Unsupported Expression type: ${expression.runtimeType}');
+    if (expression is ComprehensionExpr) {
+      return planComprehension(expression);
+    }
+    return ErrorInterpretable(
+        'Unsupported Expression type: ${expression.runtimeType}');
   }
 
   Interpretable planIdent(IdentExpr ident) {
@@ -79,17 +83,19 @@ class Planner {
     }
     // TODO: implement indexer, optSelect, optIndex.
 
-    final functionImplementation = dispatcher.findOverload(functionName, 
+    final functionImplementation = dispatcher.findOverload(functionName,
         argCount: interpretableArguments.length);
     if (functionImplementation == null) {
       // If no overload found and this is a method call with a target,
       // try the receiver pattern (e.g., str_var.format([args]))
       if (expression.target != null && interpretableArguments.length == 2) {
-        return BinaryInterpretable(functionName, null, interpretableArguments[0], interpretableArguments[1]);
+        return BinaryInterpretable(functionName, null,
+            interpretableArguments[0], interpretableArguments[1]);
       }
-      return ErrorInterpretable('No overload found for function: $functionName with ${interpretableArguments.length} arguments');
+      return ErrorInterpretable(
+          'No overload found for function: $functionName with ${interpretableArguments.length} arguments');
     }
-    
+
     // Check the argument count and use the appropriate operator
     switch (interpretableArguments.length) {
       // TODO: handle zero functions.
@@ -98,34 +104,37 @@ class Planner {
           return planCallUnary(expression, functionName, functionImplementation,
               interpretableArguments);
         } else if (functionImplementation.functionOperator != null) {
-          return planCallFunction(expression, functionName, functionImplementation,
-              interpretableArguments);
+          return planCallFunction(expression, functionName,
+              functionImplementation, interpretableArguments);
         }
-        return ErrorInterpretable('No unary operator implementation for function: $functionName');
+        return ErrorInterpretable(
+            'No unary operator implementation for function: $functionName');
       case 2:
         // Check if there are multiple overloads with explicit type signatures that need type-based dispatch
         final allOverloads = dispatcher.findAllOverloads(functionName);
         if (allOverloads != null && allOverloads.length > 1) {
           // Only use type-aware dispatch if at least one overload has parameter types
-          final hasTypedOverloads = allOverloads.any((o) => o.parameterTypes != null);
+          final hasTypedOverloads =
+              allOverloads.any((o) => o.parameterTypes != null);
           if (hasTypedOverloads) {
-            return TypeAwareBinaryInterpretable(functionName, dispatcher, 
+            return TypeAwareBinaryInterpretable(functionName, dispatcher,
                 interpretableArguments[0], interpretableArguments[1]);
           }
         }
-        
+
         if (functionImplementation.binaryOperator != null) {
-          return planCallBinary(expression, functionName, functionImplementation,
-              interpretableArguments);
+          return planCallBinary(expression, functionName,
+              functionImplementation, interpretableArguments);
         } else if (functionImplementation.functionOperator != null) {
-          return planCallFunction(expression, functionName, functionImplementation,
-              interpretableArguments);
+          return planCallFunction(expression, functionName,
+              functionImplementation, interpretableArguments);
         }
-        return ErrorInterpretable('No binary operator implementation for function: $functionName');
+        return ErrorInterpretable(
+            'No binary operator implementation for function: $functionName');
       default:
         if (functionImplementation.functionOperator != null) {
-          return planCallFunction(expression, functionName, functionImplementation,
-              interpretableArguments);
+          return planCallFunction(expression, functionName,
+              functionImplementation, interpretableArguments);
         }
         throw UnsupportedError(
             "Function $functionName with ${interpretableArguments.length} arguments is not supported.");
@@ -166,7 +175,7 @@ class Planner {
       final qualifiedAttr = attributeFactory.maybeAttribute(qualifiedName);
       return AttributeValueInterpretable(qualifiedAttr, adapter);
     }
-    
+
     // Fall back to traditional select planning
     final operand = plan(select.operand);
 
@@ -179,16 +188,16 @@ class Planner {
     attribute.addQualifier(qualifier);
     return attribute;
   }
-  
+
   /// Build qualified identifier name from nested select expressions
   /// For SelectExpr(operand: SelectExpr(operand: IdentExpr("a"), field: "b"), field: "c")
   /// returns "a.b.c"
   String? _buildQualifiedName(SelectExpr select) {
     final parts = <String>[];
-    
+
     // Add the current field
     parts.insert(0, select.field);
-    
+
     // Walk up the operand chain
     Expr current = select.operand;
     while (true) {
@@ -203,20 +212,20 @@ class Planner {
         return null;
       }
     }
-    
+
     return parts.join('.');
   }
 
   // Plan presence test for has() macro
   Interpretable planPresenceTest(PresenceTestExpr presenceTest) {
     final operand = plan(presenceTest.operand);
-    
+
     var attribute = operand;
     if (attribute is! AttributeValueInterpretable) {
       // Set up a relative attribute.
       attribute = relativeAttribute(operand);
     }
-    
+
     // Add a presence test qualifier for the field
     final qualifier = PresenceTestQualifier(presenceTest.field);
     attribute.addQualifier(qualifier);
@@ -243,7 +252,8 @@ class Planner {
   Interpretable planCallUnary(CallExpr expression, String functionName,
       Overload functionImplementation, List<Interpretable> arguments) {
     if (functionImplementation.unaryOperator == null) {
-      return ErrorInterpretable('No unary operator implementation for function: $functionName');
+      return ErrorInterpretable(
+          'No unary operator implementation for function: $functionName');
     }
     return UnaryInterpretable(
         functionImplementation.unaryOperator!, arguments[0]);
@@ -254,7 +264,8 @@ class Planner {
   Interpretable planCallFunction(CallExpr expression, String functionName,
       Overload functionImplementation, List<Interpretable> arguments) {
     if (functionImplementation.functionOperator == null) {
-      return ErrorInterpretable('No function operator implementation for function: $functionName');
+      return ErrorInterpretable(
+          'No function operator implementation for function: $functionName');
     }
     return FunctionInterpretable(
         functionImplementation.functionOperator!, arguments);
@@ -289,5 +300,25 @@ class Planner {
     // For now, treat message creation like map creation - this will need refinement
     // when proper message type support is added
     return MessageInterpretable(expression.typeName, keys, values, adapter);
+  }
+
+  // Plan comprehension expressions (.all(), .exists(), .filter(), .map() macros)
+  Interpretable planComprehension(ComprehensionExpr expression) {
+    final iterRange = plan(expression.iterRange);
+    final accuInit = plan(expression.accuInit);
+    final loopCondition = plan(expression.loopCondition);
+    final loopStep = plan(expression.loopStep);
+    final result = plan(expression.result);
+
+    return ComprehensionInterpretable(
+      expression.accuVar,
+      expression.iterVar,
+      iterRange,
+      accuInit,
+      loopCondition,
+      loopStep,
+      result,
+      expression.iterVar2,
+    );
   }
 }

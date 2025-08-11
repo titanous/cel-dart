@@ -25,13 +25,13 @@ class ErrorValue extends Value {
 
   @override
   String toString() => 'error: $message';
-  
+
   @override
   bool operator ==(Object other) {
     if (other is! ErrorValue) return false;
     return message == other.message;
   }
-  
+
   @override
   int get hashCode => message.hashCode;
 }

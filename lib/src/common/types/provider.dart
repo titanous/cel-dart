@@ -51,21 +51,21 @@ class TypeRegistry implements TypeAdapter {
   late final ProtoTypeRegistry? protoRegistry;
   // Container for namespace resolution
   Container? container;
-  
+
   TypeRegistry({this.protoRegistry, this.container});
-  
+
   void registerTypes(List<Type_> types) {}
 
   @override
   Value nativeToValue(value) {
     return _nativeToValue(this, value);
   }
-  
+
   /// Convert snake_case to camelCase
   String _snakeToCamelCase(String snakeCase) {
     final parts = snakeCase.split('_');
     if (parts.isEmpty) return snakeCase;
-    
+
     final result = StringBuffer(parts[0]);
     for (int i = 1; i < parts.length; i++) {
       if (parts[i].isNotEmpty) {
@@ -77,14 +77,13 @@ class TypeRegistry implements TypeAdapter {
     }
     return result.toString();
   }
-  
+
   /// Wrap a value in a protobuf wrapper type if needed
   dynamic _wrapValueIfNeeded(dynamic fieldInfo, dynamic value) {
     // Check if field type is a wrapper type based on the field name
     // This is a heuristic - ideally we'd check the actual field type
     final fieldName = fieldInfo.name as String;
-    
-    
+
     if (fieldName.contains('Int32Wrapper')) {
       // Handle both int and Int64 types for int32
       int intValue;
@@ -95,7 +94,7 @@ class TypeRegistry implements TypeAdapter {
       } else {
         return value; // Not a numeric type we can validate
       }
-      
+
       // Validate int32 range: -2147483648 to 2147483647 (2^31)
       if (intValue < -2147483648 || intValue > 2147483647) {
         return ErrorValue('range error');
@@ -114,7 +113,7 @@ class TypeRegistry implements TypeAdapter {
       } else {
         return value; // Not a numeric type we can validate
       }
-      
+
       // Validate uint32 range: 0 to 4294967295 (2^32-1)
       if (intValue < 0 || intValue > 4294967295) {
         return ErrorValue('range error');
@@ -143,18 +142,18 @@ class TypeRegistry implements TypeAdapter {
     } else if (fieldName.contains('BytesWrapper') && value is List<int>) {
       return pb_wrappers.BytesValue()..value = value;
     }
-    
+
     return value;
   }
-  
-  // Create a message from a type name and field values  
+
+  // Create a message from a type name and field values
   // Returns GeneratedMessage on success, null if type not found, or ErrorValue on validation error
   dynamic createMessage(String typeName, Map<String, dynamic> fields) {
     if (protoRegistry == null) return null;
-    
+
     // Try resolving the type name with the container if available
     MessageValue? messageVal;
-    
+
     if (container != null) {
       // Try each candidate name from the container
       final candidates = container!.resolveCandidateNames(typeName);
@@ -166,26 +165,26 @@ class TypeRegistry implements TypeAdapter {
       // No container, try the name directly
       messageVal = protoRegistry!.createMessage(typeName);
     }
-    
+
     if (messageVal == null) return null;
-    
+
     final message = messageVal.message;
-    
+
     // Set field values
     for (final entry in fields.entries) {
       try {
         final fieldName = entry.key;
         final value = entry.value;
-        
+
         // Convert snake_case to camelCase for Dart field names
         final camelCaseFieldName = _snakeToCamelCase(fieldName);
-        
+
         // Find the field in the message
         final fieldInfo = message.info_.fieldInfo.values.firstWhere(
           (f) => f.name == camelCaseFieldName || f.name == fieldName,
           orElse: () => throw Exception('Field $fieldName not found'),
         );
-        
+
         // Set the field value
         if (value != null) {
           // Check if this field expects a wrapper type
@@ -202,7 +201,7 @@ class TypeRegistry implements TypeAdapter {
         continue;
       }
     }
-    
+
     return message;
   }
 }
@@ -273,7 +272,7 @@ Value _nativeToValue(TypeAdapter adapter, dynamic value) {
   if (value is List<int>) {
     return BytesValue.fromCodeUnits(value);
   }
-  
+
   // Handle protobuf wrapper types - unwrap them to their primitive values
   if (value is pb_wrappers.DoubleValue) {
     return DoubleValue(value.value);
@@ -302,13 +301,14 @@ Value _nativeToValue(TypeAdapter adapter, dynamic value) {
   if (value is pb_wrappers.BytesValue) {
     return BytesValue.fromCodeUnits(value.value);
   }
-  
+
   // Handle timestamp and duration
   if (value is pb_timestamp.Timestamp) {
     final seconds = value.seconds.toInt();
     final nanos = value.nanos;
     final microseconds = seconds * 1000000 + (nanos ~/ 1000);
-    return TimestampValue(DateTime.fromMicrosecondsSinceEpoch(microseconds, isUtc: true));
+    return TimestampValue(
+        DateTime.fromMicrosecondsSinceEpoch(microseconds, isUtc: true));
   }
   if (value is pb_duration.Duration) {
     final seconds = value.seconds.toInt();
@@ -316,21 +316,21 @@ Value _nativeToValue(TypeAdapter adapter, dynamic value) {
     final microseconds = seconds * 1000000 + (nanos ~/ 1000);
     return DurationValue(Duration(microseconds: microseconds));
   }
-  
+
   // Handle protobuf enums - convert to IntValue
   if (value is ProtobufEnum) {
     return IntValue(value.value);
   }
-  
+
   // Handle other protobuf messages
   if (value is GeneratedMessage) {
     return MessageValue(value, adapter);
   }
-  
+
   // Handle ErrorValue
   if (value is ErrorValue) {
     return value;
   }
-  
+
   throw UnimplementedError('Unsupported type for $value: ${value.runtimeType}');
 }

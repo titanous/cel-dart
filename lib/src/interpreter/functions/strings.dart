@@ -23,14 +23,14 @@ List<Overload> stringOverloads() {
       if (str is! StringValue || index is! IntValue) {
         return ErrorValue('charAt requires string and int arguments');
       }
-      
+
       final s = str.value;
       final i = index.value.toInt();
-      
+
       if (i < 0) {
         return ErrorValue('charAt index must be non-negative');
       }
-      
+
       final runes = s.runes.toList();
       if (i >= runes.length) {
         if (i == runes.length) {
@@ -38,33 +38,33 @@ List<Overload> stringOverloads() {
         }
         return ErrorValue('charAt index out of bounds');
       }
-      
+
       return StringValue(String.fromCharCode(runes[i]));
     }),
-    
+
     // indexOf function (2 and 3 arguments)
     Overload('indexOf', functionOperator: (args) {
       if (args.length == 2) {
         final str = args[0];
         final substr = args[1];
-        
+
         if (str is! StringValue || substr is! StringValue) {
           return ErrorValue('indexOf requires string arguments');
         }
-        
+
         final strValue = str.value;
         final substrValue = substr.value;
-        
+
         if (substrValue.isEmpty) {
           return IntValue(0);
         }
-        
+
         final result = strValue.indexOf(substrValue);
-        
+
         if (result == -1) {
           return IntValue(-1);
         }
-        
+
         // Convert string position to rune position
         final runeIndex = strValue.substring(0, result).runes.length;
         return IntValue(runeIndex);
@@ -72,23 +72,25 @@ List<Overload> stringOverloads() {
         final str = args[0];
         final substr = args[1];
         final startArg = args[2];
-        
-        if (str is! StringValue || substr is! StringValue || startArg is! IntValue) {
+
+        if (str is! StringValue ||
+            substr is! StringValue ||
+            startArg is! IntValue) {
           return ErrorValue('indexOf requires string, string, int arguments');
         }
-        
+
         final strValue = str.value;
         final substrValue = substr.value;
         final start = startArg.value.toInt();
-        
+
         if (start < 0) {
           return ErrorValue('indexOf start must be non-negative');
         }
-        
+
         if (substrValue.isEmpty) {
           return IntValue(start);
         }
-        
+
         final runes = strValue.runes.toList();
         if (start > runes.length) {
           return ErrorValue('index out of range: $start');
@@ -96,46 +98,46 @@ List<Overload> stringOverloads() {
         if (start == runes.length) {
           return IntValue(-1);
         }
-        
+
         // Convert rune position to string position
         final strPrefix = String.fromCharCodes(runes.take(start));
         final result = strValue.indexOf(substrValue, strPrefix.length);
-        
+
         if (result == -1) {
           return IntValue(-1);
         }
-        
+
         // Convert string position back to rune position
         final runeIndex = strValue.substring(0, result).runes.length;
         return IntValue(runeIndex);
       }
       return ErrorValue('indexOf requires 2 or 3 arguments');
     }),
-    
+
     // lastIndexOf function (2 and 3 arguments)
     Overload('lastIndexOf', functionOperator: (args) {
       if (args.length == 2) {
         final str = args[0];
         final substr = args[1];
-        
+
         if (str is! StringValue || substr is! StringValue) {
           return ErrorValue('lastIndexOf requires string arguments');
         }
-        
+
         final strValue = str.value;
         final substrValue = substr.value;
         final runes = strValue.runes.toList();
-        
+
         if (substrValue.isEmpty) {
           return IntValue(runes.length);
         }
-        
+
         final result = strValue.lastIndexOf(substrValue);
-        
+
         if (result == -1) {
           return IntValue(-1);
         }
-        
+
         // Convert string position to rune position
         final runeIndex = strValue.substring(0, result).runes.length;
         return IntValue(runeIndex);
@@ -143,103 +145,109 @@ List<Overload> stringOverloads() {
         final str = args[0];
         final substr = args[1];
         final endArg = args[2];
-        
-        if (str is! StringValue || substr is! StringValue || endArg is! IntValue) {
-          return ErrorValue('lastIndexOf requires string, string, int arguments');
+
+        if (str is! StringValue ||
+            substr is! StringValue ||
+            endArg is! IntValue) {
+          return ErrorValue(
+              'lastIndexOf requires string, string, int arguments');
         }
-        
+
         final strValue = str.value;
         final substrValue = substr.value;
         final runes = strValue.runes.toList();
         final end = endArg.value.toInt();
-        
+
         if (end < 0) {
           return ErrorValue('index out of range: $end');
         }
         if (end > runes.length) {
           return ErrorValue('index out of range: $end');
         }
-        
+
         if (substrValue.isEmpty) {
           if (end < runes.length) {
             return IntValue(end);
           }
           return IntValue(runes.length);
         }
-        
+
         String searchStr = strValue;
         if (end < runes.length) {
-          searchStr = String.fromCharCodes(runes.take(end + substrValue.runes.length));
+          searchStr =
+              String.fromCharCodes(runes.take(end + substrValue.runes.length));
         }
-        
+
         final result = searchStr.lastIndexOf(substrValue);
-        
+
         if (result == -1) {
           return IntValue(-1);
         }
-        
+
         // Convert string position back to rune position
         final runeIndex = strValue.substring(0, result).runes.length;
         return IntValue(runeIndex);
       }
       return ErrorValue('lastIndexOf requires 2 or 3 arguments');
     }),
-    
+
     // lowerAscii function
     Overload('lowerAscii', unaryOperator: (str) {
       if (str is! StringValue) {
         return ErrorValue('lowerAscii requires string argument');
       }
-      
+
       final result = StringBuffer();
       for (final rune in str.value.runes) {
-        if (rune >= 65 && rune <= 90) { // A-Z
+        if (rune >= 65 && rune <= 90) {
+          // A-Z
           result.writeCharCode(rune + 32);
         } else {
           result.writeCharCode(rune);
         }
       }
-      
+
       return StringValue(result.toString());
     }),
-    
+
     // upperAscii function
     Overload('upperAscii', unaryOperator: (str) {
       if (str is! StringValue) {
         return ErrorValue('upperAscii requires string argument');
       }
-      
+
       final result = StringBuffer();
       for (final rune in str.value.runes) {
-        if (rune >= 97 && rune <= 122) { // a-z
+        if (rune >= 97 && rune <= 122) {
+          // a-z
           result.writeCharCode(rune - 32);
         } else {
           result.writeCharCode(rune);
         }
       }
-      
+
       return StringValue(result.toString());
     }),
-    
+
     // trim function
     Overload('trim', unaryOperator: (str) {
       if (str is! StringValue) {
         return ErrorValue('trim requires string argument');
       }
-      
+
       return StringValue(str.value.trim());
     }),
-    
+
     // reverse function
     Overload('reverse', unaryOperator: (str) {
       if (str is! StringValue) {
         return ErrorValue('reverse requires string argument');
       }
-      
+
       final runes = str.value.runes.toList();
       return StringValue(String.fromCharCodes(runes.reversed));
     }),
-    
+
     // replace function (3 and 4 arguments)
     Overload('replace', functionOperator: (args) {
       final valueArgs = args.cast<Value>();
@@ -250,7 +258,7 @@ List<Overload> stringOverloads() {
       }
       return ErrorValue('replace requires 3 or 4 arguments');
     }),
-    
+
     // split function (2 and 3 arguments)
     Overload('split', functionOperator: (args) {
       final valueArgs = args.cast<Value>();
@@ -261,7 +269,7 @@ List<Overload> stringOverloads() {
       }
       return ErrorValue('split requires 2 or 3 arguments');
     }),
-    
+
     // substring function (2 and 3 arguments)
     Overload('substring', functionOperator: (args) {
       final valueArgs = args.cast<Value>();
@@ -272,19 +280,19 @@ List<Overload> stringOverloads() {
       }
       return ErrorValue('substring requires 2 or 3 arguments');
     }),
-    
+
     // join function (1 and 2 arguments)
     Overload('join', functionOperator: (args) {
       final valueArgs = args.cast<Value>();
       return stringJoin(valueArgs);
     }),
-    
+
     // format function
     Overload('format', functionOperator: (args) {
       final valueArgs = args.cast<Value>();
       return stringFormat(valueArgs);
     }),
-    
+
     // quote function (strings.quote) - register both versions
     Overload('strings.quote', unaryOperator: _quoteFunction),
     Overload('quote', unaryOperator: _quoteFunction),
@@ -299,15 +307,15 @@ Value stringReplace(List<Value> args) {
   if (args.length != 3) {
     return ErrorValue('replace requires 3 arguments');
   }
-  
+
   final str = args[0];
   final oldStr = args[1];
   final newStr = args[2];
-  
+
   if (str is! StringValue || oldStr is! StringValue || newStr is! StringValue) {
     return ErrorValue('replace requires string arguments');
   }
-  
+
   final result = str.value.replaceAll(oldStr.value, newStr.value);
   return StringValue(result);
 }
@@ -317,47 +325,47 @@ Value stringReplaceN(List<Value> args) {
   if (args.length != 4) {
     return ErrorValue('replace requires 4 arguments');
   }
-  
+
   final str = args[0];
   final oldStr = args[1];
   final newStr = args[2];
   final count = args[3];
-  
+
   if (str is! StringValue || oldStr is! StringValue || newStr is! StringValue) {
     return ErrorValue('replace requires string arguments');
   }
-  
+
   if (count is! IntValue) {
     return ErrorValue('replace count must be int');
   }
-  
+
   final n = count.value.toInt();
-  
+
   if (n == 0) {
     return str;
   }
-  
+
   if (n < 0) {
     return StringValue(str.value.replaceAll(oldStr.value, newStr.value));
   }
-  
+
   String result = str.value;
   int replaced = 0;
   int startIndex = 0;
   final buffer = StringBuffer();
-  
+
   while (replaced < n) {
     final index = result.indexOf(oldStr.value, startIndex);
     if (index == -1) {
       break;
     }
-    
+
     buffer.write(result.substring(startIndex, index));
     buffer.write(newStr.value);
     startIndex = index + oldStr.value.length;
     replaced++;
   }
-  
+
   buffer.write(result.substring(startIndex));
   return StringValue(buffer.toString());
 }
@@ -367,14 +375,14 @@ Value stringSplit(List<Value> args) {
   if (args.length != 2) {
     return ErrorValue('split requires 2 arguments');
   }
-  
+
   final str = args[0];
   final separator = args[1];
-  
+
   if (str is! StringValue || separator is! StringValue) {
     return ErrorValue('split requires string arguments');
   }
-  
+
   final parts = str.value.split(separator.value);
   final adapter = newRegistry();
   return ListValue(parts.map((p) => StringValue(p)).toList(), adapter);
@@ -385,50 +393,49 @@ Value stringSplitN(List<Value> args) {
   if (args.length != 3) {
     return ErrorValue('split requires 3 arguments');
   }
-  
+
   final str = args[0];
   final separator = args[1];
   final limitArg = args[2];
-  
+
   if (str is! StringValue || separator is! StringValue) {
     return ErrorValue('split requires string arguments');
   }
-  
+
   if (limitArg is! IntValue) {
     return ErrorValue('split limit must be int');
   }
-  
+
   final limit = limitArg.value.toInt();
   final adapter = newRegistry();
-  
+
   if (limit == 0) {
     return ListValue([], adapter);
   }
-  
+
   if (limit == 1) {
     return ListValue([str], adapter);
   }
-  
+
   final strValue = str.value;
   final sepValue = separator.value;
-  
+
   if (sepValue.isEmpty) {
     // Split into individual characters
     final runes = strValue.runes.toList();
-    final chars = runes
-        .map((r) => StringValue(String.fromCharCode(r)))
-        .toList();
-    
+    final chars =
+        runes.map((r) => StringValue(String.fromCharCode(r))).toList();
+
     if (limit > 0 && chars.length > limit) {
       final result = chars.take(limit - 1).toList();
       final remaining = String.fromCharCodes(runes.skip(limit - 1));
       result.add(StringValue(remaining));
       return ListValue(result, adapter);
     }
-    
+
     return ListValue(chars, adapter);
   }
-  
+
   List<String> parts;
   if (limit < 0) {
     parts = strValue.split(sepValue);
@@ -436,21 +443,21 @@ Value stringSplitN(List<Value> args) {
     parts = [];
     String remaining = strValue;
     int count = 0;
-    
+
     while (count < limit - 1) {
       final index = remaining.indexOf(sepValue);
       if (index == -1) {
         break;
       }
-      
+
       parts.add(remaining.substring(0, index));
       remaining = remaining.substring(index + sepValue.length);
       count++;
     }
-    
+
     parts.add(remaining);
   }
-  
+
   return ListValue(parts.map((p) => StringValue(p)).toList(), adapter);
 }
 
@@ -459,26 +466,26 @@ Value stringSubstring(List<Value> args) {
   if (args.length != 2) {
     return ErrorValue('substring requires 2 arguments');
   }
-  
+
   final str = args[0];
   final startArg = args[1];
-  
+
   if (str is! StringValue || startArg is! IntValue) {
     return ErrorValue('substring requires string and int arguments');
   }
-  
+
   final strValue = str.value;
   final runes = strValue.runes.toList();
   final start = startArg.value.toInt();
-  
+
   if (start < 0) {
     return ErrorValue('substring start must be non-negative');
   }
-  
+
   if (start > runes.length) {
     return ErrorValue('substring start out of bounds');
   }
-  
+
   final result = String.fromCharCodes(runes.skip(start));
   return StringValue(result);
 }
@@ -488,40 +495,40 @@ Value stringSubstringRange(List<Value> args) {
   if (args.length != 3) {
     return ErrorValue('substring requires 3 arguments');
   }
-  
+
   final str = args[0];
   final startArg = args[1];
   final endArg = args[2];
-  
+
   if (str is! StringValue || startArg is! IntValue || endArg is! IntValue) {
     return ErrorValue('substring requires string and int arguments');
   }
-  
+
   final strValue = str.value;
   final runes = strValue.runes.toList();
   final start = startArg.value.toInt();
   final end = endArg.value.toInt();
-  
+
   if (start < 0) {
     return ErrorValue('substring start must be non-negative');
   }
-  
+
   if (start > runes.length) {
     return ErrorValue('substring start out of bounds');
   }
-  
+
   if (end < 0) {
     return ErrorValue('substring end must be non-negative');
   }
-  
+
   if (end > runes.length) {
     return ErrorValue('substring end out of bounds');
   }
-  
+
   if (start > end) {
     return ErrorValue('substring start must be less than or equal to end');
   }
-  
+
   final result = String.fromCharCodes(runes.sublist(start, end));
   return StringValue(result);
 }
@@ -531,12 +538,12 @@ Value stringJoin(List<Value> args) {
   if (args.isEmpty || args.length > 2) {
     return ErrorValue('join requires 1 or 2 arguments');
   }
-  
+
   final list = args[0];
   if (list is! ListValue) {
     return ErrorValue('join requires list argument');
   }
-  
+
   String separator = '';
   if (args.length == 2) {
     final sepArg = args[1];
@@ -545,7 +552,7 @@ Value stringJoin(List<Value> args) {
     }
     separator = sepArg.value;
   }
-  
+
   final strings = <String>[];
   for (final item in list.value) {
     if (item is! StringValue) {
@@ -553,7 +560,7 @@ Value stringJoin(List<Value> args) {
     }
     strings.add(item.value);
   }
-  
+
   return StringValue(strings.join(separator));
 }
 
@@ -562,14 +569,14 @@ Value stringFormat(List<Value> args) {
   if (args.length != 2) {
     return ErrorValue('format requires 2 arguments');
   }
-  
+
   final formatStr = args[0];
   final formatArgs = args[1];
-  
+
   if (formatStr is! StringValue || formatArgs is! ListValue) {
     return ErrorValue('format requires string and list arguments');
   }
-  
+
   try {
     return StringValue(_doFormat(formatStr.value, formatArgs.value));
   } catch (e) {
@@ -581,7 +588,7 @@ String _doFormat(String format, List<Value> args) {
   final result = StringBuffer();
   int argIndex = 0;
   int i = 0;
-  
+
   while (i < format.length) {
     if (format[i] == '%') {
       if (i + 1 < format.length) {
@@ -590,17 +597,17 @@ String _doFormat(String format, List<Value> args) {
           i += 2;
           continue;
         }
-        
+
         // Parse format clause
         final clause = _parseFormatClause(format, i);
         if (clause == null) {
           throw FormatException('Invalid format clause at position $i');
         }
-        
+
         if (argIndex >= args.length) {
           throw FormatException('Not enough arguments for format string');
         }
-        
+
         final formatted = _formatValue(args[argIndex], clause);
         result.write(formatted);
         argIndex++;
@@ -613,18 +620,18 @@ String _doFormat(String format, List<Value> args) {
       i++;
     }
   }
-  
+
   if (argIndex < args.length) {
     throw FormatException('Too many arguments for format string');
   }
-  
+
   return result.toString();
 }
 
 _FormatClause? _parseFormatClause(String format, int start) {
   int i = start + 1; // Skip %
   if (i >= format.length) return null;
-  
+
   // Parse optional precision
   int? precision;
   if (format[i] == '.') {
@@ -637,12 +644,12 @@ _FormatClause? _parseFormatClause(String format, int start) {
       precision = int.parse(format.substring(digitStart, i));
     }
   }
-  
+
   // Parse verb
   if (i >= format.length) return null;
   final verb = format[i];
   i++;
-  
+
   return _FormatClause(verb: verb, precision: precision, end: i);
 }
 
@@ -708,9 +715,10 @@ String _formatString(Value value) {
   // Check for unsupported protobuf message types
   if (value is MessageValue) {
     final typeName = value.celTypeValue;
-    throw FormatException('string clause can only be used on strings, bools, bytes, ints, doubles, maps, lists, types, durations, and timestamps, was given $typeName');
+    throw FormatException(
+        'string clause can only be used on strings, bools, bytes, ints, doubles, maps, lists, types, durations, and timestamps, was given $typeName');
   }
-  
+
   // For other supported types (duration, timestamp, etc.), use their string representation
   return value.toString();
 }
@@ -791,15 +799,12 @@ String _formatBinary(Value value) {
 String _formatHex(Value value, bool uppercase) {
   if (value is StringValue) {
     final bytes = value.value.codeUnits;
-    final hex = bytes
-        .map((b) => b.toRadixString(16).padLeft(2, '0'))
-        .join();
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
     return uppercase ? hex.toUpperCase() : hex;
   }
   if (value is BytesValue) {
-    final hex = value.value
-        .map((b) => b.toRadixString(16).padLeft(2, '0'))
-        .join();
+    final hex =
+        value.value.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
     return uppercase ? hex.toUpperCase() : hex;
   }
   BigInt n;
@@ -830,7 +835,7 @@ class _FormatClause {
   final String verb;
   final int? precision;
   final int end;
-  
+
   _FormatClause({
     required this.verb,
     this.precision,
@@ -843,9 +848,9 @@ dynamic _quoteFunction(dynamic str) {
   if (str is! StringValue) {
     return ErrorValue('quote requires string argument');
   }
-  
+
   final result = StringBuffer('"');
-  
+
   for (final rune in str.value.runes) {
     switch (rune) {
       case 0x07: // \a
@@ -888,7 +893,7 @@ dynamic _quoteFunction(dynamic str) {
         }
     }
   }
-  
+
   result.write('"');
   return StringValue(result.toString());
 }

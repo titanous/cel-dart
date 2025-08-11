@@ -45,13 +45,13 @@ class TestResult {
 class TestResults {
   final String fileName;
   final List<TestResult> results;
-  
+
   TestResults(this.fileName, this.results);
-  
+
   int get passed => results.where((r) => r.passed).length;
   int get failed => results.where((r) => !r.passed).length;
   int get total => results.length;
-  
+
   List<TestResult> get failures => results.where((r) => !r.passed).toList();
 }
 
@@ -59,39 +59,41 @@ class TestResults {
 class ConformanceTestRunner {
   final Environment environment;
   final Set<String> skipTests;
-  
+
   ConformanceTestRunner({
     Environment? environment,
     this.skipTests = const {},
   }) : environment = environment ?? _createDefaultEnvironment();
-  
+
   static Environment _createDefaultEnvironment() {
     // Create an environment with protobuf support
     final protoRegistry = ProtoTypeRegistry();
     return Environment.withProtos(registry: protoRegistry);
   }
-  
+
   /// Run a single test file
   Future<TestResults> runTestFile(String testFile) async {
     final file = File(testFile);
     if (!await file.exists()) {
       throw ArgumentError('Test file not found: $testFile');
     }
-    
+
     final content = await file.readAsString();
-    
+
     SimpleTestFile testFileProto;
     if (testFile.endsWith('.json')) {
       try {
         // Parse JSON using Proto3 JSON format
         final jsonData = json.decode(content);
         final typeRegistry = _createTypeRegistry();
-        testFileProto = SimpleTestFile.create()..mergeFromProto3Json(
-          jsonData, 
-          typeRegistry: typeRegistry,
-          allowUnknownEnumIntegers: true, // Enable proto3-compatible enum handling
-          ignoreUnknownFields: true, // Handle extension fields gracefully
-        );
+        testFileProto = SimpleTestFile.create()
+          ..mergeFromProto3Json(
+            jsonData,
+            typeRegistry: typeRegistry,
+            allowUnknownEnumIntegers:
+                true, // Enable proto3-compatible enum handling
+            ignoreUnknownFields: true, // Handle extension fields gracefully
+          );
       } catch (e) {
         // If JSON parsing still fails, log the error but continue
         print('Warning: Failed to parse JSON for ${testFile}: $e');
@@ -103,42 +105,42 @@ class ConformanceTestRunner {
       testFileProto = SimpleTestFile();
       _parseTextProto(content, testFileProto);
     }
-    
+
     final results = <TestResult>[];
-    
+
     for (final section in testFileProto.section) {
       for (final test in section.test) {
         if (skipTests.contains(test.name)) {
           continue;
         }
-        
+
         final result = _runSingleTest(test);
         results.add(result);
       }
     }
-    
+
     return TestResults(testFile, results);
   }
-  
+
   /// Run all conformance test files
   Future<TestResults> runAllTests() async {
     final testDir = Directory('../../cel-spec/tests/simple/testdata');
     if (!await testDir.exists()) {
       throw ArgumentError('Test directory not found: ${testDir.path}');
     }
-    
+
     final allResults = <TestResult>[];
-    
+
     await for (final file in testDir.list()) {
       if (file is File && file.path.endsWith('.textproto')) {
         final results = await runTestFile(file.path);
         allResults.addAll(results.results);
       }
     }
-    
+
     return TestResults('all', allResults);
   }
-  
+
   /// Run a single test case
   TestResult _runSingleTest(SimpleTest test) {
     try {
@@ -150,7 +152,7 @@ class ConformanceTestRunner {
           error: 'Skipped: requires unsupported features',
         );
       }
-      
+
       // Create an environment with the container if provided
       Environment testEnv = environment;
       if (test.hasContainer() && test.container.isNotEmpty) {
@@ -164,24 +166,24 @@ class ConformanceTestRunner {
           (testEnv.adapter as TypeRegistry).container = testEnv.container;
         }
       }
-      
+
       // Compile the expression
       final ast = testEnv.compile(test.expr);
-      
+
       // Check if we expect a parse error
       if (test.hasDisableCheck() && test.disableCheck) {
         // We're not checking, just evaluating
       }
-      
+
       // Create the program
       final program = testEnv.makeProgram(ast);
-      
+
       // Prepare the input bindings
       final bindings = _prepareBindings(test.bindings);
-      
+
       // Evaluate
       final result = program.evaluate(bindings);
-      
+
       // Check if the result is an ErrorValue (which should be treated as evaluation error for conformance testing)
       if (result is ErrorValue) {
         if (test.hasEvalError()) {
@@ -199,7 +201,7 @@ class ConformanceTestRunner {
           );
         }
       }
-      
+
       // Check the result
       if (test.hasEvalError()) {
         // We expected an error but didn't get one
@@ -211,11 +213,11 @@ class ConformanceTestRunner {
           actual: result.toString(),
         );
       }
-      
+
       if (test.hasValue()) {
         final expectedValue = _valueFromCelValue(test.value);
         final matches = _valuesMatch(result, expectedValue);
-        
+
         return TestResult(
           name: test.name,
           passed: matches,
@@ -224,12 +226,11 @@ class ConformanceTestRunner {
           error: matches ? null : 'Value mismatch',
         );
       }
-      
+
       return TestResult(
         name: test.name,
         passed: true,
       );
-      
     } catch (e) {
       // Check if we expected an error
       if (test.hasEvalError()) {
@@ -238,7 +239,7 @@ class ConformanceTestRunner {
           passed: true,
         );
       }
-      
+
       return TestResult(
         name: test.name,
         passed: false,
@@ -246,42 +247,42 @@ class ConformanceTestRunner {
       );
     }
   }
-  
+
   /// Check if test requires unsupported features
   bool _requiresUnsupportedFeatures(SimpleTest test) {
     // Check for timestamp/duration which cel-dart doesn't support
     if (test.expr.contains('timestamp') || test.expr.contains('duration')) {
       return true;
     }
-    
+
     // Check for type checking
     if (test.expr.contains(' is ')) {
       return true;
     }
-    
+
     // Check for macros
-    if (test.expr.contains('.all(') || 
+    if (test.expr.contains('.all(') ||
         test.expr.contains('.exists(') ||
         test.expr.contains('.exists_one(') ||
         test.expr.contains('.filter(') ||
         test.expr.contains('.map(')) {
       return true;
     }
-    
+
     return false;
   }
-  
+
   /// Prepare input bindings from protobuf
   Map<String, dynamic> _prepareBindings(Map<String, ExprValue> bindings) {
     final result = <String, dynamic>{};
-    
+
     for (final entry in bindings.entries) {
       result[entry.key] = _valueFromExprValue(entry.value);
     }
-    
+
     return result;
   }
-  
+
   /// Convert cel.expr.Value to Dart value
   dynamic _valueFromCelValue(value_pb.Value value) {
     if (value.hasNullValue()) {
@@ -301,11 +302,13 @@ class ConformanceTestRunner {
     } else if (value.hasObjectValue()) {
       // For objectValue, we have an Any message that might need to be unpacked
       final anyMessage = value.objectValue;
-      
+
       // Only unpack if this looks like a well-known protobuf type that should be converted
-      if (anyMessage.typeUrl.contains('google.protobuf') && 
-          (anyMessage.typeUrl.contains('Value') || anyMessage.typeUrl.contains('Wrapper') || 
-           anyMessage.typeUrl.contains('Struct') || anyMessage.typeUrl.contains('ListValue'))) {
+      if (anyMessage.typeUrl.contains('google.protobuf') &&
+          (anyMessage.typeUrl.contains('Value') ||
+              anyMessage.typeUrl.contains('Wrapper') ||
+              anyMessage.typeUrl.contains('Struct') ||
+              anyMessage.typeUrl.contains('ListValue'))) {
         try {
           final unpackedMessage = _unpackAnyMessage(anyMessage);
           if (unpackedMessage != null) {
@@ -318,7 +321,7 @@ class ConformanceTestRunner {
           // If unpacking fails, fall through to default behavior
         }
       }
-      
+
       // For non-wrapper types or if unpacking fails, return the Any message as-is
       return anyMessage;
     } else if (value.hasListValue()) {
@@ -332,11 +335,11 @@ class ConformanceTestRunner {
       }
       return map;
     }
-    
+
     // Handle other types as needed
     return null;
   }
-  
+
   /// Convert ExprValue to Dart value
   dynamic _valueFromExprValue(ExprValue value) {
     if (value.hasValue()) {
@@ -348,19 +351,20 @@ class ConformanceTestRunner {
     }
     return null;
   }
-  
+
   /// Check if two values match
   bool _valuesMatch(dynamic actual, dynamic expected) {
     if (actual == null && expected == null) return true;
     if (actual == null || expected == null) return false;
-    
+
     // Handle MessageValue from CEL evaluation
     if (actual is MessageValue) {
       // If expected is an Any message, compare the actual message with the unpacked value
       if (expected is pb_any.Any) {
         // For now, just check if the type URLs match
         // In a full implementation, we'd unpack and compare field by field
-        final actualTypeUrl = 'type.googleapis.com/${actual.message.info_.qualifiedMessageName}';
+        final actualTypeUrl =
+            'type.googleapis.com/${actual.message.info_.qualifiedMessageName}';
         return actualTypeUrl == expected.typeUrl;
       }
       // If expected is a protobuf message, compare directly
@@ -370,7 +374,7 @@ class ConformanceTestRunner {
       // Otherwise, compare the string representations
       return actual.message.toString() == expected.toString();
     }
-    
+
     if (actual is List && expected is List) {
       if (actual.length != expected.length) return false;
       for (int i = 0; i < actual.length; i++) {
@@ -378,7 +382,7 @@ class ConformanceTestRunner {
       }
       return true;
     }
-    
+
     if (actual is Map && expected is Map) {
       if (actual.length != expected.length) return false;
       for (final key in actual.keys) {
@@ -387,30 +391,30 @@ class ConformanceTestRunner {
       }
       return true;
     }
-    
+
     // For numbers, allow some tolerance for floating point
     if (actual is num && expected is num) {
       if (actual is double || expected is double) {
         return (actual - expected).abs() < 1e-9;
       }
     }
-    
+
     return actual == expected;
   }
-  
+
   /// Parse textproto format (improved version)
   void _parseTextProto(String content, SimpleTestFile proto) {
     final lines = content.split('\n');
     SimpleTestSection? currentSection;
     SimpleTest? currentTest;
-    
+
     for (final line in lines) {
       final trimmed = line.trim();
-      
+
       if (trimmed.isEmpty || trimmed.startsWith('#')) {
         continue;
       }
-      
+
       if (trimmed.startsWith('section:') || trimmed.startsWith('section {')) {
         currentSection = SimpleTestSection();
         proto.section.add(currentSection);
@@ -439,15 +443,16 @@ class ConformanceTestRunner {
         // Simple value parsing - only handle basic string values for now
         // This is sufficient for most tests
       }
-      
+
       // Handle other fields as needed
     }
   }
-  
+
   String _extractStringValue(String value) {
     value = value.trim();
     if (value.startsWith('"') && value.endsWith('"')) {
-      return value.substring(1, value.length - 1)
+      return value
+          .substring(1, value.length - 1)
           .replaceAll(r'\"', '"')
           .replaceAll(r'\\', r'\');
     }
@@ -456,7 +461,7 @@ class ConformanceTestRunner {
     }
     return value;
   }
-  
+
   /// Create a TypeRegistry with Well-Known Types for JSON parsing
   pb.TypeRegistry _createTypeRegistry() {
     final types = <pb.GeneratedMessage>[
@@ -470,7 +475,7 @@ class ConformanceTestRunner {
       pb_wrappers.BoolValue.getDefault(),
       pb_wrappers.StringValue.getDefault(),
       pb_wrappers.BytesValue.getDefault(),
-      
+
       pb_timestamp.Timestamp.getDefault(),
       pb_duration.Duration.getDefault(),
       pb_any.Any.getDefault(),
@@ -479,32 +484,32 @@ class ConformanceTestRunner {
       pb_struct.Value.getDefault(),
       pb_struct.ListValue.getDefault(),
       pb_field_mask.FieldMask.getDefault(),
-      
+
       // Test types
       proto2.TestAllTypes.getDefault(),
       proto2.TestAllTypes_NestedMessage.getDefault(),
       proto3.TestAllTypes.getDefault(),
       proto3.TestAllTypes_NestedMessage.getDefault(),
     ];
-    
+
     // Create a registry with JSON parsing that allows unknown enum values
     final registry = pb.TypeRegistry(types);
     return registry;
   }
-  
+
   /// Unpack Any message to the actual protobuf message
   pb.GeneratedMessage? _unpackAnyMessage(pb_any.Any anyMessage) {
     try {
       // Check the type URL to determine the message type
       final typeUrl = anyMessage.typeUrl;
       if (typeUrl.isEmpty) return null;
-      
+
       // Extract the type name from the URL (format: type.googleapis.com/PackageName.MessageName)
       final parts = typeUrl.split('/');
       if (parts.length != 2) return null;
-      
+
       final fullTypeName = parts[1];
-      
+
       // Map known types to their constructors
       switch (fullTypeName) {
         case 'google.protobuf.Int32Value':
@@ -568,7 +573,7 @@ class ConformanceTestRunner {
       return null;
     }
   }
-  
+
   /// Convert a CEL Value to a native Dart value for comparison
   dynamic _celValueToNative(cel_value.Value celValue) {
     // Convert CEL values back to native Dart values
@@ -599,5 +604,4 @@ class ConformanceTestRunner {
       return celValue;
     }
   }
-  
 }

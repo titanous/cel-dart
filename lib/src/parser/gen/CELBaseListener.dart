@@ -5,7 +5,6 @@ import 'package:antlr4/antlr4.dart';
 import 'CELParser.dart';
 import 'CELListener.dart';
 
-
 /// This class provides an empty implementation of [CELListener],
 /// which can be extended to create a listener which only needs to handle
 /// a subset of the available methods.

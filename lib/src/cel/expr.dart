@@ -168,3 +168,39 @@ class PresenceTestExpr extends Expr {
   @override
   List<Object?> get props => [operand, field];
 }
+
+// Comprehension expression for .all(), .exists(), .filter(), .map() macros
+// Represents comprehensions like [1,2,3].all(x, x > 0)
+class ComprehensionExpr extends Expr {
+  ComprehensionExpr({
+    required this.iterVar,
+    required this.iterRange,
+    required this.accuVar,
+    required this.accuInit,
+    required this.loopCondition,
+    required this.loopStep,
+    required this.result,
+    this.iterVar2,
+  });
+
+  final String iterVar;
+  final Expr iterRange;
+  final String accuVar;
+  final Expr accuInit;
+  final Expr loopCondition;
+  final Expr loopStep;
+  final Expr result;
+  final String? iterVar2; // For map comprehensions
+
+  @override
+  List<Object?> get props => [
+        iterVar,
+        iterRange,
+        accuVar,
+        accuInit,
+        loopCondition,
+        loopStep,
+        result,
+        iterVar2
+      ];
+}

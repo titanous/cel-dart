@@ -52,7 +52,8 @@ class Program extends Equatable {
   dynamic evaluate(Map<String, dynamic> input) {
     // Skipped porting Pools since there is no concurrency in this
     // implementation.
-    final Activation vars = EvalActivation(input, typeAdapter: environment.adapter);
+    final Activation vars =
+        EvalActivation(input, typeAdapter: environment.adapter);
     return _interpretable.evaluate(vars).convertToNative();
   }
 

@@ -37,7 +37,7 @@ class ListValue extends Value implements Indexer, Container, Adder, Sizer {
   Value get(Value index) {
     // Handle different index types with proper type conversion
     int indexValue;
-    
+
     if (index is IntValue) {
       indexValue = index.value;
     } else if (index is UintValue) {
@@ -48,22 +48,24 @@ class ListValue extends Value implements Indexer, Container, Adder, Sizer {
       if (doubleVal.isFinite && doubleVal == doubleVal.truncateToDouble()) {
         indexValue = doubleVal.toInt();
       } else {
-        return ErrorValue('list index must be an integer, got double: $doubleVal');
+        return ErrorValue(
+            'list index must be an integer, got double: $doubleVal');
       }
     } else {
       return ErrorValue('list index must be numeric, got ${index.type.name}');
     }
-    
+
     // Check for negative indices
     if (indexValue < 0) {
       return ErrorValue('list index must be non-negative, got $indexValue');
     }
-    
+
     // Check bounds
     if (indexValue >= value.length) {
-      return ErrorValue('index out of range: $indexValue (list size: ${value.length})');
+      return ErrorValue(
+          'index out of range: $indexValue (list size: ${value.length})');
     }
-    
+
     return value[indexValue];
   }
 
@@ -90,7 +92,7 @@ class ListValue extends Value implements Indexer, Container, Adder, Sizer {
     }
     return ListValue([...value, ...other.value], typeAdapter);
   }
-  
+
   @override
   int size() {
     return value.length;

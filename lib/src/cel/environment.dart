@@ -12,7 +12,9 @@ import 'ast.dart';
 class Environment {
   // Port of NewCustomEnv.
   // https://github.com/google/cel-go/blob/9e14003d8a7a856b250c5e6514647dee7d4fd9a2/cel/env.go#L151
-  Environment._({List<EnvironmentOption> environmentOptions = const [], TypeAdapter? customAdapter})
+  Environment._(
+      {List<EnvironmentOption> environmentOptions = const [],
+      TypeAdapter? customAdapter})
       :
         // Register common CEL types.
         adapter = customAdapter ?? newRegistry() {
@@ -34,19 +36,19 @@ class Environment {
     required ProtoTypeRegistry registry,
     List<EnvironmentOption> options = const [],
   }) : this._(
-    customAdapter: TypeRegistry(protoRegistry: registry),
-    environmentOptions: [
-      StandardLibrary().toEnvironmentOption(),
-      ...options,
-      (env) {
-        // Store the registry for use in protobuf operations
-        env.protoRegistry = registry;
-        // Pass the container to the TypeRegistry
-        if (env.adapter is TypeRegistry) {
-          (env.adapter as TypeRegistry).container = env.container;
-        }
-      }
-    ]);
+            customAdapter: TypeRegistry(protoRegistry: registry),
+            environmentOptions: [
+              StandardLibrary().toEnvironmentOption(),
+              ...options,
+              (env) {
+                // Store the registry for use in protobuf operations
+                env.protoRegistry = registry;
+                // Pass the container to the TypeRegistry
+                if (env.adapter is TypeRegistry) {
+                  (env.adapter as TypeRegistry).container = env.container;
+                }
+              }
+            ]);
 
   /// This is actually not useful yet. See https://github.com/atn832/cel-dart/blob/01b30af236478bbb181a37c60df8405ecfc87052/README.md?plain=1#L245.
   final List<Declaration> declarations = [];

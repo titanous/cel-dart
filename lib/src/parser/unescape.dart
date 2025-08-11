@@ -15,7 +15,7 @@
 import 'dart:convert';
 
 /// Unescape takes a quoted string, unquotes, and unescapes it.
-/// 
+///
 /// This function performs escaping compatible with GoogleSQL.
 String unescape(String value, bool isBytes) {
   // All strings normalize newlines to the \n representation.
@@ -35,7 +35,9 @@ String unescape(String value, bool isBytes) {
   }
 
   // Quoted string of some form, must have same first and last char.
-  if (value.isEmpty || value[0] != value[value.length - 1] || (value[0] != '"' && value[0] != '\'')) {
+  if (value.isEmpty ||
+      value[0] != value[value.length - 1] ||
+      (value[0] != '"' && value[0] != '\'')) {
     throw FormatException('unable to unescape string');
   }
 
@@ -54,9 +56,9 @@ String unescape(String value, bool isBytes) {
       value = '"${value.substring(3, value.length - 3)}"';
     }
   }
-  
+
   value = value.substring(1, value.length - 1);
-  
+
   // If there is nothing to escape, then return.
   if (isRawLiteral || !value.contains('\\')) {
     // For bytes, we need to convert characters to UTF-8 bytes
@@ -101,7 +103,7 @@ String unescape(String value, bool isBytes) {
 class _UnescapeResult {
   final int value;
   final int nextIndex;
-  
+
   _UnescapeResult(this.value, this.nextIndex);
 }
 
@@ -115,18 +117,20 @@ class _UnescapeResult {
 _UnescapeResult _unescapeChar(String s, int index, bool isBytes) {
   // 1. Character is not an escape sequence.
   final c = s.codeUnitAt(index);
-  if (c != 92) { // '\'
+  if (c != 92) {
+    // '\'
     return _UnescapeResult(c, index + 1);
   }
 
   // 2. Last character is the start of an escape sequence.
   if (index >= s.length - 1) {
-    throw FormatException('unable to unescape string, found \'\\\' as last character');
+    throw FormatException(
+        'unable to unescape string, found \'\\\' as last character');
   }
 
   final next = s.codeUnitAt(index + 1);
   var nextIndex = index + 2;
-  
+
   // 3. Common escape sequences shared with Google SQL
   switch (next) {
     case 97: // 'a'
@@ -172,7 +176,7 @@ _UnescapeResult _unescapeChar(String s, int index, bool isBytes) {
     // 5. Octal escape sequences, must be three digits \[0-3][0-7][0-7]
     case 48: // '0'
     case 49: // '1'
-    case 50: // '2'  
+    case 50: // '2'
     case 51: // '3'
       return _parseOctalEscape(s, index + 1, isBytes);
 
@@ -182,11 +186,12 @@ _UnescapeResult _unescapeChar(String s, int index, bool isBytes) {
   }
 }
 
-_UnescapeResult _parseHexEscape(String s, int startIndex, int digits, bool isBytes) {
+_UnescapeResult _parseHexEscape(
+    String s, int startIndex, int digits, bool isBytes) {
   if (startIndex + digits > s.length) {
     throw FormatException('unable to unescape string');
   }
-  
+
   var v = 0;
   for (var j = 0; j < digits; j++) {
     final hex = _unhex(s.codeUnitAt(startIndex + j));
@@ -195,11 +200,11 @@ _UnescapeResult _parseHexEscape(String s, int startIndex, int digits, bool isByt
     }
     v = (v << 4) | hex;
   }
-  
+
   if (!isBytes && !_isValidRune(v)) {
     throw FormatException('invalid unicode code point');
   }
-  
+
   return _UnescapeResult(v, startIndex + digits);
 }
 
@@ -207,31 +212,35 @@ _UnescapeResult _parseOctalEscape(String s, int startIndex, bool isBytes) {
   if (startIndex + 2 >= s.length) {
     throw FormatException('unable to unescape octal sequence in string');
   }
-  
+
   var v = s.codeUnitAt(startIndex) - 48; // '0'
   for (var j = 1; j < 3; j++) {
     final x = s.codeUnitAt(startIndex + j);
-    if (x < 48 || x > 55) { // '0' to '7'
+    if (x < 48 || x > 55) {
+      // '0' to '7'
       throw FormatException('unable to unescape octal sequence in string');
     }
     v = v * 8 + (x - 48);
   }
-  
+
   if (!isBytes && !_isValidRune(v)) {
     throw FormatException('invalid unicode code point');
   }
-  
+
   return _UnescapeResult(v, startIndex + 3);
 }
 
 int _unhex(int b) {
-  if (b >= 48 && b <= 57) { // '0' to '9'
+  if (b >= 48 && b <= 57) {
+    // '0' to '9'
     return b - 48;
   }
-  if (b >= 97 && b <= 102) { // 'a' to 'f'
+  if (b >= 97 && b <= 102) {
+    // 'a' to 'f'
     return b - 97 + 10;
   }
-  if (b >= 65 && b <= 70) { // 'A' to 'F'
+  if (b >= 65 && b <= 70) {
+    // 'A' to 'F'
     return b - 65 + 10;
   }
   return -1;

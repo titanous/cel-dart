@@ -10,51 +10,51 @@ class AttributeFactory {
   /// Known variable names from the environment bindings
   /// This allows the attribute factory to attempt qualified identifier resolution
   Set<String> knownVariables = <String>{};
-  
+
   void setKnownVariables(Set<String> variables) {
     knownVariables = variables;
   }
-  
+
   Attribute maybeAttribute(String name) {
     // Generate candidate attribute names for qualified identifier resolution
     final candidates = _generateQualifiedCandidates(name);
     final namespaceAttributes = <AbsoluteAttribute>[];
-    
+
     for (final candidate in candidates) {
       final attr = AbsoluteAttribute(candidate);
-      
+
       // If candidate is shorter than the original name, add qualifiers for the remaining parts
       if (candidate != name) {
         final candidateParts = candidate.split('.');
         final nameParts = name.split('.');
-        
+
         // Add qualifiers for the remaining parts
         for (int i = candidateParts.length; i < nameParts.length; i++) {
           attr.addQualifier(StringQualifier(nameParts[i]));
         }
       }
-      
+
       namespaceAttributes.add(attr);
     }
-    
+
     return MaybeAttribute(namespaceAttributes);
   }
-  
+
   /// Generate qualified identifier candidates
   /// For input "a.b.c", returns ["a.b.c", "a.b", "a"] in that order
   /// This allows trying the longest match first
   List<String> _generateQualifiedCandidates(String name) {
     final candidates = <String>[];
-    
+
     // Split the name by dots
     final parts = name.split('.');
-    
+
     // Generate candidates from longest to shortest
     for (int i = parts.length; i > 0; i--) {
       final candidate = parts.sublist(0, i).join('.');
       candidates.add(candidate);
     }
-    
+
     return candidates;
   }
 

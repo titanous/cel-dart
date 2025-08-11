@@ -8,7 +8,14 @@ import 'package:cel/src/common/types/error.dart';
 final uintType = Type_('uint');
 
 class UintValue extends Value
-    implements Comparer, Adder, Divider, Multiplier, Subtractor, Modder, Negater {
+    implements
+        Comparer,
+        Adder,
+        Divider,
+        Multiplier,
+        Subtractor,
+        Modder,
+        Negater {
   UintValue(int value) : this.fromInt64(Int64(value));
   UintValue.fromInt64(this.value);
 
@@ -35,7 +42,9 @@ class UintValue extends Value
   @override
   divide(Value denominator) {
     final denominatorValue = denominator.value;
-    final denom = denominatorValue is Int64 ? denominatorValue : Int64(denominatorValue as int);
+    final denom = denominatorValue is Int64
+        ? denominatorValue
+        : Int64(denominatorValue as int);
     if (denom == Int64.ZERO) {
       return divideByZeroError;
     }
@@ -45,7 +54,9 @@ class UintValue extends Value
   @override
   modulo(Value denominator) {
     final denominatorValue = denominator.value;
-    final denom = denominatorValue is Int64 ? denominatorValue : Int64(denominatorValue as int);
+    final denom = denominatorValue is Int64
+        ? denominatorValue
+        : Int64(denominatorValue as int);
     if (denom == Int64.ZERO) {
       return moduloByZeroError;
     }

@@ -22,7 +22,8 @@ final stringType = Type_('string', {
   Traits.SizerType
 });
 
-class StringValue extends Value implements Receiver, Matcher, Adder, Comparer, Sizer {
+class StringValue extends Value
+    implements Receiver, Matcher, Adder, Comparer, Sizer {
   StringValue(this.value);
 
   @override
@@ -35,12 +36,12 @@ class StringValue extends Value implements Receiver, Matcher, Adder, Comparer, S
       }
       throw Exception('format requires a list argument');
     }
-    
+
     // Handle single-argument string functions
     if (stringOneArgOverloads.containsKey(function)) {
       return stringOneArgOverloads[function]!(value, arguments.first);
     }
-    
+
     throw Exception('No overload found for function: $function on StringValue');
   }
 
@@ -64,7 +65,7 @@ class StringValue extends Value implements Receiver, Matcher, Adder, Comparer, S
   Value compare(Value other) {
     return IntValue(value.compareTo(other.value));
   }
-  
+
   @override
   int size() {
     // Return the number of Unicode code points (runes) in the string

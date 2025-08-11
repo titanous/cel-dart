@@ -6,6 +6,11 @@ import '../common/types/ref/provider.dart';
 abstract class Activation extends Equatable {
   dynamic resolveName(dynamic namespaceName);
 
+  // Create a new activation with an additional variable binding
+  Activation extend(String name, dynamic value) {
+    return VarActivation(name, value, this);
+  }
+
   @override
   bool? get stringify => true;
 }
@@ -20,7 +25,7 @@ class EvalActivation extends Activation {
   dynamic resolveName(dynamic namespaceName) {
     // Get the value from input
     final value = input[namespaceName];
-    
+
     // If it's a wrapper type, unwrap it to the primitive value
     if (value is pb_wrappers.DoubleValue) {
       return value.value;
@@ -41,12 +46,12 @@ class EvalActivation extends Activation {
     } else if (value is pb_wrappers.BytesValue) {
       return value.value;
     }
-    
+
     // Handle protobuf enums - convert to integer values
     if (value is ProtobufEnum) {
       return value.value;
     }
-    
+
     // Return the value as-is for non-wrapper types
     // Return null for unbound variables instead of throwing
     // This allows the attribute resolution to handle it properly
@@ -55,4 +60,24 @@ class EvalActivation extends Activation {
 
   @override
   List<Object?> get props => [input, typeAdapter];
+}
+
+// VarActivation extends the parent activation with a single variable binding
+class VarActivation extends Activation {
+  VarActivation(this.name, this.value, this.parent);
+
+  final String name;
+  final dynamic value;
+  final Activation parent;
+
+  @override
+  dynamic resolveName(dynamic namespaceName) {
+    if (namespaceName == name) {
+      return value;
+    }
+    return parent.resolveName(namespaceName);
+  }
+
+  @override
+  List<Object?> get props => [name, value, parent];
 }

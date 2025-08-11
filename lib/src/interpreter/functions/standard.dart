@@ -136,7 +136,8 @@ List<Overload> standardOverloads() {
     }),
 
     // Negate operator (unary minus)
-    Overload(Operators.negate.name,
+    Overload(
+      Operators.negate.name,
       unaryOperator: (value) {
         if (isError(value)) return value;
         if (value is! Negater) {
@@ -219,7 +220,7 @@ List<Overload> standardOverloads() {
       }
       return string.match(regExp);
     }),
-    
+
     // String functions - these use the Receiver trait
     // startsWith function for strings
     Overload('startsWith', binaryOperator: (target, arg) {
@@ -228,7 +229,7 @@ List<Overload> standardOverloads() {
       }
       return target.receive('startsWith', 'startsWith', [arg]);
     }),
-    
+
     // endsWith function for strings
     Overload('endsWith', binaryOperator: (target, arg) {
       if (target is! Receiver) {
@@ -236,7 +237,7 @@ List<Overload> standardOverloads() {
       }
       return target.receive('endsWith', 'endsWith', [arg]);
     }),
-    
+
     // contains function for strings
     Overload('contains', binaryOperator: (target, arg) {
       if (target is! Receiver) {
@@ -244,7 +245,7 @@ List<Overload> standardOverloads() {
       }
       return target.receive('contains', 'contains', [arg]);
     }),
-    
+
     // Math functions
     Overload('isNan', unaryOperator: (value) {
       if (value is! DoubleValue) {
@@ -252,8 +253,9 @@ List<Overload> standardOverloads() {
       }
       return MathFunctions.isNan(value);
     }),
-    
-    Overload('isInf',
+
+    Overload(
+      'isInf',
       unaryOperator: (value) {
         if (value is! DoubleValue) {
           throw StateError('$value should be a DoubleValue');
@@ -270,17 +272,17 @@ List<Overload> standardOverloads() {
         return MathFunctions.isInf(value, sign);
       },
     ),
-    
+
     Overload('isFinite', unaryOperator: (value) {
       if (value is! DoubleValue) {
         throw StateError('$value should be a DoubleValue');
       }
       return MathFunctions.isFinite(value);
     }),
-    
+
     // String extension functions
     ...stringOverloads(),
-    
+
     // Type conversion functions
     ...conversionOverloads(),
   ];

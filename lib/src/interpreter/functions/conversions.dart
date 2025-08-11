@@ -25,7 +25,7 @@ List<Overload> conversionOverloads() {
     // int() conversions
     Overload('int', unaryOperator: (value) {
       if (isError(value)) return value;
-      
+
       if (value is IntValue) {
         return value;
       }
@@ -47,8 +47,10 @@ List<Overload> conversionOverloads() {
         // Check for exact range of int64: -9223372036854775808 to 9223372036854775807
         // But CEL requires range errors for values at the boundary when cast from double
         // because the exact double representation may be outside the exact int64 range
-        const maxInt64AsDouble = 9223372036854775808.0; // 2^63, just above max int64
-        const minInt64AsDouble = -9223372036854775809.0; // -2^63-1, just below min int64
+        const maxInt64AsDouble =
+            9223372036854775808.0; // 2^63, just above max int64
+        const minInt64AsDouble =
+            -9223372036854775809.0; // -2^63-1, just below min int64
         if (doubleVal >= maxInt64AsDouble || doubleVal <= minInt64AsDouble) {
           return ErrorValue('range');
         }
@@ -69,14 +71,15 @@ List<Overload> conversionOverloads() {
         // Convert timestamp to Unix seconds
         return IntValue(value.dateTime.millisecondsSinceEpoch ~/ 1000);
       }
-      
-      return ErrorValue('type conversion error from ${value.runtimeType} to int');
+
+      return ErrorValue(
+          'type conversion error from ${value.runtimeType} to int');
     }),
-    
+
     // uint() conversions
     Overload('uint', unaryOperator: (value) {
       if (isError(value)) return value;
-      
+
       if (value is UintValue) {
         return value;
       }
@@ -96,7 +99,8 @@ List<Overload> conversionOverloads() {
           return ErrorValue('range error');
         }
         // Check for uint64 max (18446744073709551615)
-        const maxUint64AsDouble = 18446744073709551616.0; // 2^64, slightly above max uint64
+        const maxUint64AsDouble =
+            18446744073709551616.0; // 2^64, slightly above max uint64
         if (doubleVal >= maxUint64AsDouble) {
           return ErrorValue('range error');
         }
@@ -107,7 +111,8 @@ List<Overload> conversionOverloads() {
           // Use BigInt to handle values that might exceed int range
           final bigInt = BigInt.tryParse(value.value);
           if (bigInt == null) {
-            return ErrorValue('cannot convert string to uint: "${value.value}"');
+            return ErrorValue(
+                'cannot convert string to uint: "${value.value}"');
           }
           if (bigInt < BigInt.zero) {
             return ErrorValue('range error');
@@ -115,7 +120,8 @@ List<Overload> conversionOverloads() {
           // Check for uint64 max (18446744073709551615)
           final maxUint64 = (BigInt.from(1) << 64) - BigInt.one; // 2^64 - 1
           if (bigInt > maxUint64) {
-            return ErrorValue('Positive input exceeds the limit of integer\n$bigInt');
+            return ErrorValue(
+                'Positive input exceeds the limit of integer\n$bigInt');
           }
           // Convert BigInt to Int64 to support full uint64 range
           return UintValue.fromInt64(Int64.parseInt(value.value));
@@ -123,14 +129,15 @@ List<Overload> conversionOverloads() {
           return ErrorValue('cannot convert string to uint: "${value.value}"');
         }
       }
-      
-      return ErrorValue('type conversion error from ${value.runtimeType} to uint');
+
+      return ErrorValue(
+          'type conversion error from ${value.runtimeType} to uint');
     }),
-    
+
     // double() conversions
     Overload('double', unaryOperator: (value) {
       if (isError(value)) return value;
-      
+
       if (value is DoubleValue) {
         return value;
       }
@@ -156,17 +163,19 @@ List<Overload> conversionOverloads() {
           final parsed = double.parse(str);
           return DoubleValue(parsed);
         } catch (e) {
-          return ErrorValue('cannot convert string to double: "${value.value}"');
+          return ErrorValue(
+              'cannot convert string to double: "${value.value}"');
         }
       }
-      
-      return ErrorValue('type conversion error from ${value.runtimeType} to double');
+
+      return ErrorValue(
+          'type conversion error from ${value.runtimeType} to double');
     }),
-    
+
     // string() conversions
     Overload('string', unaryOperator: (value) {
       if (isError(value)) return value;
-      
+
       if (value is StringValue) {
         return value;
       }
@@ -184,7 +193,7 @@ List<Overload> conversionOverloads() {
         if (d.isInfinite) {
           return StringValue(d.isNegative ? '-Infinity' : 'Infinity');
         }
-        
+
         // Handle special formatting for small scientific notation numbers
         final str = d.toString();
         // Convert scientific notation like -4.5e-3 to decimal form -0.0045
@@ -196,11 +205,14 @@ List<Overload> conversionOverloads() {
           }
           // For scientific notation, convert to decimal if reasonable
           if (d.abs() >= 1e-6 && d.abs() < 1e6) {
-            final decimal = d.toStringAsFixed(10).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+            final decimal = d
+                .toStringAsFixed(10)
+                .replaceAll(RegExp(r'0+$'), '')
+                .replaceAll(RegExp(r'\.$'), '');
             return StringValue(decimal);
           }
         }
-        
+
         // Format double to avoid unnecessary decimals for whole numbers
         if (d == d.truncateToDouble()) {
           return StringValue(d.toInt().toString());
@@ -229,40 +241,41 @@ List<Overload> conversionOverloads() {
         if (totalSeconds == 0) {
           return StringValue('0s');
         }
-        
+
         final parts = <String>[];
         var seconds = totalSeconds.abs();
-        
+
         // Hours
         if (seconds >= 3600) {
           final hours = seconds ~/ 3600;
           parts.add('${hours}h');
           seconds %= 3600;
         }
-        
+
         // Minutes
         if (seconds >= 60) {
           final minutes = seconds ~/ 60;
           parts.add('${minutes}m');
           seconds %= 60;
         }
-        
+
         // Seconds
         if (seconds > 0 || parts.isEmpty) {
           parts.add('${seconds}s');
         }
-        
+
         final result = parts.join();
         return StringValue(totalSeconds < 0 ? '-$result' : result);
       }
-      
-      return ErrorValue('type conversion error from ${value.runtimeType} to string');
+
+      return ErrorValue(
+          'type conversion error from ${value.runtimeType} to string');
     }),
-    
+
     // bool() conversions
     Overload('bool', unaryOperator: (value) {
       if (isError(value)) return value;
-      
+
       if (value is BooleanValue) {
         return value;
       }
@@ -288,14 +301,15 @@ List<Overload> conversionOverloads() {
             return ErrorValue('Type conversion error');
         }
       }
-      
-      return ErrorValue('type conversion error from ${value.runtimeType} to bool');
+
+      return ErrorValue(
+          'type conversion error from ${value.runtimeType} to bool');
     }),
-    
+
     // bytes() conversions
     Overload('bytes', unaryOperator: (value) {
       if (isError(value)) return value;
-      
+
       if (value is BytesValue) {
         return value;
       }
@@ -304,14 +318,15 @@ List<Overload> conversionOverloads() {
         final bytes = utf8.encode(value.value);
         return BytesValue(Uint8List.fromList(bytes));
       }
-      
-      return ErrorValue('type conversion error from ${value.runtimeType} to bytes');
+
+      return ErrorValue(
+          'type conversion error from ${value.runtimeType} to bytes');
     }),
-    
+
     // type() function - returns the type of a value
     Overload('type', unaryOperator: (value) {
       if (isError(value)) return value;
-      
+
       if (value is IntValue) {
         return TypeValue('int');
       }
@@ -345,11 +360,11 @@ List<Overload> conversionOverloads() {
       if (value is MapValue) {
         return TypeValue('map');
       }
-      
+
       // For unknown types, return the runtime type name
       return TypeValue(value.runtimeType.toString());
     }),
-    
+
     // dyn() function - marks a value as dynamic type
     // This is already in standard.dart but adding here for completeness
     Overload('dyn', unaryOperator: (value) {
@@ -357,11 +372,11 @@ List<Overload> conversionOverloads() {
       // This allows for operations between different types without explicit conversion
       return value;
     }),
-    
+
     // duration conversions
     Overload('duration', unaryOperator: (value) {
       if (isError(value)) return value;
-      
+
       if (value is DurationValue) {
         return value;
       }
@@ -373,22 +388,23 @@ List<Overload> conversionOverloads() {
           return ErrorValue('cannot parse duration: "${value.value}"');
         }
       }
-      
-      return ErrorValue('type conversion error from ${value.runtimeType} to duration');
+
+      return ErrorValue(
+          'type conversion error from ${value.runtimeType} to duration');
     }),
-    
+
     // timestamp conversions
     Overload('timestamp', unaryOperator: (value) {
       if (isError(value)) return value;
-      
+
       if (value is TimestampValue) {
         return value;
       }
       if (value is IntValue) {
         // Convert Unix seconds to timestamp
-        return TimestampValue(
-          DateTime.fromMillisecondsSinceEpoch(value.value * 1000, isUtc: true)
-        );
+        return TimestampValue(DateTime.fromMillisecondsSinceEpoch(
+            value.value * 1000,
+            isUtc: true));
       }
       if (value is StringValue) {
         // Parse RFC3339 timestamp
@@ -398,10 +414,10 @@ List<Overload> conversionOverloads() {
           return ErrorValue('cannot parse timestamp: "${value.value}"');
         }
       }
-      
-      return ErrorValue('type conversion error from ${value.runtimeType} to timestamp');
+
+      return ErrorValue(
+          'type conversion error from ${value.runtimeType} to timestamp');
     }),
-    
   ];
 }
 
@@ -410,29 +426,29 @@ DurationValue _parseDuration(String str) {
   if (str.isEmpty) {
     throw FormatException('empty duration string');
   }
-  
+
   var totalMilliseconds = 0;
   var currentNumber = '';
   var isNegative = false;
-  
+
   if (str[0] == '-') {
     isNegative = true;
     str = str.substring(1);
   }
-  
+
   for (var i = 0; i < str.length; i++) {
     final char = str[i];
-    
+
     if (_isDigit(char) || char == '.') {
       currentNumber += char;
     } else {
       if (currentNumber.isEmpty) {
         throw FormatException('invalid duration format');
       }
-      
+
       final value = double.parse(currentNumber);
       currentNumber = '';
-      
+
       switch (char) {
         case 'h':
           totalMilliseconds += (value * 3600000).round();
@@ -473,15 +489,15 @@ DurationValue _parseDuration(String str) {
       }
     }
   }
-  
+
   if (currentNumber.isNotEmpty) {
     throw FormatException('duration string missing unit');
   }
-  
+
   if (isNegative) {
     totalMilliseconds = -totalMilliseconds;
   }
-  
+
   return DurationValue(Duration(milliseconds: totalMilliseconds));
 }
 

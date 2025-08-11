@@ -58,7 +58,8 @@ class MaybeAttribute extends Attribute {
       return result;
     }
     // If we exhausted all candidates, return the last error or a generic one
-    return lastResult ?? ErrorValue('no such attribute: ${namespaceAttributes.first}');
+    return lastResult ??
+        ErrorValue('no such attribute: ${namespaceAttributes.first}');
   }
 
   @override
@@ -78,7 +79,8 @@ class AbsoluteAttribute extends NamespaceAttribute {
   resolve(Activation activation) {
     // https://github.com/google/cel-go/blob/32ac6133c6b8eca8bb76e17e6ad50a1eb757778a/interpreter/attributes.go#L300
     final object = activation.resolveName(namespaceName);
-    if (object == null && activation is EvalActivation && 
+    if (object == null &&
+        activation is EvalActivation &&
         !activation.input.containsKey(namespaceName)) {
       // Variable is truly unbound, not just null
       return ErrorValue('no such attribute: $namespaceName');
@@ -114,12 +116,12 @@ class RelativeAttribute extends Attribute {
   @override
   resolve(Activation activation) {
     var value = operand.evaluate(activation);
-    
+
     // Apply all qualifiers to the value
     for (final qualifier in qualifiers) {
       value = qualifier.qualify(activation, value);
     }
-    
+
     return value;
   }
 
@@ -150,12 +152,12 @@ class StringQualifier extends Qualifier {
     if (object == null) {
       return ErrorValue('no such key: ${StringValue(value)}');
     }
-    
+
     // Handle errors passed through
     if (object is ErrorValue) {
       return object;
     }
-    
+
     // Handle raw protobuf messages - wrap them in MessageValue
     if (object is GeneratedMessage) {
       // Get the TypeRegistry from the activation if available
@@ -173,7 +175,7 @@ class StringQualifier extends Qualifier {
         return ErrorValue('no such key: $key');
       }
     }
-    
+
     // Handle CEL MapValue
     if (object is MapValue) {
       final key = StringValue(value);
@@ -182,7 +184,7 @@ class StringQualifier extends Qualifier {
       }
       return object.get(key);
     }
-    
+
     // Handle CEL MessageValue
     if (object is MessageValue) {
       final key = StringValue(value);
@@ -192,7 +194,7 @@ class StringQualifier extends Qualifier {
         return ErrorValue('no such key: $key');
       }
     }
-    
+
     // Handle plain Dart maps
     if (object is Map) {
       if (!object.containsKey(value)) {
@@ -200,28 +202,36 @@ class StringQualifier extends Qualifier {
       }
       // Convert Dart value to CEL Value using TypeAdapter
       // Get a default TypeAdapter if one isn't available
-      final adapter = (activation is EvalActivation && activation.typeAdapter != null) 
-          ? activation.typeAdapter! 
-          : cel_provider.TypeRegistry();
+      final adapter =
+          (activation is EvalActivation && activation.typeAdapter != null)
+              ? activation.typeAdapter!
+              : cel_provider.TypeRegistry();
       final rawValue = object[value];
       final result = adapter.nativeToValue(rawValue);
       return result;
     }
-    
+
     // Handle primitive types that don't support field selection
-    if (object is int || object is double || object is String || 
-        object is bool || object is List) {
+    if (object is int ||
+        object is double ||
+        object is String ||
+        object is bool ||
+        object is List) {
       final typeName = object.runtimeType.toString().toLowerCase();
       return ErrorValue("type '$typeName' does not support field selection");
     }
-    
+
     // Handle CEL Value types that don't support field selection
-    if (object is IntValue || object is UintValue || object is DoubleValue ||
-        object is StringValue || object is BooleanValue || object is ListValue) {
+    if (object is IntValue ||
+        object is UintValue ||
+        object is DoubleValue ||
+        object is StringValue ||
+        object is BooleanValue ||
+        object is ListValue) {
       final typeName = object.type.name + '_type';
       return ErrorValue("type '$typeName' does not support field selection");
     }
-    
+
     // Try indexed access for other types
     try {
       return object[value];
@@ -244,12 +254,12 @@ class IndexQualifier extends Qualifier {
     if (object == null) {
       return ErrorValue('index out of bounds: $index');
     }
-    
+
     // Handle errors passed through
     if (object is ErrorValue) {
       return object;
     }
-    
+
     // Get the numeric value from the index
     int? indexValue;
     if (index is IntValue) {
@@ -259,7 +269,7 @@ class IndexQualifier extends Qualifier {
     } else {
       return ErrorValue('invalid index type: ${index.runtimeType}');
     }
-    
+
     // Handle CEL ListValue
     if (object is ListValue) {
       final list = object.value;
@@ -268,7 +278,7 @@ class IndexQualifier extends Qualifier {
       }
       return list[indexValue];
     }
-    
+
     // Handle Dart lists
     if (object is List) {
       if (indexValue < 0 || indexValue >= object.length) {
@@ -276,7 +286,7 @@ class IndexQualifier extends Qualifier {
       }
       return object[indexValue];
     }
-    
+
     // Handle maps with integer keys
     if (object is MapValue) {
       if (!object.value.containsKey(index)) {
@@ -284,14 +294,14 @@ class IndexQualifier extends Qualifier {
       }
       return object.get(index);
     }
-    
+
     if (object is Map) {
       if (!object.containsKey(indexValue)) {
         return ErrorValue('no such key: $index');
       }
       return object[indexValue];
     }
-    
+
     return ErrorValue('Cannot index ${object.runtimeType} with integer');
   }
 
@@ -309,12 +319,12 @@ class DoubleQualifier extends Qualifier {
     if (object == null) {
       return ErrorValue('no such key: $value');
     }
-    
+
     // Handle errors passed through
     if (object is ErrorValue) {
       return object;
     }
-    
+
     // Maps with double keys are valid in CEL for dynamic data
     if (object is MapValue) {
       if (!object.value.containsKey(value)) {
@@ -322,7 +332,7 @@ class DoubleQualifier extends Qualifier {
       }
       return object.get(value);
     }
-    
+
     // For regular Dart maps, convert to appropriate key type
     if (object is Map) {
       final doubleKey = value.value;
@@ -331,7 +341,7 @@ class DoubleQualifier extends Qualifier {
       }
       return object[doubleKey];
     }
-    
+
     return ErrorValue('type does not support indexing: ${object.runtimeType}');
   }
 
@@ -349,17 +359,17 @@ class ProtobufFieldQualifier extends Qualifier {
     if (object == null) {
       throw NoSuchFieldError(fieldName, Null);
     }
-    
+
     // Handle CEL MessageValue (protobuf messages wrapped in CEL)
     if (object is MessageValue) {
       return object.get(StringValue(fieldName));
     }
-    
+
     // Handle CEL MapValue
     if (object is MapValue) {
       return object.get(StringValue(fieldName));
     }
-    
+
     // Handle CEL ListValue (for index access, fieldName would be a number string)
     if (object is ListValue) {
       final index = int.tryParse(fieldName);
@@ -367,7 +377,7 @@ class ProtobufFieldQualifier extends Qualifier {
         return object.get(IntValue(index));
       }
     }
-    
+
     if (object is Value) {
       // If it's already a CEL value, get the underlying protobuf message
       final value = object.value;
@@ -378,15 +388,16 @@ class ProtobufFieldQualifier extends Qualifier {
       // Direct protobuf message
       return _getFieldFromMessage(object);
     }
-    
+
     // Fall back to map-style access for non-protobuf objects
     try {
       return object[fieldName];
     } catch (_) {
-      return ErrorValue('Cannot access field $fieldName on ${object.runtimeType}');
+      return ErrorValue(
+          'Cannot access field $fieldName on ${object.runtimeType}');
     }
   }
-  
+
   Value _getFieldFromMessage(GeneratedMessage msg) {
     // We need the ProtobufTypeAdapter to convert the field value
     // For now, use the default CEL type registry
@@ -409,22 +420,22 @@ class PresenceTestQualifier extends Qualifier {
     if (object == null) {
       return BooleanValue(false);
     }
-    
+
     // Handle ErrorValue - field is not present if accessing it produces an error
     if (object is ErrorValue) {
       return BooleanValue(false);
     }
-    
+
     // Handle CEL MessageValue (protobuf messages wrapped in CEL)
     if (object is MessageValue) {
       return BooleanValue(object.has(fieldName));
     }
-    
+
     // Handle CEL MapValue
     if (object is MapValue) {
       return object.contains(StringValue(fieldName));
     }
-    
+
     // Handle CEL ListValue (for index access, fieldName would be a number string)
     if (object is ListValue) {
       final index = int.tryParse(fieldName);
@@ -433,12 +444,12 @@ class PresenceTestQualifier extends Qualifier {
       }
       return BooleanValue(false);
     }
-    
+
     // Handle direct protobuf messages (most common case)
     if (object is GeneratedMessage) {
       return BooleanValue(_hasField(object));
     }
-    
+
     if (object is Value) {
       // If it's already a CEL value, get the underlying protobuf message
       final value = object.value;
@@ -446,7 +457,7 @@ class PresenceTestQualifier extends Qualifier {
         return BooleanValue(_hasField(value));
       }
     }
-    
+
     // For other types, check if the field exists
     try {
       if (object is Map) {
@@ -459,7 +470,7 @@ class PresenceTestQualifier extends Qualifier {
       return BooleanValue(false);
     }
   }
-  
+
   bool _hasField(GeneratedMessage msg) {
     final info = msg.info_;
     try {
@@ -470,23 +481,25 @@ class PresenceTestQualifier extends Qualifier {
         final camelCase = _snakeToCamel(fieldName);
         field = info.byName[camelCase];
       }
-      
+
       if (field == null) {
         return false;
       }
-      
+
       return msg.hasField(field.tagNumber);
     } catch (_) {
       return false;
     }
   }
-  
+
   String _snakeToCamel(String snake) {
     final parts = snake.split('_');
     if (parts.isEmpty) return snake;
-    return parts[0] + parts.skip(1).map((p) => 
-      p.isEmpty ? '' : p[0].toUpperCase() + p.substring(1)
-    ).join();
+    return parts[0] +
+        parts
+            .skip(1)
+            .map((p) => p.isEmpty ? '' : p[0].toUpperCase() + p.substring(1))
+            .join();
   }
 
   @override
@@ -512,17 +525,17 @@ class ConditionalAttribute extends Attribute {
   resolve(Activation activation) {
     // Evaluate the condition
     final condValue = condition.evaluate(activation);
-    
+
     // If condition is an error, return the error
     if (condValue is ErrorValue) {
       return condValue;
     }
-    
+
     // If condition is not a boolean, return error
     if (condValue is! BooleanValue) {
       return ErrorValue('no matching overload');
     }
-    
+
     // Use the boolean value to decide which branch to evaluate
     return condValue.value
         ? truthy.evaluate(activation)

@@ -5,7 +5,7 @@ import '../../common/types/ref/value.dart';
 /// Represents a CEL type for overload signatures
 enum CelType {
   any,
-  bool, 
+  bool,
   int,
   uint,
   double,
@@ -18,9 +18,10 @@ enum CelType {
 }
 
 class Overload {
-  Overload(this.name, {
-    this.unaryOperator, 
-    this.binaryOperator, 
+  Overload(
+    this.name, {
+    this.unaryOperator,
+    this.binaryOperator,
     this.functionOperator,
     this.parameterTypes,
     this.returnType,
@@ -30,27 +31,27 @@ class Overload {
   UnaryOperator? unaryOperator;
   BinaryOperator? binaryOperator;
   FunctionOperator? functionOperator;
-  
+
   /// Parameter types for this overload (used for type-based dispatch)
   final List<CelType>? parameterTypes;
-  
+
   /// Return type for this overload
   final CelType? returnType;
-  
+
   /// Check if this overload matches the given argument types
   bool matchesArgumentTypes(List<Value> args) {
     if (parameterTypes == null) return true; // No type constraints
     if (args.length != parameterTypes!.length) return false;
-    
+
     for (int i = 0; i < args.length; i++) {
       if (!_matchesType(args[i], parameterTypes![i])) return false;
     }
     return true;
   }
-  
+
   bool _matchesType(Value value, CelType expectedType) {
     final actualType = value.runtimeType.toString();
-    
+
     switch (expectedType) {
       case CelType.any:
         return true;

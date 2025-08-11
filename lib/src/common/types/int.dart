@@ -7,7 +7,14 @@ import 'package:cel/src/common/types/error.dart';
 final intType = Type_('int');
 
 class IntValue extends Value
-    implements Comparer, Adder, Divider, Multiplier, Subtractor, Modder, Negater {
+    implements
+        Comparer,
+        Adder,
+        Divider,
+        Multiplier,
+        Subtractor,
+        Modder,
+        Negater {
   IntValue(this.value);
 
   @override

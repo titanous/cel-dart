@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:antlr4/antlr4.dart';
 import 'package:fixnum/fixnum.dart';
@@ -172,7 +171,7 @@ Expr visitBytes(BytesContext tree) {
   if (text.isEmpty) {
     return BytesLiteralExpr([]);
   }
-  
+
   try {
     final unescaped = unescape(text.substring(1), true);
     return BytesLiteralExpr(unescaped.codeUnits);
@@ -271,32 +270,149 @@ Expr visitUnary(UnaryContext tree) {
 Expr visitMemberCall(MemberCallContext tree) {
   final operand = visit(tree.member()!);
   final id = tree.id!.text!;
-  
+  final args = tree.args?.e.map((e) => visit(e)).toList() ?? [];
+
+  // Check for comprehension macros (.all(), .exists(), etc.)
+  if (_isComprehensionMacro(id) && args.length == 2) {
+    final iterVar = args[0];
+    final condition = args[1];
+
+    // The first argument should be an identifier (the iteration variable)
+    if (iterVar is IdentExpr) {
+      return _expandComprehensionMacro(id, operand, iterVar.name, condition);
+    }
+  }
+
   // Check if this is a namespace-qualified function call (e.g., strings.quote)
   if (operand is IdentExpr) {
     final namespaceName = operand.name;
-    
+
     // Only treat known namespaces as namespace qualifiers
     // Current known namespaces: strings, math, sets, etc.
     const knownNamespaces = {'strings', 'math', 'sets'};
-    
+
     if (knownNamespaces.contains(namespaceName)) {
       // Create a namespace-qualified function name
       final qualifiedFunctionName = '$namespaceName.$id';
-      
+
       // Return a global function call with the qualified name
-      return CallExpr(
-          function: qualifiedFunctionName,
-          args: tree.args?.e.map((e) => visit(e)).toList() ?? []);
+      return CallExpr(function: qualifiedFunctionName, args: args);
     }
   }
-  
+
   // For variables and other operands, use member call behavior
   // This handles cases like str_var.format([...]) properly
-  return CallExpr(
-      function: id,
-      target: operand,
-      args: tree.args?.e.map((e) => visit(e)).toList() ?? []);
+  return CallExpr(function: id, target: operand, args: args);
+}
+
+bool _isComprehensionMacro(String functionName) {
+  return functionName == 'all' ||
+      functionName == 'exists' ||
+      functionName == 'exists_one' ||
+      functionName == 'filter' ||
+      functionName == 'map';
+}
+
+Expr _expandComprehensionMacro(
+    String macroName, Expr iterRange, String iterVar, Expr condition) {
+  switch (macroName) {
+    case 'all':
+      return _expandAllMacro(iterRange, iterVar, condition);
+    case 'exists':
+      return _expandExistsMacro(iterRange, iterVar, condition);
+    case 'exists_one':
+      return _expandExistsOneMacro(iterRange, iterVar, condition);
+    case 'filter':
+      return _expandFilterMacro(iterRange, iterVar, condition);
+    case 'map':
+      return _expandMapMacro(iterRange, iterVar, condition);
+    default:
+      throw ArgumentError('Unknown comprehension macro: $macroName');
+  }
+}
+
+// Expand .all(x, condition) to a comprehension that returns true if all elements satisfy the condition
+Expr _expandAllMacro(Expr iterRange, String iterVar, Expr condition) {
+  return ComprehensionExpr(
+    iterVar: iterVar,
+    iterRange: iterRange,
+    accuVar: '__result__',
+    accuInit: BoolLiteralExpr(true),
+    loopCondition: IdentExpr('__result__'),
+    loopStep:
+        CallExpr(function: '_&&_', args: [IdentExpr('__result__'), condition]),
+    result: IdentExpr('__result__'),
+  );
+}
+
+// Expand .exists(x, condition) to a comprehension that returns true if any element satisfies the condition
+Expr _expandExistsMacro(Expr iterRange, String iterVar, Expr condition) {
+  return ComprehensionExpr(
+    iterVar: iterVar,
+    iterRange: iterRange,
+    accuVar: '__result__',
+    accuInit: BoolLiteralExpr(false),
+    loopCondition: CallExpr(function: '!_', args: [IdentExpr('__result__')]),
+    loopStep:
+        CallExpr(function: '_||_', args: [IdentExpr('__result__'), condition]),
+    result: IdentExpr('__result__'),
+  );
+}
+
+// Expand .exists_one(x, condition) to a comprehension that returns true if exactly one element satisfies the condition
+Expr _expandExistsOneMacro(Expr iterRange, String iterVar, Expr condition) {
+  return ComprehensionExpr(
+    iterVar: iterVar,
+    iterRange: iterRange,
+    accuVar: '__result__',
+    accuInit: IntLiteralExpr(0),
+    loopCondition: CallExpr(
+        function: '_<=_', args: [IdentExpr('__result__'), IntLiteralExpr(1)]),
+    loopStep: CallExpr(function: '_?_:_', args: [
+      condition,
+      CallExpr(
+          function: '_+_', args: [IdentExpr('__result__'), IntLiteralExpr(1)]),
+      IdentExpr('__result__')
+    ]),
+    result: CallExpr(
+        function: '_==_', args: [IdentExpr('__result__'), IntLiteralExpr(1)]),
+  );
+}
+
+// Expand .filter(x, condition) to a comprehension that returns a list of elements that satisfy the condition
+Expr _expandFilterMacro(Expr iterRange, String iterVar, Expr condition) {
+  return ComprehensionExpr(
+    iterVar: iterVar,
+    iterRange: iterRange,
+    accuVar: '__result__',
+    accuInit: ListExpr([]),
+    loopCondition: BoolLiteralExpr(true),
+    loopStep: CallExpr(function: '_?_:_', args: [
+      condition,
+      CallExpr(function: '_+_', args: [
+        IdentExpr('__result__'),
+        ListExpr([IdentExpr(iterVar)])
+      ]),
+      IdentExpr('__result__')
+    ]),
+    result: IdentExpr('__result__'),
+  );
+}
+
+// Expand .map(x, expr) to a comprehension that returns a list of transformed elements
+Expr _expandMapMacro(Expr iterRange, String iterVar, Expr mapExpr) {
+  return ComprehensionExpr(
+    iterVar: iterVar,
+    iterRange: iterRange,
+    accuVar: '__result__',
+    accuInit: ListExpr([]),
+    loopCondition: BoolLiteralExpr(true),
+    loopStep: CallExpr(function: '_+_', args: [
+      IdentExpr('__result__'),
+      ListExpr([mapExpr])
+    ]),
+    result: IdentExpr('__result__'),
+  );
 }
 
 Expr visitSelect(SelectContext tree) {
@@ -373,7 +489,7 @@ Expr visitIdentOrGlobalCall(IdentOrGlobalCallContext tree) {
   final name = '${tree.leadingDot?.text ?? ''}${tree.id!.text!}';
   if (tree.op != null) {
     final args = tree.args!.e.map((e) => visit(e)).toList();
-    
+
     // Handle has() macro expansion
     if (name == 'has' && args.length == 1) {
       final arg = args[0];
@@ -384,7 +500,7 @@ Expr visitIdentOrGlobalCall(IdentOrGlobalCallContext tree) {
       // Invalid argument to has() macro - fall through to regular function call
       // The error will be handled at runtime
     }
-    
+
     return CallExpr(function: name, args: args);
   }
   // TODO: Check for reserved identifiers and throw errors.
@@ -405,42 +521,43 @@ Expr visitCreateMessage(CreateMessageContext tree) {
   if (tree.leadingDot != null) {
     messageName = '.' + messageName;
   }
-  
+
   final entries = tree.entries != null
       ? visitFieldInitializerList(tree.entries!)
       : <CreateStructEntry>[];
-  
+
   return MessageExpr(typeName: messageName, entries: entries);
 }
 
 // Helper method to visit field initializer list similar to cel-go
 // Based on VisitIFieldInitializerList from cel-go parser
-List<CreateStructEntry> visitFieldInitializerList(FieldInitializerListContext ctx) {
+List<CreateStructEntry> visitFieldInitializerList(
+    FieldInitializerListContext ctx) {
   final result = <CreateStructEntry>[];
   final cols = ctx.cols;
   final vals = ctx.values;
   final fields = ctx.fields;
-  
+
   for (int i = 0; i < fields.length; i++) {
     if (i >= cols.length || i >= vals.length) {
       // This is the result of a syntax error detected elsewhere
       return <CreateStructEntry>[];
     }
-    
+
     final field = fields[i];
     // Handle both regular and escaped identifiers
-    final fieldName = field.escapeIdent() != null 
+    final fieldName = field.escapeIdent() != null
         ? getIdentifierText(field.escapeIdent()!)
         : null;
     if (fieldName == null) {
       continue; // Skip if no field name
     }
     final value = visit(vals[i]);
-    
+
     // Create a field entry - key is the field name as a string literal
     result.add(CreateStructEntry(StringLiteralExpr(fieldName), value));
   }
-  
+
   return result;
 }
 

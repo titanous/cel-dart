@@ -20,9 +20,9 @@ import '../../../gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
 /// Adapter for converting protobuf messages to CEL values
 class ProtobufTypeAdapter {
   final TypeAdapter typeAdapter;
-  
+
   ProtobufTypeAdapter(this.typeAdapter);
-  
+
   /// Convert a GeneratedMessage to a CEL Value
   Value adaptMessage(GeneratedMessage msg) {
     return MessageValue(msg);
@@ -36,7 +36,7 @@ class ProtobufTypeAdapter {
   /// Get a field value from a message
   Value getField(GeneratedMessage msg, String fieldName) {
     final info = msg.info_;
-    
+
     // Find the field info - try both proto field name and Dart property name
     for (final field in info.fieldInfo.values) {
       // Check if the field matches by proto name (snake_case) or Dart name (camelCase)
@@ -44,18 +44,18 @@ class ProtobufTypeAdapter {
         return _adaptFieldValue(msg, field);
       }
     }
-    
+
     // Field not found
     return NullValue();
   }
-  
+
   /// Check if a field matches the given name (either proto name or Dart property name)
   bool _matchesFieldName(FieldInfo field, String name) {
     // Check Dart property name (camelCase)
     if (field.name == name) {
       return true;
     }
-    
+
     // Check proto field name (snake_case)
     // The proto name is stored in the protoName property if available
     // Otherwise, try converting between naming conventions
@@ -63,53 +63,54 @@ class ProtobufTypeAdapter {
     if (protoName == name) {
       return true;
     }
-    
+
     // Also try converting the given name to see if it matches
     final camelFromSnake = _toCamelCase(name);
     if (camelFromSnake == field.name) {
       return true;
     }
-    
+
     // Additional check: try converting the Dart name to snake_case and compare
     final snakeCase = _toSnakeCase(field.name);
     if (snakeCase == name) {
       return true;
     }
-    
+
     return false;
   }
-  
+
   /// Get the proto field name for a field
   String _getProtoFieldName(FieldInfo field) {
     // For protobuf.dart, the FieldInfo.name is typically the Dart property name (camelCase)
     // The original proto field name (snake_case) can be derived by converting to snake_case
     // unless it was explicitly set differently in the .proto file
-    
+
     // First try to get the proto name if it exists as a property
     try {
       // Some versions of protobuf.dart may have a protoName property
       final dynamic fieldDynamic = field;
-      if (fieldDynamic.hasProperty('protoName') && fieldDynamic.protoName != null) {
+      if (fieldDynamic.hasProperty('protoName') &&
+          fieldDynamic.protoName != null) {
         return fieldDynamic.protoName as String;
       }
     } catch (_) {
       // Ignore if protoName doesn't exist
     }
-    
+
     // Fallback: convert camelCase to snake_case
     // This should work for most standard protobuf field names
     return _toSnakeCase(field.name);
   }
-  
+
   /// Convert snake_case to camelCase
   String _toCamelCase(String snakeCase) {
     if (!snakeCase.contains('_')) {
       return snakeCase;
     }
-    
+
     final parts = snakeCase.split('_');
     if (parts.isEmpty) return snakeCase;
-    
+
     final result = StringBuffer(parts[0]);
     for (int i = 1; i < parts.length; i++) {
       if (parts[i].isNotEmpty) {
@@ -121,7 +122,7 @@ class ProtobufTypeAdapter {
     }
     return result.toString();
   }
-  
+
   /// Convert camelCase to snake_case
   String _toSnakeCase(String camelCase) {
     final result = StringBuffer();
@@ -139,7 +140,7 @@ class ProtobufTypeAdapter {
     }
     return result.toString();
   }
-  
+
   /// Adapt a field value to CEL value
   Value _adaptFieldValue(GeneratedMessage msg, FieldInfo field) {
     if (field.isRepeated) {
@@ -164,7 +165,7 @@ class ProtobufTypeAdapter {
       // Handle singular fields
       final hasField = msg.hasField(field.tagNumber);
       final value = msg.getField(field.tagNumber);
-      
+
       if (!hasField) {
         // For wrapper types, check if they have been explicitly set with a value
         if (_isWrapperType(value)) {
@@ -183,26 +184,25 @@ class ProtobufTypeAdapter {
       return _adaptSingleValue(value);
     }
   }
-  
-  
+
   /// Check if a value is a wrapper type
   bool _isWrapperType(dynamic value) {
     if (value == null) return false;
     return value is pb_wrappers.BoolValue ||
-           value is pb_wrappers.BytesValue ||
-           value is pb_wrappers.StringValue ||
-           value is pb_wrappers.DoubleValue ||
-           value is pb_wrappers.FloatValue ||
-           value is pb_wrappers.Int32Value ||
-           value is pb_wrappers.Int64Value ||
-           value is pb_wrappers.UInt32Value ||
-           value is pb_wrappers.UInt64Value;
+        value is pb_wrappers.BytesValue ||
+        value is pb_wrappers.StringValue ||
+        value is pb_wrappers.DoubleValue ||
+        value is pb_wrappers.FloatValue ||
+        value is pb_wrappers.Int32Value ||
+        value is pb_wrappers.Int64Value ||
+        value is pb_wrappers.UInt32Value ||
+        value is pb_wrappers.UInt64Value;
   }
-  
+
   /// Check if a wrapper type has a non-default value
   bool _hasWrapperValue(dynamic value) {
     if (value == null) return false;
-    
+
     // Check each wrapper type and see if it has a non-default value
     if (value is pb_wrappers.BoolValue) {
       return value.hasValue();
@@ -223,16 +223,16 @@ class ProtobufTypeAdapter {
     } else if (value is pb_wrappers.UInt64Value) {
       return value.hasValue();
     }
-    
+
     return false;
   }
-  
+
   /// Adapt a single value to CEL value based on its runtime type
   Value _adaptSingleValue(dynamic value) {
     if (value == null) {
       return NullValue();
     }
-    
+
     // Check for wrapper types first and auto-unwrap them
     if (value is GeneratedMessage) {
       // Check if this is a wrapper type
@@ -260,7 +260,7 @@ class ProtobufTypeAdapter {
         return adaptMessage(value);
       }
     }
-    
+
     // Determine type based on runtime type
     if (value is bool) {
       return BooleanValue(value);
@@ -285,13 +285,13 @@ class ProtobufTypeAdapter {
       return NullValue();
     }
   }
-  
+
   /// Get default value for a field type
   Value _getDefaultValueForType(int fieldType) {
     // Use the PbFieldType constants directly
     // Check the lower bits to determine the base type
     // The type encoding uses bits to represent different types
-    
+
     // These constants are from PbFieldType but not exposed, so we use the values directly
     const BOOL_BIT = 0x10;
     const BYTES_BIT = 0x20;
@@ -310,12 +310,12 @@ class ProtobufTypeAdapter {
     const SFIXED32_BIT = 0x80000;
     const SFIXED64_BIT = 0x100000;
     const MESSAGE_BIT = 0x200000;
-    
+
     // Strip modifier bits (repeated, required, packed, map)
     // These are the lower 3 bits and bit 22 (map)
     const MODIFIER_MASK = 0x400007;
     final baseType = fieldType & ~MODIFIER_MASK;
-    
+
     if ((baseType & BOOL_BIT) != 0) {
       return BooleanValue(false);
     } else if ((baseType & STRING_BIT) != 0) {
@@ -324,10 +324,19 @@ class ProtobufTypeAdapter {
       return BytesValue(Uint8List(0));
     } else if ((baseType & (DOUBLE_BIT | FLOAT_BIT)) != 0) {
       return DoubleValue(0.0);
-    } else if ((baseType & (INT32_BIT | INT64_BIT | SINT32_BIT | SINT64_BIT | 
-                            SFIXED32_BIT | SFIXED64_BIT | ENUM_BIT)) != 0) {
+    } else if ((baseType &
+            (INT32_BIT |
+                INT64_BIT |
+                SINT32_BIT |
+                SINT64_BIT |
+                SFIXED32_BIT |
+                SFIXED64_BIT |
+                ENUM_BIT)) !=
+        0) {
       return IntValue(0);
-    } else if ((baseType & (UINT32_BIT | UINT64_BIT | FIXED32_BIT | FIXED64_BIT)) != 0) {
+    } else if ((baseType &
+            (UINT32_BIT | UINT64_BIT | FIXED32_BIT | FIXED64_BIT)) !=
+        0) {
       return UintValue(0);
     } else if ((baseType & MESSAGE_BIT) != 0) {
       return NullValue();

@@ -10,6 +10,7 @@ abstract class CELListener extends ParseTreeListener {
   /// Enter a parse tree produced by [CELParser.start].
   /// [ctx] the parse tree
   void enterStart(StartContext ctx);
+
   /// Exit a parse tree produced by [CELParser.start].
   /// [ctx] the parse tree
   void exitStart(StartContext ctx);
@@ -17,6 +18,7 @@ abstract class CELListener extends ParseTreeListener {
   /// Enter a parse tree produced by [CELParser.expr].
   /// [ctx] the parse tree
   void enterExpr(ExprContext ctx);
+
   /// Exit a parse tree produced by [CELParser.expr].
   /// [ctx] the parse tree
   void exitExpr(ExprContext ctx);
@@ -24,6 +26,7 @@ abstract class CELListener extends ParseTreeListener {
   /// Enter a parse tree produced by [CELParser.conditionalOr].
   /// [ctx] the parse tree
   void enterConditionalOr(ConditionalOrContext ctx);
+
   /// Exit a parse tree produced by [CELParser.conditionalOr].
   /// [ctx] the parse tree
   void exitConditionalOr(ConditionalOrContext ctx);
@@ -31,6 +34,7 @@ abstract class CELListener extends ParseTreeListener {
   /// Enter a parse tree produced by [CELParser.conditionalAnd].
   /// [ctx] the parse tree
   void enterConditionalAnd(ConditionalAndContext ctx);
+
   /// Exit a parse tree produced by [CELParser.conditionalAnd].
   /// [ctx] the parse tree
   void exitConditionalAnd(ConditionalAndContext ctx);
@@ -38,6 +42,7 @@ abstract class CELListener extends ParseTreeListener {
   /// Enter a parse tree produced by [CELParser.relation].
   /// [ctx] the parse tree
   void enterRelation(RelationContext ctx);
+
   /// Exit a parse tree produced by [CELParser.relation].
   /// [ctx] the parse tree
   void exitRelation(RelationContext ctx);
@@ -45,6 +50,7 @@ abstract class CELListener extends ParseTreeListener {
   /// Enter a parse tree produced by [CELParser.calc].
   /// [ctx] the parse tree
   void enterCalc(CalcContext ctx);
+
   /// Exit a parse tree produced by [CELParser.calc].
   /// [ctx] the parse tree
   void exitCalc(CalcContext ctx);
@@ -53,6 +59,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.unary].
   /// [ctx] the parse tree
   void enterMemberExpr(MemberExprContext ctx);
+
   /// Exit a parse tree produced by the [MemberExpr]
   /// labeled alternative in [CELParser.unary].
   /// [ctx] the parse tree
@@ -62,6 +69,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.unary].
   /// [ctx] the parse tree
   void enterLogicalNot(LogicalNotContext ctx);
+
   /// Exit a parse tree produced by the [LogicalNot]
   /// labeled alternative in [CELParser.unary].
   /// [ctx] the parse tree
@@ -71,6 +79,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.unary].
   /// [ctx] the parse tree
   void enterNegate(NegateContext ctx);
+
   /// Exit a parse tree produced by the [Negate]
   /// labeled alternative in [CELParser.unary].
   /// [ctx] the parse tree
@@ -80,6 +89,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.member].
   /// [ctx] the parse tree
   void enterMemberCall(MemberCallContext ctx);
+
   /// Exit a parse tree produced by the [MemberCall]
   /// labeled alternative in [CELParser.member].
   /// [ctx] the parse tree
@@ -89,6 +99,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.member].
   /// [ctx] the parse tree
   void enterSelect(SelectContext ctx);
+
   /// Exit a parse tree produced by the [Select]
   /// labeled alternative in [CELParser.member].
   /// [ctx] the parse tree
@@ -98,6 +109,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.member].
   /// [ctx] the parse tree
   void enterPrimaryExpr(PrimaryExprContext ctx);
+
   /// Exit a parse tree produced by the [PrimaryExpr]
   /// labeled alternative in [CELParser.member].
   /// [ctx] the parse tree
@@ -107,6 +119,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.member].
   /// [ctx] the parse tree
   void enterIndex(IndexContext ctx);
+
   /// Exit a parse tree produced by the [Index]
   /// labeled alternative in [CELParser.member].
   /// [ctx] the parse tree
@@ -116,6 +129,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.primary].
   /// [ctx] the parse tree
   void enterIdentOrGlobalCall(IdentOrGlobalCallContext ctx);
+
   /// Exit a parse tree produced by the [IdentOrGlobalCall]
   /// labeled alternative in [CELParser.primary].
   /// [ctx] the parse tree
@@ -125,6 +139,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.primary].
   /// [ctx] the parse tree
   void enterNested(NestedContext ctx);
+
   /// Exit a parse tree produced by the [Nested]
   /// labeled alternative in [CELParser.primary].
   /// [ctx] the parse tree
@@ -134,6 +149,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.primary].
   /// [ctx] the parse tree
   void enterCreateList(CreateListContext ctx);
+
   /// Exit a parse tree produced by the [CreateList]
   /// labeled alternative in [CELParser.primary].
   /// [ctx] the parse tree
@@ -143,6 +159,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.primary].
   /// [ctx] the parse tree
   void enterCreateStruct(CreateStructContext ctx);
+
   /// Exit a parse tree produced by the [CreateStruct]
   /// labeled alternative in [CELParser.primary].
   /// [ctx] the parse tree
@@ -152,6 +169,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.primary].
   /// [ctx] the parse tree
   void enterCreateMessage(CreateMessageContext ctx);
+
   /// Exit a parse tree produced by the [CreateMessage]
   /// labeled alternative in [CELParser.primary].
   /// [ctx] the parse tree
@@ -161,6 +179,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.primary].
   /// [ctx] the parse tree
   void enterConstantLiteral(ConstantLiteralContext ctx);
+
   /// Exit a parse tree produced by the [ConstantLiteral]
   /// labeled alternative in [CELParser.primary].
   /// [ctx] the parse tree
@@ -169,6 +188,7 @@ abstract class CELListener extends ParseTreeListener {
   /// Enter a parse tree produced by [CELParser.exprList].
   /// [ctx] the parse tree
   void enterExprList(ExprListContext ctx);
+
   /// Exit a parse tree produced by [CELParser.exprList].
   /// [ctx] the parse tree
   void exitExprList(ExprListContext ctx);
@@ -176,6 +196,7 @@ abstract class CELListener extends ParseTreeListener {
   /// Enter a parse tree produced by [CELParser.listInit].
   /// [ctx] the parse tree
   void enterListInit(ListInitContext ctx);
+
   /// Exit a parse tree produced by [CELParser.listInit].
   /// [ctx] the parse tree
   void exitListInit(ListInitContext ctx);
@@ -183,6 +204,7 @@ abstract class CELListener extends ParseTreeListener {
   /// Enter a parse tree produced by [CELParser.fieldInitializerList].
   /// [ctx] the parse tree
   void enterFieldInitializerList(FieldInitializerListContext ctx);
+
   /// Exit a parse tree produced by [CELParser.fieldInitializerList].
   /// [ctx] the parse tree
   void exitFieldInitializerList(FieldInitializerListContext ctx);
@@ -190,6 +212,7 @@ abstract class CELListener extends ParseTreeListener {
   /// Enter a parse tree produced by [CELParser.optField].
   /// [ctx] the parse tree
   void enterOptField(OptFieldContext ctx);
+
   /// Exit a parse tree produced by [CELParser.optField].
   /// [ctx] the parse tree
   void exitOptField(OptFieldContext ctx);
@@ -197,6 +220,7 @@ abstract class CELListener extends ParseTreeListener {
   /// Enter a parse tree produced by [CELParser.mapInitializerList].
   /// [ctx] the parse tree
   void enterMapInitializerList(MapInitializerListContext ctx);
+
   /// Exit a parse tree produced by [CELParser.mapInitializerList].
   /// [ctx] the parse tree
   void exitMapInitializerList(MapInitializerListContext ctx);
@@ -204,6 +228,7 @@ abstract class CELListener extends ParseTreeListener {
   /// Enter a parse tree produced by [CELParser.optExpr].
   /// [ctx] the parse tree
   void enterOptExpr(OptExprContext ctx);
+
   /// Exit a parse tree produced by [CELParser.optExpr].
   /// [ctx] the parse tree
   void exitOptExpr(OptExprContext ctx);
@@ -212,6 +237,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.literal].
   /// [ctx] the parse tree
   void enterInt(IntContext ctx);
+
   /// Exit a parse tree produced by the [Int]
   /// labeled alternative in [CELParser.literal].
   /// [ctx] the parse tree
@@ -221,6 +247,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.literal].
   /// [ctx] the parse tree
   void enterUint(UintContext ctx);
+
   /// Exit a parse tree produced by the [Uint]
   /// labeled alternative in [CELParser.literal].
   /// [ctx] the parse tree
@@ -230,6 +257,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.literal].
   /// [ctx] the parse tree
   void enterDouble(DoubleContext ctx);
+
   /// Exit a parse tree produced by the [Double]
   /// labeled alternative in [CELParser.literal].
   /// [ctx] the parse tree
@@ -239,6 +267,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.literal].
   /// [ctx] the parse tree
   void enterString(StringContext ctx);
+
   /// Exit a parse tree produced by the [String]
   /// labeled alternative in [CELParser.literal].
   /// [ctx] the parse tree
@@ -248,6 +277,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.literal].
   /// [ctx] the parse tree
   void enterBytes(BytesContext ctx);
+
   /// Exit a parse tree produced by the [Bytes]
   /// labeled alternative in [CELParser.literal].
   /// [ctx] the parse tree
@@ -257,6 +287,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.literal].
   /// [ctx] the parse tree
   void enterBoolTrue(BoolTrueContext ctx);
+
   /// Exit a parse tree produced by the [BoolTrue]
   /// labeled alternative in [CELParser.literal].
   /// [ctx] the parse tree
@@ -266,6 +297,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.literal].
   /// [ctx] the parse tree
   void enterBoolFalse(BoolFalseContext ctx);
+
   /// Exit a parse tree produced by the [BoolFalse]
   /// labeled alternative in [CELParser.literal].
   /// [ctx] the parse tree
@@ -275,6 +307,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.literal].
   /// [ctx] the parse tree
   void enterNull(NullContext ctx);
+
   /// Exit a parse tree produced by the [Null]
   /// labeled alternative in [CELParser.literal].
   /// [ctx] the parse tree
@@ -284,6 +317,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.escapeIdent].
   /// [ctx] the parse tree
   void enterSimpleIdentifier(SimpleIdentifierContext ctx);
+
   /// Exit a parse tree produced by the [SimpleIdentifier]
   /// labeled alternative in [CELParser.escapeIdent].
   /// [ctx] the parse tree
@@ -293,6 +327,7 @@ abstract class CELListener extends ParseTreeListener {
   /// labeled alternative in [file.parserName>.escapeIdent].
   /// [ctx] the parse tree
   void enterEscapedIdentifier(EscapedIdentifierContext ctx);
+
   /// Exit a parse tree produced by the [EscapedIdentifier]
   /// labeled alternative in [CELParser.escapeIdent].
   /// [ctx] the parse tree

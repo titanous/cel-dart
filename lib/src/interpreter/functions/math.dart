@@ -19,7 +19,7 @@ class MathFunctions {
     if (sign == null) {
       return BooleanValue(val.value.isInfinite);
     }
-    
+
     if (sign.value > 0) {
       return BooleanValue(val.value == double.infinity);
     } else if (sign.value < 0) {

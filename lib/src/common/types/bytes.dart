@@ -32,13 +32,12 @@ class BytesValue extends Value implements Comparer, Sizer, Receiver, Adder {
     if (other is! BytesValue) {
       throw Exception('Cannot compare bytes with ${other.type.name}');
     }
-    
+
     // Compare byte arrays lexicographically
     final otherBytes = other.value;
-    final minLength = value.length < otherBytes.length 
-        ? value.length 
-        : otherBytes.length;
-    
+    final minLength =
+        value.length < otherBytes.length ? value.length : otherBytes.length;
+
     for (int i = 0; i < minLength; i++) {
       if (value[i] < otherBytes[i]) {
         return IntValue(-1);
@@ -47,7 +46,7 @@ class BytesValue extends Value implements Comparer, Sizer, Receiver, Adder {
         return IntValue(1);
       }
     }
-    
+
     // If all compared bytes are equal, compare lengths
     if (value.length < otherBytes.length) {
       return IntValue(-1);
@@ -63,7 +62,7 @@ class BytesValue extends Value implements Comparer, Sizer, Receiver, Adder {
     if (other is! BytesValue) {
       throw Exception('Cannot add bytes with ${other.type.name}');
     }
-    
+
     // Concatenate byte arrays
     final result = Uint8List(value.length + other.value.length);
     result.setRange(0, value.length, value);
@@ -76,12 +75,12 @@ class BytesValue extends Value implements Comparer, Sizer, Receiver, Adder {
     if (other is! BytesValue) {
       return BooleanValue(false);
     }
-    
+
     final otherBytes = other.value;
     if (value.length != otherBytes.length) {
       return BooleanValue(false);
     }
-    
+
     for (int i = 0; i < value.length; i++) {
       if (value[i] != otherBytes[i]) {
         return BooleanValue(false);
@@ -111,7 +110,7 @@ class BytesValue extends Value implements Comparer, Sizer, Receiver, Adder {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! BytesValue) return false;
-    
+
     if (value.length != other.value.length) return false;
     for (int i = 0; i < value.length; i++) {
       if (value[i] != other.value[i]) return false;
@@ -191,7 +190,7 @@ Value bytesContains(Uint8List bytes, Value value) {
   if (pattern.length > bytes.length) {
     return BooleanValue(false);
   }
-  
+
   // Simple byte sequence search
   for (int i = 0; i <= bytes.length - pattern.length; i++) {
     bool found = true;
