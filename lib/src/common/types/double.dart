@@ -3,6 +3,7 @@ import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
 import 'package:cel/src/common/types/traits/math.dart';
 import 'package:cel/src/common/types/traits/traits.dart';
+import 'package:cel/src/common/types/error.dart';
 
 // https://github.com/google/cel-go/blob/377a0bba20d07926e0583b4e604509ca7f3583b7/common/types/double.go
 
@@ -50,7 +51,8 @@ class DoubleValue extends Value
 
   @override
   modulo(Value denominator) {
-    return DoubleValue(value % denominator.value);
+    // CEL specification: modulo operations are not supported for double values
+    return noSuchOverloadError;
   }
 
   @override

@@ -406,7 +406,22 @@ class ConformanceTestRunner {
     // For numbers, allow some tolerance for floating point
     if (actual is num && expected is num) {
       if (actual is double || expected is double) {
-        return (actual - expected).abs() < 1e-9;
+        final actualDouble = actual.toDouble();
+        final expectedDouble = expected.toDouble();
+        
+        // Handle special cases: Infinity, -Infinity, NaN
+        if (actualDouble.isInfinite && expectedDouble.isInfinite) {
+          return actualDouble == expectedDouble; // Handles +Infinity vs -Infinity
+        }
+        if (actualDouble.isNaN && expectedDouble.isNaN) {
+          return true; // Both NaN, consider equal for test purposes
+        }
+        if (actualDouble.isInfinite || expectedDouble.isInfinite ||
+            actualDouble.isNaN || expectedDouble.isNaN) {
+          return false; // One is special, the other is not
+        }
+        
+        return (actualDouble - expectedDouble).abs() < 1e-9;
       }
     }
 

@@ -264,7 +264,38 @@ Expr visitCalc(CalcContext tree) {
 }
 
 Expr visitUnary(UnaryContext tree) {
-  return StringLiteralExpr(('<<error>>'));
+  // Handle NegateContext (unary minus)
+  if (tree is NegateContext) {
+    final member = tree.member();
+    if (member != null) {
+      return CallExpr(
+        function: Operators.negate.name,
+        args: [visit(member)],
+      );
+    }
+  }
+  
+  // Handle LogicalNotContext (unary logical not)
+  if (tree is LogicalNotContext) {
+    final member = tree.member();
+    if (member != null) {
+      return CallExpr(
+        function: Operators.logicalNot.name,
+        args: [visit(member)],
+      );
+    }
+  }
+  
+  // For other unary contexts, delegate to member
+  if (tree is MemberExprContext) {
+    final member = tree.member();
+    if (member != null) {
+      return visit(member);
+    }
+  }
+  
+  // Fallback for unhandled cases
+  return StringLiteralExpr('<<error>>');
 }
 
 Expr visitMemberCall(MemberCallContext tree) {

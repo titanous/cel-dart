@@ -31,7 +31,24 @@ class IntValue extends Value
 
   @override
   add(Value other) {
-    return IntValue((value + other.value).toInt());
+    final otherValue = other.value as int;
+    
+    // Check for integer overflow in addition
+    // Constants for int64 range
+    const int64Min = -9223372036854775808;
+    const int64Max = 9223372036854775807;
+    
+    // Positive overflow: both positive and result would exceed max
+    if (value > 0 && otherValue > 0 && value > int64Max - otherValue) {
+      return intOverflowError;
+    }
+    
+    // Negative overflow: both negative and result would go below min  
+    if (value < 0 && otherValue < 0 && value < int64Min - otherValue) {
+      return intOverflowError;
+    }
+    
+    return IntValue(value + otherValue);
   }
 
   @override
@@ -57,17 +74,84 @@ class IntValue extends Value
     if (value == -9223372036854775808 && denominatorValue == -1) {
       return intOverflowError;
     }
-    return IntValue(value % denominatorValue);
+    
+    // Implement CEL/Go modulo semantics where result has same sign as dividend
+    // Go: a % b = a - (a / b) * b (using truncated division)
+    final quotient = value ~/ denominatorValue;  // Truncated division
+    final result = value - (quotient * denominatorValue);
+    
+    return IntValue(result);
   }
 
   @override
   multiply(Value other) {
-    return IntValue((value * other.value).toInt());
+    final otherValue = other.value as int;
+    
+    // Check for integer overflow in multiplication
+    // Constants for int64 range  
+    const int64Min = -9223372036854775808;
+    const int64Max = 9223372036854775807;
+    
+    // Handle zero cases (no overflow possible)
+    if (value == 0 || otherValue == 0) {
+      return IntValue(0);
+    }
+    
+    // Handle sign and absolute values for overflow detection
+    final bool resultNegative = (value < 0) != (otherValue < 0);
+    
+    // Special case: INT64_MIN cannot be negated without overflow
+    if (value == int64Min || otherValue == int64Min) {
+      // INT64_MIN * 1 = INT64_MIN (valid)
+      // INT64_MIN * -1 = overflow (handled by negate logic elsewhere)
+      // For other cases, overflow is likely
+      if ((value == int64Min && otherValue.abs() > 1) || 
+          (otherValue == int64Min && value.abs() > 1)) {
+        return intOverflowError;
+      }
+    }
+    
+    final int absValue = value.abs();
+    final int absOther = otherValue.abs();
+    
+    // Check for overflow by comparing against the maximum allowed factor
+    if (resultNegative) {
+      // Result will be negative, check against int64Min
+      // For negative results: result = -(absValue * absOther)
+      // Overflow if absValue * absOther > -int64Min (which is 2^63)
+      if (absValue > (-int64Min) ~/ absOther) {
+        return intOverflowError;
+      }
+    } else {
+      // Result will be positive, check against int64Max
+      if (absValue > int64Max ~/ absOther) {
+        return intOverflowError;
+      }
+    }
+    
+    return IntValue(value * otherValue);
   }
 
   @override
   subtract(Value subtrahend) {
-    return IntValue((value - subtrahend.value).toInt());
+    final subtrahendValue = subtrahend.value as int;
+    
+    // Check for integer overflow in subtraction
+    // Constants for int64 range
+    const int64Min = -9223372036854775808;
+    const int64Max = 9223372036854775807;
+    
+    // Positive overflow: positive - negative = positive, check if result > max
+    if (value > 0 && subtrahendValue < 0 && value > int64Max + subtrahendValue) {
+      return intOverflowError;
+    }
+    
+    // Negative overflow: negative - positive = negative, check if result < min
+    if (value < 0 && subtrahendValue > 0 && value < int64Min + subtrahendValue) {
+      return intOverflowError;
+    }
+    
+    return IntValue(value - subtrahendValue);
   }
 
   @override
