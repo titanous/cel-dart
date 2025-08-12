@@ -292,20 +292,18 @@ Value _nativeToValue(TypeAdapter adapter, dynamic value) {
   if (value is Map) {
     return MapValue.fromNativeKeyValues(value, adapter);
   }
-  if (value is List<Value>) {
-    return ListValue(value, adapter);
-  }
-  // Handle PbList - convert to ListValue (must come before List<int> check)
-  if (value is List && value.runtimeType.toString().startsWith('PbList<')) {
+  // Handle all List types - convert each element to CEL Value
+  if (value is List) {
+    // Special case: List<int> should be treated as bytes (CodeUnits from parser)
+    if (value is List<int> && value.every((e) => e >= 0 && e <= 255)) {
+      return BytesValue.fromCodeUnits(value);
+    }
+    
     final elements = <Value>[];
     for (final element in value) {
       elements.add(_nativeToValue(adapter, element));
     }
     return ListValue(elements, adapter);
-  }
-  // Handle List<int> as bytes (CodeUnits type from parser)
-  if (value is List<int>) {
-    return BytesValue.fromCodeUnits(value);
   }
 
   // Handle protobuf wrapper types - unwrap them to their primitive values

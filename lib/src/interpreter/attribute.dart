@@ -179,10 +179,11 @@ class StringQualifier extends Qualifier {
     // Handle CEL MapValue
     if (object is MapValue) {
       final key = StringValue(value);
-      if (!object.value.containsKey(key)) {
+      try {
+        return object.get(key);
+      } catch (e) {
         return ErrorValue('no such key: $key');
       }
-      return object.get(key);
     }
 
     // Handle CEL MessageValue

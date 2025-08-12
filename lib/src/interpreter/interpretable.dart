@@ -608,7 +608,8 @@ class ComprehensionInterpretable implements Interpretable {
     }
 
     // Fold/iterate over the items
-    for (final item in items) {
+    for (int i = 0; i < items.length; i++) {
+      final item = items[i];
       if (isError(item)) {
         return item;
       }
@@ -623,7 +624,16 @@ class ComprehensionInterpretable implements Interpretable {
       }
 
       // If condition is not true, break the loop
-      if (condValue is BooleanValue && !condValue.value) {
+      bool shouldBreak = false;
+      if (condValue is BooleanValue) {
+        shouldBreak = !condValue.value;
+      } else if (condValue is bool) {
+        shouldBreak = !(condValue as bool);
+      } else if (condValue == false) {
+        shouldBreak = true;
+      }
+      
+      if (shouldBreak) {
         break;
       }
 

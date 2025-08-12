@@ -169,11 +169,21 @@ class Planner {
   Interpretable planSelect(SelectExpr select) {
     // Try to build the full qualified identifier name and check if it can be resolved
     // This handles cases like a.b.c where "a.b.c" might be a single variable name
+    // But we should only do this for actual qualified identifiers, not field access on variables
     final qualifiedName = _buildQualifiedName(select);
     if (qualifiedName != null) {
-      // Create an enhanced MaybeAttribute that tries the qualified name first
-      final qualifiedAttr = attributeFactory.maybeAttribute(qualifiedName);
-      return AttributeValueInterpretable(qualifiedAttr, adapter);
+      // Check if this looks like field access on a variable rather than a qualified identifier
+      // If the base part (before first dot) is a simple identifier that could be a variable,
+      // prefer traditional select planning over qualified identifier resolution
+      final parts = qualifiedName.split('.');
+      if (parts.length == 2 && _isSimpleIdentifier(parts[0])) {
+        // This looks like "variable.field" - use traditional select planning
+        // Fall through to traditional planning
+      } else {
+        // This looks like a true qualified identifier - use qualified name resolution
+        final qualifiedAttr = attributeFactory.maybeAttribute(qualifiedName);
+        return AttributeValueInterpretable(qualifiedAttr, adapter);
+      }
     }
 
     // Fall back to traditional select planning
@@ -214,6 +224,11 @@ class Planner {
     }
 
     return parts.join('.');
+  }
+  
+  /// Check if a string is a simple identifier (letters, numbers, underscore)
+  bool _isSimpleIdentifier(String name) {
+    return RegExp(r'^[a-zA-Z_][a-zA-Z0-9_]*$').hasMatch(name);
   }
 
   // Plan presence test for has() macro
