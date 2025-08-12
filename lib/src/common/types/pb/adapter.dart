@@ -16,6 +16,7 @@ import '../bytes.dart';
 import '../null_.dart';
 import 'message.dart';
 import '../../../gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
+import '../../../gen/google/protobuf/struct.pb.dart' as pb_struct;
 
 /// Adapter for converting protobuf messages to CEL values
 class ProtobufTypeAdapter {
@@ -31,6 +32,40 @@ class ProtobufTypeAdapter {
   /// Convert any value to a CEL Value (public wrapper for _adaptSingleValue)
   Value adaptValue(dynamic value) {
     return _adaptSingleValue(value);
+  }
+
+  /// Convert protobuf Value to CEL Value
+  Value _adaptProtoValue(pb_struct.Value protoValue) {
+    if (protoValue.hasNullValue()) {
+      return NullValue();
+    } else if (protoValue.hasBoolValue()) {
+      return BooleanValue(protoValue.boolValue);
+    } else if (protoValue.hasNumberValue()) {
+      final number = protoValue.numberValue;
+      // Check if it's an integer (no fractional part)
+      if (number == number.truncate()) {
+        return IntValue(number.toInt());
+      } else {
+        return DoubleValue(number);
+      }
+    } else if (protoValue.hasStringValue()) {
+      return StringValue(protoValue.stringValue);
+    } else if (protoValue.hasListValue()) {
+      final elements = <Value>[];
+      for (final element in protoValue.listValue.values) {
+        elements.add(_adaptProtoValue(element));
+      }
+      return ListValue(elements, typeAdapter);
+    } else if (protoValue.hasStructValue()) {
+      final entries = <Value, Value>{};
+      for (final entry in protoValue.structValue.fields.entries) {
+        entries[StringValue(entry.key)] = _adaptProtoValue(entry.value);
+      }
+      return MapValue(entries, typeAdapter);
+    } else {
+      // Default to null if no value is set
+      return NullValue();
+    }
   }
 
   /// Get a field value from a message
@@ -194,7 +229,7 @@ class ProtobufTypeAdapter {
     }
   }
 
-  /// Check if a value is a wrapper type
+  /// Check if a value is a wrapper type or should auto-convert
   bool _isWrapperType(dynamic value) {
     if (value == null) return false;
     return value is pb_wrappers.BoolValue ||
@@ -205,7 +240,10 @@ class ProtobufTypeAdapter {
         value is pb_wrappers.Int32Value ||
         value is pb_wrappers.Int64Value ||
         value is pb_wrappers.UInt32Value ||
-        value is pb_wrappers.UInt64Value;
+        value is pb_wrappers.UInt64Value ||
+        value is pb_struct.Value ||  // google.protobuf.Value should also auto-convert
+        value is pb_struct.ListValue ||  // google.protobuf.ListValue should also auto-convert  
+        value is pb_struct.Struct;  // google.protobuf.Struct should also auto-convert
   }
 
   /// Check if a field is a message field (not a wrapper type)
@@ -220,6 +258,21 @@ class ProtobufTypeAdapter {
   /// Check if a wrapper type has a non-default value
   bool _hasWrapperValue(dynamic value) {
     if (value == null) return false;
+    
+    // Handle google.protobuf.Value (should always be considered as having a value when constructed)
+    if (value is pb_struct.Value) {
+      return true;  // Any constructed Value should be considered as having a value
+    }
+    
+    // Handle google.protobuf.ListValue (should always be considered as having a value when constructed)
+    if (value is pb_struct.ListValue) {
+      return true;  // Any constructed ListValue should be considered as having a value
+    }
+    
+    // Handle google.protobuf.Struct (should always be considered as having a value when constructed)
+    if (value is pb_struct.Struct) {
+      return true;  // Any constructed Struct should be considered as having a value
+    }
 
     // Check each wrapper type and see if it has a non-default value
     if (value is pb_wrappers.BoolValue) {
@@ -272,6 +325,23 @@ class ProtobufTypeAdapter {
         return UintValue(value.value);
       } else if (value is pb_wrappers.UInt64Value) {
         return UintValue(value.value.toInt());
+      } else if (value is pb_struct.ListValue) {
+        // Convert protobuf ListValue to CEL ListValue
+        final elements = <Value>[];
+        for (final protoValue in value.values) {
+          elements.add(_adaptProtoValue(protoValue));
+        }
+        return ListValue(elements, typeAdapter);
+      } else if (value is pb_struct.Struct) {
+        // Convert protobuf Struct to CEL MapValue  
+        final entries = <Value, Value>{};
+        for (final entry in value.fields.entries) {
+          entries[StringValue(entry.key)] = _adaptProtoValue(entry.value);
+        }
+        return MapValue(entries, typeAdapter);
+      } else if (value is pb_struct.Value) {
+        // Convert protobuf Value to appropriate CEL value
+        return _adaptProtoValue(value);
       } else {
         // Check for other well-known types that need special handling
         // Import struct types at top of file

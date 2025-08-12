@@ -16,6 +16,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:cel/src/gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
 import 'package:cel/src/gen/google/protobuf/timestamp.pb.dart' as pb_timestamp;
 import 'package:cel/src/gen/google/protobuf/duration.pb.dart' as pb_duration;
+import 'package:cel/src/gen/google/protobuf/struct.pb.dart' as pb_struct;
 import 'package:cel/src/common/types/timestamp.dart';
 import 'package:cel/src/common/types/duration.dart';
 import 'package:cel/src/common/types/pb/message.dart';
@@ -159,78 +160,59 @@ class TypeRegistry implements TypeAdapter {
       // Try each candidate name from the container
       final candidates = container!.resolveCandidateNames(typeName);
       for (final candidate in candidates) {
-        messageVal = protoRegistry!.createMessage(candidate);
+        messageVal = protoRegistry!.createMessage(candidate, fields);
         if (messageVal != null) break;
       }
     } else {
       // No container, try the name directly
-      messageVal = protoRegistry!.createMessage(typeName);
+      messageVal = protoRegistry!.createMessage(typeName, fields);
     }
 
     if (messageVal == null) return null;
 
+    // Fields are already set by ProtoTypeRegistry
     final message = messageVal.message;
-
-    // Set field values
-    for (final entry in fields.entries) {
-      try {
-        final fieldName = entry.key;
-        final value = entry.value;
-
-        // Convert snake_case to camelCase for Dart field names
-        final camelCaseFieldName = _snakeToCamelCase(fieldName);
-
-        // Find the field in the message
-        final fieldInfo = message.info_.fieldInfo.values.firstWhere(
-          (f) => f.name == camelCaseFieldName || f.name == fieldName,
-          orElse: () => throw Exception('Field $fieldName not found'),
-        );
-
-        // Set the field value
-        if (value != null) {
-          // Handle different field types appropriately
-          if (fieldInfo.isRepeated) {
-            // For repeated fields, we need to add elements to the list
-            if (value is List) {
-              final list = message.getField(fieldInfo.tagNumber) as List;
-              for (final element in value) {
-                final fieldValue = _wrapValueIfNeeded(fieldInfo, element);
-                if (fieldValue is ErrorValue) {
-                  return fieldValue;
-                }
-                list.add(fieldValue);
-              }
-            }
-          } else if (fieldInfo.isMapField) {
-            // For map fields, we need to populate the map entries
-            if (value is Map) {
-              final map = message.getField(fieldInfo.tagNumber) as Map;
-              for (final entry in value.entries) {
-                final keyValue = _wrapValueIfNeeded(fieldInfo, entry.key);
-                final valueValue = _wrapValueIfNeeded(fieldInfo, entry.value);
-                if (keyValue is ErrorValue) return keyValue;
-                if (valueValue is ErrorValue) return valueValue;
-                map[keyValue] = valueValue;
-              }
-            }
-          } else {
-            // For singular fields, use the existing logic
-            final fieldValue = _wrapValueIfNeeded(fieldInfo, value);
-            // Check if range validation failed
-            if (fieldValue is ErrorValue) {
-              // Return the error value directly
-              return fieldValue;
-            }
-            message.setField(fieldInfo.tagNumber, fieldValue);
-          }
-        }
-      } catch (e) {
-        // Skip fields that can't be set
-        continue;
-      }
+    
+    // Check if this is a special message type that should auto-unwrap to its CEL value
+    if (_shouldAutoUnwrap(message)) {
+      // Use the type adapter to convert the message to its CEL equivalent
+      return _nativeToValue(this, message);
     }
-
+    
     return message;
+  }
+
+  /// Check if a message should auto-unwrap to its CEL value equivalent
+  bool _shouldAutoUnwrap(GeneratedMessage message) {
+    // google.protobuf.Value should unwrap to its underlying CEL value
+    if (message is pb_struct.Value) {
+      return true;
+    }
+    
+    // google.protobuf.ListValue should unwrap to a CEL List
+    if (message is pb_struct.ListValue) {
+      return true;
+    }
+    
+    // google.protobuf.Struct should unwrap to a CEL Map  
+    if (message is pb_struct.Struct) {
+      return true;
+    }
+    
+    // Wrapper types should also auto-unwrap (consistent with existing behavior)
+    if (message is pb_wrappers.BoolValue ||
+        message is pb_wrappers.BytesValue ||
+        message is pb_wrappers.StringValue ||
+        message is pb_wrappers.DoubleValue ||
+        message is pb_wrappers.FloatValue ||
+        message is pb_wrappers.Int32Value ||
+        message is pb_wrappers.Int64Value ||
+        message is pb_wrappers.UInt32Value ||
+        message is pb_wrappers.UInt64Value) {
+      return true;
+    }
+    
+    return false;
   }
 }
 
@@ -359,6 +341,58 @@ Value _nativeToValue(TypeAdapter adapter, dynamic value) {
     return IntValue(value.value);
   }
 
+  // Handle google.protobuf.Value - convert to appropriate CEL value
+  if (value is pb_struct.Value) {
+    if (value.hasNullValue()) {
+      return nullValue;
+    } else if (value.hasBoolValue()) {
+      return BooleanValue(value.boolValue);
+    } else if (value.hasNumberValue()) {
+      final number = value.numberValue;
+      // Check if it's an integer (no fractional part)
+      if (number == number.truncate()) {
+        return IntValue(number.toInt());
+      } else {
+        return DoubleValue(number);
+      }
+    } else if (value.hasStringValue()) {
+      return StringValue(value.stringValue);
+    } else if (value.hasListValue()) {
+      final elements = <Value>[];
+      for (final element in value.listValue.values) {
+        elements.add(_adaptProtoValue(element));
+      }
+      return ListValue(elements, adapter);
+    } else if (value.hasStructValue()) {
+      final entries = <Value, Value>{};
+      for (final entry in value.structValue.fields.entries) {
+        entries[StringValue(entry.key)] = _adaptProtoValue(entry.value);
+      }
+      return MapValue(entries, adapter);
+    } else {
+      // Default to null if no value is set
+      return nullValue;
+    }
+  }
+
+  // Handle google.protobuf.ListValue - convert to CEL ListValue
+  if (value is pb_struct.ListValue) {
+    final elements = <Value>[];
+    for (final protoValue in value.values) {
+      elements.add(_adaptProtoValue(protoValue));
+    }
+    return ListValue(elements, adapter);
+  }
+
+  // Handle google.protobuf.Struct - convert to CEL MapValue
+  if (value is pb_struct.Struct) {
+    final entries = <Value, Value>{};
+    for (final entry in value.fields.entries) {
+      entries[StringValue(entry.key)] = _adaptProtoValue(entry.value);
+    }
+    return MapValue(entries, adapter);
+  }
+
   // Handle other protobuf messages
   if (value is GeneratedMessage) {
     return MessageValue(value, adapter);
@@ -370,4 +404,38 @@ Value _nativeToValue(TypeAdapter adapter, dynamic value) {
   }
 
   throw UnimplementedError('Unsupported type for $value: ${value.runtimeType}');
+}
+
+/// Convert protobuf Value to CEL Value
+Value _adaptProtoValue(pb_struct.Value protoValue) {
+  if (protoValue.hasNullValue()) {
+    return nullValue;
+  } else if (protoValue.hasBoolValue()) {
+    return BooleanValue(protoValue.boolValue);
+  } else if (protoValue.hasNumberValue()) {
+    final number = protoValue.numberValue;
+    // Check if it's an integer (no fractional part)
+    if (number == number.truncate()) {
+      return IntValue(number.toInt());
+    } else {
+      return DoubleValue(number);
+    }
+  } else if (protoValue.hasStringValue()) {
+    return StringValue(protoValue.stringValue);
+  } else if (protoValue.hasListValue()) {
+    final elements = <Value>[];
+    for (final element in protoValue.listValue.values) {
+      elements.add(_adaptProtoValue(element));
+    }
+    return ListValue(elements, TypeRegistry()); // TODO: Use proper adapter
+  } else if (protoValue.hasStructValue()) {
+    final entries = <Value, Value>{};
+    for (final entry in protoValue.structValue.fields.entries) {
+      entries[StringValue(entry.key)] = _adaptProtoValue(entry.value);
+    }
+    return MapValue(entries, TypeRegistry()); // TODO: Use proper adapter
+  } else {
+    // Default to null if no value is set
+    return nullValue;
+  }
 }
