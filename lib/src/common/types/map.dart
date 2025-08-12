@@ -6,6 +6,7 @@ import 'package:cel/src/common/types/traits/container.dart';
 import 'package:cel/src/common/types/traits/indexer.dart';
 import 'package:cel/src/common/types/traits/sizer.dart';
 import 'package:cel/src/common/types/traits/traits.dart';
+import 'package:fixnum/fixnum.dart';
 
 // https://github.com/google/cel-go/blob/377a0bba20d07926e0583b4e604509ca7f3583b7/common/types/map.go
 
@@ -60,37 +61,69 @@ class MapValue extends Value implements Indexer, Container, Sizer {
   }
 
   /// Check if two Value keys are equal for map lookup purposes
-  /// This implements CEL's key equality semantics where int and uint types
-  /// can be cross-compared (1 == 1u) but NOT with doubles
+  /// This implements CEL's key equality semantics where numeric types
+  /// can be cross-compared if they represent the same value
   bool _keysEqual(Value key1, Value key2) {
     // First check direct equality
     if (key1 == key2) return true;
 
-    // Handle cross-type comparisons ONLY for int/uint
-    // Doubles as map keys use exact equality only
-    if (_isIntOrUint(key1) && _isIntOrUint(key2)) {
-      return _intEqual(key1, key2);
+    // Handle cross-type comparisons for numeric types
+    // CEL allows int, uint, and double to be equivalent if they represent the same number
+    if (_isNumeric(key1) && _isNumeric(key2)) {
+      return _numericEqual(key1, key2);
     }
 
     return false;
   }
 
-  /// Check if a Value represents an integer type (int or uint)
-  bool _isIntOrUint(Value val) {
-    return val.type.name == 'int' || val.type.name == 'uint';
+  /// Check if a Value represents a numeric type (int, uint, or double)
+  bool _isNumeric(Value val) {
+    return val.type.name == 'int' || val.type.name == 'uint' || val.type.name == 'double';
   }
 
-  /// Compare two integer values for equality (int/uint cross-comparison)
-  bool _intEqual(Value val1, Value val2) {
+  /// Compare two numeric values for equality (int/uint/double cross-comparison)
+  bool _numericEqual(Value val1, Value val2) {
     final n1 = val1.convertToNative();
     final n2 = val2.convertToNative();
 
-    // Both should be integers
-    if (n1 is! int || n2 is! int) {
+    // Convert both to double for comparison
+    double? d1, d2;
+    
+    if (n1 is int) {
+      d1 = n1.toDouble();
+    } else if (n1 is Int64) {
+      d1 = n1.toDouble();
+    } else if (n1 is double) {
+      d1 = n1;
+    }
+    
+    if (n2 is int) {
+      d2 = n2.toDouble();
+    } else if (n2 is Int64) {
+      d2 = n2.toDouble();
+    } else if (n2 is double) {
+      d2 = n2;
+    }
+    
+    // Both should be convertible to double
+    if (d1 == null || d2 == null) {
       return false;
     }
-
-    return n1 == n2;
+    
+    // Check if they're equal as doubles, but also ensure that
+    // if one is supposed to be an integer, it's actually a whole number
+    if (d1 != d2) {
+      return false;
+    }
+    
+    // Additional check: if either original value was an int/uint,
+    // the double value should be a whole number
+    if (((n1 is int || n1 is Int64) && d1 != d1.truncate()) || 
+        ((n2 is int || n2 is Int64) && d2 != d2.truncate())) {
+      return false;
+    }
+    
+    return true;
   }
 
   @override

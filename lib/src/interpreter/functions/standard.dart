@@ -19,6 +19,7 @@ import 'functions.dart';
 import 'math.dart';
 import 'strings.dart';
 import 'conversions.dart';
+import 'timestamps.dart';
 
 // https://github.com/google/cel-go/blob/master/interpreter/functions/standard.go
 List<Overload> standardOverloads() {
@@ -311,6 +312,9 @@ List<Overload> standardOverloads() {
 
     // String extension functions
     ...stringOverloads(),
+
+    // Timestamp selector functions
+    ...timestampOverloads(),
 
     // Type conversion functions
     ...conversionOverloads(),

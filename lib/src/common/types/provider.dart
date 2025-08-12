@@ -9,6 +9,7 @@ import 'package:cel/src/common/types/null_.dart';
 import 'package:cel/src/common/types/ref/provider.dart';
 import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/string.dart';
+import 'package:cel/src/common/types/type.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:fixnum/fixnum.dart';
 // Import wrapper types
@@ -265,6 +266,9 @@ Value _nativeToValue(TypeAdapter adapter, dynamic value) {
     return value;
   }
   if (value is ListValue) {
+    return value;
+  }
+  if (value is TypeValue) {
     return value;
   }
   // Wrap primitives.
