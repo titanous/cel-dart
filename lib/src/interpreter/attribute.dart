@@ -16,6 +16,7 @@ import '../common/types/double.dart';
 import '../common/types/uint.dart';
 import '../common/types/error.dart';
 import '../common/types/bool.dart';
+import '../common/types/enum.dart';
 
 abstract class Attribute extends Equatable {
   dynamic resolve(Activation activation);
@@ -156,6 +157,15 @@ class StringQualifier extends Qualifier {
     // Handle errors passed through
     if (object is ErrorValue) {
       return object;
+    }
+
+    // Handle enum namespace resolution (e.g., GlobalEnum.GAZ)
+    if (object is EnumNamespace) {
+      final enumConstant = object.resolveConstant(value);
+      if (enumConstant == null) {
+        return ErrorValue('no such enum constant: $value in ${object.enumTypeName}');
+      }
+      return enumConstant;
     }
 
     // Handle raw protobuf messages - wrap them in MessageValue

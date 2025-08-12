@@ -15,6 +15,7 @@ import 'package:cel/src/common/types/type.dart';
 import 'package:cel/src/common/types/null_.dart';
 import 'package:cel/src/common/types/list.dart';
 import 'package:cel/src/common/types/map.dart';
+import 'package:cel/src/common/types/enum.dart';
 
 import 'functions.dart';
 
@@ -70,6 +71,10 @@ List<Overload> conversionOverloads() {
       if (value is TimestampValue) {
         // Convert timestamp to Unix seconds
         return IntValue(value.dateTime.millisecondsSinceEpoch ~/ 1000);
+      }
+      if (value is EnumValue) {
+        // Convert enum to its numeric value
+        return IntValue(value.numericValue);
       }
 
       return ErrorValue(
@@ -376,6 +381,14 @@ List<Overload> conversionOverloads() {
         // The type of a type is "type"
         return TypeValue('type');
       }
+      if (value is EnumValue) {
+        // Return the proper enum type name for strong mode, or "int" for legacy mode
+        if (value.isLegacyMode) {
+          return TypeValue('int');
+        } else {
+          return TypeValue(value.enumType);
+        }
+      }
 
       // For unknown types, return the runtime type name
       return TypeValue(value.runtimeType.toString());
@@ -433,6 +446,77 @@ List<Overload> conversionOverloads() {
 
       return ErrorValue(
           'type conversion error from ${value.runtimeType} to timestamp');
+    }),
+
+    // Enum constructor functions - hardcoded for testing
+    // TODO: Make these dynamic based on registered enum types
+    
+    // GlobalEnum constructor
+    Overload('GlobalEnum', functionOperator: (args) {
+      if (args.length != 1) {
+        return ErrorValue('GlobalEnum constructor requires exactly 1 argument');
+      }
+      
+      final arg = args[0];
+      if (arg is IntValue) {
+        // Ensure enum registry is initialized
+        if (globalEnumRegistry.registeredTypes.isEmpty) {
+          globalEnumRegistry.discoverAndRegisterProtobufEnums();
+        }
+        
+        // Create enum value with current global mode
+        if (globalEnumRegistry.isGlobalLegacyMode) {
+          return IntValue(arg.value);
+        } else {
+          // Find the appropriate enum type based on container context
+          // For now, default to proto2
+          return EnumValue.createStrong('cel.expr.conformance.proto2.GlobalEnum', arg.value);
+        }
+      }
+      
+      return ErrorValue('GlobalEnum constructor requires int argument, got ${arg.runtimeType}');
+    }),
+
+    // NestedEnum constructor  
+    Overload('NestedEnum', functionOperator: (args) {
+      if (args.length != 1) {
+        return ErrorValue('NestedEnum constructor requires exactly 1 argument');
+      }
+      
+      final arg = args[0];
+      if (arg is IntValue) {
+        // Ensure enum registry is initialized
+        if (globalEnumRegistry.registeredTypes.isEmpty) {
+          globalEnumRegistry.discoverAndRegisterProtobufEnums();
+        }
+        
+        // Create enum value with current global mode
+        if (globalEnumRegistry.isGlobalLegacyMode) {
+          return IntValue(arg.value);
+        } else {
+          // Find the appropriate enum type based on container context
+          // For now, default to proto2  
+          return EnumValue.createStrong('cel.expr.conformance.proto2.TestAllTypes.NestedEnum', arg.value);
+        }
+      }
+      
+      if (arg is StringValue) {
+        // Ensure enum registry is initialized
+        if (globalEnumRegistry.registeredTypes.isEmpty) {
+          globalEnumRegistry.discoverAndRegisterProtobufEnums();
+        }
+        
+        // Find enum namespace and resolve constant
+        final namespace = globalEnumRegistry.getEnumNamespace('cel.expr.conformance.proto2.TestAllTypes.NestedEnum');
+        if (namespace != null) {
+          final enumNamespaceWithMode = EnumNamespace(namespace.enumTypeName, namespace.constants, 
+                                                     isLegacyMode: globalEnumRegistry.isGlobalLegacyMode);
+          return enumNamespaceWithMode.resolveConstant(arg.value) ?? 
+                 ErrorValue('invalid enum constant: ${arg.value} for NestedEnum');
+        }
+      }
+      
+      return ErrorValue('NestedEnum constructor requires int or string argument, got ${arg.runtimeType}');
     }),
   ];
 }

@@ -3,6 +3,7 @@ import 'package:cel/src/gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
 import 'package:protobuf/protobuf.dart';
 import '../common/types/ref/provider.dart';
 import '../common/types/type.dart';
+import '../common/types/enum.dart';
 
 abstract class Activation extends Equatable {
   dynamic resolveName(dynamic namespaceName);
@@ -17,10 +18,11 @@ abstract class Activation extends Equatable {
 }
 
 class EvalActivation extends Activation {
-  EvalActivation(this.input, {this.typeAdapter});
+  EvalActivation(this.input, {this.typeAdapter, this.container});
 
   final Map<String, dynamic> input;
   final TypeAdapter? typeAdapter;
+  final String? container;
 
   @override
   dynamic resolveName(dynamic namespaceName) {
@@ -47,6 +49,12 @@ class EvalActivation extends Activation {
           return TypeValue('type');
         case 'null_type':
           return TypeValue('null_type');
+      }
+      
+      // Check for enum type namespaces
+      final enumNamespace = _resolveEnumNamespace(namespaceName);
+      if (enumNamespace != null) {
+        return enumNamespace;
       }
     }
     
@@ -85,8 +93,20 @@ class EvalActivation extends Activation {
     return value;
   }
 
+  /// Resolve enum namespace by name using the global enum registry
+  /// This handles enum types like GlobalEnum, TestAllTypes.NestedEnum
+  EnumNamespace? _resolveEnumNamespace(String namespaceName) {
+    // Ensure the global enum registry is initialized
+    if (globalEnumRegistry.registeredTypes.isEmpty) {
+      globalEnumRegistry.discoverAndRegisterProtobufEnums();
+    }
+    
+    // Use the enum registry to resolve the namespace
+    return globalEnumRegistry.resolveEnumNamespace(namespaceName, container);
+  }
+
   @override
-  List<Object?> get props => [input, typeAdapter];
+  List<Object?> get props => [input, typeAdapter, container];
 }
 
 // VarActivation extends the parent activation with a single variable binding

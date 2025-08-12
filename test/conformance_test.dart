@@ -25,6 +25,7 @@ void main() {
       'string_ext',
       'lists',
       'macros',
+      'enums',
     ];
 
     for (final suiteName in testSuites) {
@@ -56,11 +57,11 @@ Future<void> _runConformanceTest(
 
   if (results.failures.isNotEmpty) {
     print('  Failures:');
-    final maxFailures = suiteName == 'basic' ? results.failures.length : 5;
+    final maxFailures = suiteName == 'basic' || suiteName == 'enums' ? results.failures.length : 5;
 
     for (final failure in results.failures.take(maxFailures)) {
       print('    - ${failure.name}: ${failure.error}');
-      if (suiteName == 'basic' && failure.expected != null) {
+      if ((suiteName == 'basic' || suiteName == 'enums') && failure.expected != null) {
         print('      Expected: ${failure.expected}');
         print('      Actual: ${failure.actual}');
       }

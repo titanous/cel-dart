@@ -23,6 +23,7 @@ import '../gen/google/protobuf/struct.pb.dart' as pb_struct;
 import '../gen/google/protobuf/field_mask.pb.dart' as pb_field_mask;
 import '../gen/cel/expr/conformance/proto2/test_all_types.pb.dart' as proto2;
 import '../gen/cel/expr/conformance/proto3/test_all_types.pb.dart' as proto3;
+import '../common/types/enum.dart';
 
 /// Test result for a single conformance test
 class TestResult {
@@ -96,7 +97,7 @@ class ConformanceTestRunner {
           );
       } catch (e) {
         // If JSON parsing still fails, log the error but continue
-        print('Warning: Failed to parse JSON for ${testFile}: $e');
+        print('Warning: Failed to parse JSON for $testFile: $e');
         testFileProto = SimpleTestFile.create();
         testFileProto.name = 'failed_to_parse';
       }
@@ -114,7 +115,7 @@ class ConformanceTestRunner {
           continue;
         }
 
-        final result = _runSingleTest(test);
+        final result = _runSingleTest(test, sectionName: section.name);
         results.add(result);
       }
     }
@@ -142,7 +143,7 @@ class ConformanceTestRunner {
   }
 
   /// Run a single test case
-  TestResult _runSingleTest(SimpleTest test) {
+  TestResult _runSingleTest(SimpleTest test, {String? sectionName}) {
     try {
       // Skip tests that require unsupported features
       if (_requiresUnsupportedFeatures(test)) {
@@ -151,6 +152,12 @@ class ConformanceTestRunner {
           passed: true, // Mark as passed but skipped
           error: 'Skipped: requires unsupported features',
         );
+      }
+
+      // Configure enum mode based on section name
+      if (sectionName != null) {
+        final isLegacyMode = sectionName.startsWith('legacy');
+        globalEnumRegistry.setGlobalMode(isLegacyMode: isLegacyMode);
       }
 
       // Create an environment with the container if provided
@@ -340,6 +347,9 @@ class ConformanceTestRunner {
       return map;
     } else if (value.hasTypeValue()) {
       return {'typeValue': value.typeValue};
+    } else if (value.hasEnumValue()) {
+      // Handle enumValue for strong enum mode tests
+      return EnumValue.createStrong(value.enumValue.type, value.enumValue.value);
     }
 
     // Handle other types as needed
@@ -423,6 +433,11 @@ class ConformanceTestRunner {
         
         return (actualDouble - expectedDouble).abs() < 1e-9;
       }
+    }
+
+    // Handle EnumValue comparison for strong enum mode tests
+    if (actual is EnumValue && expected is EnumValue) {
+      return actual.enumType == expected.enumType && actual.numericValue == expected.numericValue;
     }
 
     return actual == expected;
