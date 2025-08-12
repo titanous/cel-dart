@@ -87,7 +87,6 @@ class IntValue extends Value
   multiply(Value other) {
     final otherValue = other.value as int;
     
-    // Check for integer overflow in multiplication
     // Constants for int64 range  
     const int64Min = -9223372036854775808;
     const int64Max = 9223372036854775807;
@@ -97,39 +96,23 @@ class IntValue extends Value
       return IntValue(0);
     }
     
-    // Handle sign and absolute values for overflow detection
-    final bool resultNegative = (value < 0) != (otherValue < 0);
-    
-    // Special case: INT64_MIN cannot be negated without overflow
-    if (value == int64Min || otherValue == int64Min) {
-      // INT64_MIN * 1 = INT64_MIN (valid)
-      // INT64_MIN * -1 = overflow (handled by negate logic elsewhere)
-      // For other cases, overflow is likely
-      if ((value == int64Min && otherValue.abs() > 1) || 
-          (otherValue == int64Min && value.abs() > 1)) {
-        return intOverflowError;
-      }
+    // Special case: INT64_MIN * -1 would overflow to +2^63 which isn't representable
+    if ((value == int64Min && otherValue == -1) || 
+        (otherValue == int64Min && value == -1)) {
+      return intOverflowError;
     }
     
-    final int absValue = value.abs();
-    final int absOther = otherValue.abs();
+    // Check for overflow before multiplication to avoid wraparound
+    final absValue = value.abs();
+    final absOther = otherValue.abs();
     
-    // Check for overflow by comparing against the maximum allowed factor
-    if (resultNegative) {
-      // Result will be negative, check against int64Min
-      // For negative results: result = -(absValue * absOther)
-      // Overflow if absValue * absOther > -int64Min (which is 2^63)
-      if (absValue > (-int64Min) ~/ absOther) {
-        return intOverflowError;
-      }
-    } else {
-      // Result will be positive, check against int64Max
-      if (absValue > int64Max ~/ absOther) {
-        return intOverflowError;
-      }
+    // Simple overflow check: if either operand is too large, multiplication will overflow
+    if (absValue > 0 && absOther > int64Max ~/ absValue) {
+      return intOverflowError;
     }
     
-    return IntValue(value * otherValue);
+    final result = value * otherValue;
+    return IntValue(result);
   }
 
   @override

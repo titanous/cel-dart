@@ -6,9 +6,9 @@ import 'package:cel/src/common/types/traits/traits.dart';
 
 import 'ref/value.dart';
 
-final boolType = Type_('bool', {Traits.ComparerType, Traits.NegatorType});
+final boolType = Type_('bool', {Traits.ComparerType});
 
-class BooleanValue extends Value implements Negater, Comparer {
+class BooleanValue extends Value implements Comparer {
   BooleanValue(this.value);
 
   @override
@@ -16,11 +16,6 @@ class BooleanValue extends Value implements Negater, Comparer {
 
   @override
   Type_ get type => boolType;
-
-  @override
-  Value negate() {
-    return BooleanValue(!value);
-  }
 
   @override
   Value compare(Value other) {

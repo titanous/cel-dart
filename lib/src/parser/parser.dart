@@ -40,6 +40,9 @@ Expr visit(ParseTree tree) {
   if (tree is LogicalNotContext) {
     return visitLogicalNot(tree);
   }
+  if (tree is NegateContext) {
+    return visitNegate(tree);
+  }
   if (tree is RelationContext) {
     return visitRelation(tree);
   }
@@ -143,10 +146,43 @@ Expr visitCreateStruct(CreateStructContext tree) {
 }
 
 Expr visitLogicalNot(LogicalNotContext tree) {
+  final member = tree.member();
+  if (member != null) {
+    var result = visit(member);
+    // Apply logical not for each exclamation operator
+    final operators = tree.EXCLAMs();
+    for (int i = 0; i < operators.length; i++) {
+      result = CallExpr(
+        function: Operators.logicalNot.name,
+        args: [result],
+      );
+    }
+    return result;
+  }
+  
+  // Fallback
   final target = visit(tree.member()!);
-  // Skipped: global call or macro.
-
   return CallExpr(function: Operators.logicalNot.name, args: [target]);
+}
+
+Expr visitNegate(NegateContext tree) {
+  final member = tree.member();
+  if (member != null) {
+    var result = visit(member);
+    // Apply negation for each minus operator
+    final operators = tree.MINUSs();
+    for (int i = 0; i < operators.length; i++) {
+      result = CallExpr(
+        function: Operators.negate.name,
+        args: [result],
+      );
+    }
+    return result;
+  }
+  
+  // Fallback
+  final target = visit(tree.member()!);
+  return CallExpr(function: Operators.negate.name, args: [target]);
 }
 
 Expr visitCreateList(CreateListContext tree) {
@@ -268,10 +304,16 @@ Expr visitUnary(UnaryContext tree) {
   if (tree is NegateContext) {
     final member = tree.member();
     if (member != null) {
-      return CallExpr(
-        function: Operators.negate.name,
-        args: [visit(member)],
-      );
+      var result = visit(member);
+      // Apply negation for each minus operator
+      final operators = tree.MINUSs();
+      for (int i = 0; i < operators.length; i++) {
+        result = CallExpr(
+          function: Operators.negate.name,
+          args: [result],
+        );
+      }
+      return result;
     }
   }
   
@@ -279,10 +321,16 @@ Expr visitUnary(UnaryContext tree) {
   if (tree is LogicalNotContext) {
     final member = tree.member();
     if (member != null) {
-      return CallExpr(
-        function: Operators.logicalNot.name,
-        args: [visit(member)],
-      );
+      var result = visit(member);
+      // Apply logical not for each exclamation operator
+      final operators = tree.EXCLAMs();
+      for (int i = 0; i < operators.length; i++) {
+        result = CallExpr(
+          function: Operators.logicalNot.name,
+          args: [result],
+        );
+      }
+      return result;
     }
   }
   
