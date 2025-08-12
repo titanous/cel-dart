@@ -1,7 +1,15 @@
 import 'package:fixnum/fixnum.dart';
 import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/int.dart';
+import 'package:cel/src/common/types/uint.dart';
+import 'package:cel/src/common/types/double.dart';
+import 'package:cel/src/common/types/string.dart';
 import 'package:cel/src/common/types/error.dart';
+import 'package:cel/src/gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
+import 'package:cel/src/common/types/bytes.dart';
+import 'package:cel/src/common/types/bool.dart';
+import 'package:cel/src/common/types/pb/message.dart';
+import 'dart:typed_data';
 
 /// Helper for cross-type numeric comparisons
 class NumericCompare {
@@ -48,6 +56,10 @@ class NumericCompare {
       // Errors are never equal to anything
       return false;
     }
+
+    // Unwrap protobuf wrapper types first
+    left = _unwrapValue(left);
+    right = _unwrapValue(right);
 
     // Handle cross-type numeric equality
     if (_isNumeric(left) && _isNumeric(right)) {
@@ -118,8 +130,14 @@ class NumericCompare {
   }
 
   static bool _bytesEqual(Value left, Value right) {
-    // Compare byte values directly
-    return left.value == right.value;
+    // Use the BytesValue.equal method for proper comparison
+    if (left is BytesValue) {
+      final result = left.equal(right);
+      if (result is BooleanValue) {
+        return result.value;
+      }
+    }
+    return false;
   }
 
   static bool _listsEqual(List left, List right) {
@@ -142,19 +160,100 @@ class NumericCompare {
       return false;
     }
 
-    for (final key in leftMap.keys) {
-      if (!rightMap.containsKey(key)) {
-        return false;
-      }
+    // Track which right map keys we've matched to avoid duplicate matches
+    final matchedRightKeys = <dynamic>{};
 
-      final leftVal =
-          leftMap[key] is Value ? leftMap[key] : IntValue(leftMap[key]);
-      final rightVal =
-          rightMap[key] is Value ? rightMap[key] : IntValue(rightMap[key]);
+    for (final leftKey in leftMap.keys) {
+      // Find a matching key in the right map using cross-type equality
+      dynamic matchingRightKey;
+      for (final rightKey in rightMap.keys) {
+        if (matchedRightKeys.contains(rightKey)) {
+          continue;
+        }
+        
+        // Convert keys to Values for comparison
+        final leftKeyVal = leftKey is Value ? leftKey : _convertToValue(leftKey);
+        final rightKeyVal = rightKey is Value ? rightKey : _convertToValue(rightKey);
+        
+        // Check if keys are equal (handles cross-type numeric equality)
+        if (_keysEqual(leftKeyVal, rightKeyVal)) {
+          matchingRightKey = rightKey;
+          break;
+        }
+      }
+      
+      if (matchingRightKey == null) {
+        return false; // No matching key found
+      }
+      
+      matchedRightKeys.add(matchingRightKey);
+      
+      // Compare the values for these keys
+      final leftVal = leftMap[leftKey] is Value ? leftMap[leftKey] : IntValue(leftMap[leftKey]);
+      final rightVal = rightMap[matchingRightKey] is Value ? rightMap[matchingRightKey] : IntValue(rightMap[matchingRightKey]);
       if (!equals(leftVal, rightVal)) {
         return false;
       }
     }
     return true;
+  }
+  
+  // Helper to convert primitive keys to Value types
+  static Value _convertToValue(dynamic key) {
+    if (key is int) return IntValue(key);
+    if (key is double) return DoubleValue(key);
+    if (key is String) return StringValue(key);
+    if (key is bool) return BooleanValue(key);
+    return key;
+  }
+  
+  // Check if two keys are equal with cross-type numeric support
+  static bool _keysEqual(Value left, Value right) {
+    // For numeric types, use cross-type equality
+    if (_isNumeric(left) && _isNumeric(right)) {
+      final leftNum = _getNumericValue(left);
+      final rightNum = _getNumericValue(right);
+      return leftNum == rightNum;
+    }
+    // For non-numeric types, use regular equality
+    return equals(left, right);
+  }
+
+  static Value _unwrapValue(Value value) {
+    // If value is a MessageValue containing a protobuf wrapper type, unwrap it
+    if (value is MessageValue) {
+      final msg = value.message;
+      
+      if (msg is pb_wrappers.BytesValue) {
+        // Unwrap BytesValue to BytesValue CEL type
+        return BytesValue(Uint8List.fromList(msg.value));
+      } else if (msg is pb_wrappers.StringValue) {
+        // StringValue wrapper - return as is for now
+        return value;
+      } else if (msg is pb_wrappers.BoolValue) {
+        // BoolValue wrapper - return as is for now
+        return value;
+      } else if (msg is pb_wrappers.DoubleValue) {
+        // DoubleValue wrapper - return as is for now
+        return value;
+      } else if (msg is pb_wrappers.FloatValue) {
+        // FloatValue wrapper - return as is for now
+        return value;
+      } else if (msg is pb_wrappers.Int32Value) {
+        // Int32Value wrapper - return as is for now
+        return value;
+      } else if (msg is pb_wrappers.Int64Value) {
+        // Int64Value wrapper - return as is for now
+        return value;
+      } else if (msg is pb_wrappers.UInt32Value) {
+        // UInt32Value wrapper - return as is for now
+        return value;
+      } else if (msg is pb_wrappers.UInt64Value) {
+        // UInt64Value wrapper - return as is for now
+        return value;
+      }
+    }
+    
+    return value;
   }
 }

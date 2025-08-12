@@ -223,7 +223,9 @@ class ConformanceTestRunner {
           passed: matches,
           expected: expectedValue.toString(),
           actual: result.toString(),
-          error: matches ? null : 'Value mismatch',
+          error: matches
+              ? null
+              : 'Value mismatch - Expression: ${test.expr}, Expected: $expectedValue (${expectedValue.runtimeType}), Actual: $result (${result.runtimeType})',
         );
       }
 
