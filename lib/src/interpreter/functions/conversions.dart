@@ -145,7 +145,19 @@ List<Overload> conversionOverloads() {
         return DoubleValue(value.value.toDouble());
       }
       if (value is UintValue) {
-        return DoubleValue(value.value.toDouble());
+        // Convert uint64 stored as Int64 to double as unsigned value
+        final int64Val = value.value;
+        double doubleVal;
+        if (int64Val.isNegative) {
+          // For large uint64 values stored as negative Int64,
+          // we need to add 2^64 to get the correct unsigned value
+          // Using BigInt to avoid precision loss
+          final bigInt = BigInt.from(int64Val.toInt()) + (BigInt.one << 64);
+          doubleVal = bigInt.toDouble();
+        } else {
+          doubleVal = int64Val.toDouble();
+        }
+        return DoubleValue(doubleVal);
       }
       if (value is StringValue) {
         final str = value.value;
@@ -359,6 +371,10 @@ List<Overload> conversionOverloads() {
       }
       if (value is MapValue) {
         return TypeValue('map');
+      }
+      if (value is TypeValue) {
+        // The type of a type is "type"
+        return TypeValue('type');
       }
 
       // For unknown types, return the runtime type name
