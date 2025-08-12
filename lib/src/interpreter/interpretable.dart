@@ -440,7 +440,30 @@ class MessageInterpretable implements Interpretable {
         if (keys.isNotEmpty && values.isNotEmpty) {
           final key = keys[0].evaluate(activation);
           if (key is StringValue && key.value == 'value') {
-            // Return the wrapped value directly, not the wrapper message
+            // For FloatValue, we need to create the actual protobuf message 
+            // so it can be auto-unwrapped with proper float32 precision
+            if (typeName == 'google.protobuf.FloatValue') {
+              // Create the actual FloatValue protobuf message
+              final value = values[0].evaluate(activation);
+              final nativeValue = _convertToNativeValue(value);
+              
+              // Create the protobuf message through the TypeRegistry
+              if (adapter is TypeRegistry) {
+                final typeRegistry = adapter as TypeRegistry;
+                final result = typeRegistry.createMessage(typeName, {'value': nativeValue});
+                if (result != null) {
+                  // The result might already be auto-unwrapped if it's a Value type
+                  if (result is Value) {
+                    return result;
+                  } else if (result is MessageValue) {
+                    // Now auto-unwrap through the provider's _nativeToValue function
+                    return adapter.nativeToValue(result.message);
+                  }
+                }
+              }
+            }
+            
+            // For other wrapper types, return the wrapped value directly
             return values[0].evaluate(activation);
           }
         }

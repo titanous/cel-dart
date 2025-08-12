@@ -316,7 +316,11 @@ class ProtobufTypeAdapter {
       } else if (value is pb_wrappers.DoubleValue) {
         return DoubleValue(value.value);
       } else if (value is pb_wrappers.FloatValue) {
-        return DoubleValue(value.value);
+        // FloatValue should preserve float precision (32-bit) when auto-unwrapped
+        // Convert to float32 precision to match IEEE 754 single precision
+        final floatValue = value.value;
+        final float32Value = _toFloat32(floatValue);
+        return DoubleValue(float32Value);
       } else if (value is pb_wrappers.Int32Value) {
         return IntValue(value.value);
       } else if (value is pb_wrappers.Int64Value) {
@@ -431,5 +435,13 @@ class ProtobufTypeAdapter {
     } else {
       return NullValue();
     }
+  }
+
+  /// Convert a double to float32 precision (IEEE 754 single precision)
+  double _toFloat32(double value) {
+    // Use typed_data to convert to 32-bit float precision
+    final buffer = ByteData(4);
+    buffer.setFloat32(0, value, Endian.host);
+    return buffer.getFloat32(0, Endian.host);
   }
 }

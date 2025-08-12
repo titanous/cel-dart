@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:cel/src/common/types/list.dart';
 import 'package:cel/src/common/types/map.dart';
 import 'package:cel/src/common/types/bool.dart';
@@ -298,7 +299,11 @@ Value _nativeToValue(TypeAdapter adapter, dynamic value) {
     return DoubleValue(value.value);
   }
   if (value is pb_wrappers.FloatValue) {
-    return DoubleValue(value.value.toDouble());
+    // FloatValue should preserve float precision (32-bit) when auto-unwrapped
+    // Convert to float32 precision to match IEEE 754 single precision
+    final floatValue = value.value;
+    final float32Value = _toFloat32(floatValue);
+    return DoubleValue(float32Value);
   }
   if (value is pb_wrappers.Int64Value) {
     return IntValue(value.value.toInt());
@@ -439,4 +444,12 @@ Value _adaptProtoValue(pb_struct.Value protoValue) {
     // Default to null if no value is set
     return nullValue;
   }
+}
+
+/// Convert a double to float32 precision (IEEE 754 single precision)
+double _toFloat32(double value) {
+  // Use typed_data to convert to 32-bit float precision
+  final buffer = ByteData(4);
+  buffer.setFloat32(0, value, Endian.host);
+  return buffer.getFloat32(0, Endian.host);
 }
