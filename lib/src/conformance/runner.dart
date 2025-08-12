@@ -308,7 +308,9 @@ class ConformanceTestRunner {
           (anyMessage.typeUrl.contains('Value') ||
               anyMessage.typeUrl.contains('Wrapper') ||
               anyMessage.typeUrl.contains('Struct') ||
-              anyMessage.typeUrl.contains('ListValue'))) {
+              anyMessage.typeUrl.contains('ListValue') ||
+              anyMessage.typeUrl.contains('Duration') ||
+              anyMessage.typeUrl.contains('Timestamp'))) {
         try {
           final unpackedMessage = _unpackAnyMessage(anyMessage);
           if (unpackedMessage != null) {
@@ -561,6 +563,14 @@ class ConformanceTestRunner {
           return msg;
         case 'google.protobuf.Struct':
           final msg = pb_struct.Struct();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        case 'google.protobuf.Duration':
+          final msg = pb_duration.Duration();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
+        case 'google.protobuf.Timestamp':
+          final msg = pb_timestamp.Timestamp();
           msg.mergeFromBuffer(anyMessage.value);
           return msg;
         // Add test types
