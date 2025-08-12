@@ -13,9 +13,10 @@ import 'package:cel/src/common/types/list.dart';
 import 'package:cel/src/common/types/map.dart';
 import 'package:cel/src/common/types/pb/message.dart';
 import 'package:cel/src/common/types/provider.dart';
+import 'package:protobuf/protobuf.dart' show GeneratedMessage;
 
 import '../common/types/ref/provider.dart';
-import '../common/types/ref/value.dart';
+import '../common/types/ref/value.dart' show Value;
 import 'activation.dart';
 import 'dispatcher.dart';
 import 'attribute.dart';
@@ -475,8 +476,18 @@ class MessageInterpretable implements Interpretable {
         // Range validation or other error occurred
         return result;
       } else if (result != null) {
-        // Result is already a GeneratedMessage, wrap it in a MessageValue
-        return MessageValue(result, adapter);
+        // Check if result is a GeneratedMessage (normal case) or auto-unwrapped CEL Value
+        if (result is GeneratedMessage) {
+          // Result is a GeneratedMessage, wrap it in a MessageValue
+          return MessageValue(result, adapter);
+        } else if (result is Value) {
+          // Result is an auto-unwrapped CEL Value, return it directly
+          return result;
+        } else {
+          // Result is some other native value, convert to CEL Value
+          final celValue = adapter.nativeToValue(result);
+          return celValue;
+        }
       }
     }
 

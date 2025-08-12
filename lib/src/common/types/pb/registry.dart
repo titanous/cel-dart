@@ -443,6 +443,43 @@ class ProtoTypeRegistry {
         proto2.TestAllTypes().info_, () => proto2.TestAllTypes());
     registerMessageType('cel.expr.conformance.proto3.TestAllTypes',
         proto3.TestAllTypes().info_, () => proto3.TestAllTypes());
+
+    // Register short names for Well-Known Types for CEL expressions
+    registerMessageType('google.protobuf.BoolValue',
+        pb_wrappers.BoolValue().info_, () => pb_wrappers.BoolValue());
+    registerMessageType('google.protobuf.BytesValue',
+        pb_wrappers.BytesValue().info_, () => pb_wrappers.BytesValue());
+    registerMessageType('google.protobuf.DoubleValue',
+        pb_wrappers.DoubleValue().info_, () => pb_wrappers.DoubleValue());
+    registerMessageType('google.protobuf.FloatValue',
+        pb_wrappers.FloatValue().info_, () => pb_wrappers.FloatValue());
+    registerMessageType('google.protobuf.Int32Value',
+        pb_wrappers.Int32Value().info_, () => pb_wrappers.Int32Value());
+    registerMessageType('google.protobuf.Int64Value',
+        pb_wrappers.Int64Value().info_, () => pb_wrappers.Int64Value());
+    registerMessageType('google.protobuf.StringValue',
+        pb_wrappers.StringValue().info_, () => pb_wrappers.StringValue());
+    registerMessageType('google.protobuf.UInt32Value',
+        pb_wrappers.UInt32Value().info_, () => pb_wrappers.UInt32Value());
+    registerMessageType('google.protobuf.UInt64Value',
+        pb_wrappers.UInt64Value().info_, () => pb_wrappers.UInt64Value());
+
+    registerMessageType('google.protobuf.Timestamp',
+        pb_timestamp.Timestamp().info_, () => pb_timestamp.Timestamp());
+    registerMessageType('google.protobuf.Duration',
+        pb_duration.Duration().info_, () => pb_duration.Duration());
+    registerMessageType('google.protobuf.Any',
+        pb_any.Any().info_, () => pb_any.Any());
+    registerMessageType('google.protobuf.Empty',
+        pb_empty.Empty().info_, () => pb_empty.Empty());
+    registerMessageType('google.protobuf.Struct',
+        pb_struct.Struct().info_, () => pb_struct.Struct());
+    registerMessageType('google.protobuf.Value',
+        pb_struct.Value().info_, () => pb_struct.Value());
+    registerMessageType('google.protobuf.ListValue',
+        pb_struct.ListValue().info_, () => pb_struct.ListValue());
+    registerMessageType('google.protobuf.FieldMask',
+        pb_field_mask.FieldMask().info_, () => pb_field_mask.FieldMask());
   }
 
   /// Convert a value to int, handling Int64 and other numeric types

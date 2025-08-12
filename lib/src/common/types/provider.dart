@@ -152,6 +152,7 @@ class TypeRegistry implements TypeAdapter {
   // Returns GeneratedMessage on success, null if type not found, or ErrorValue on validation error
   dynamic createMessage(String typeName, Map<String, dynamic> fields) {
     if (protoRegistry == null) return null;
+    
 
     // Try resolving the type name with the container if available
     MessageValue? messageVal;
@@ -176,9 +177,9 @@ class TypeRegistry implements TypeAdapter {
     // Check if this is a special message type that should auto-unwrap to its CEL value
     if (_shouldAutoUnwrap(message)) {
       // Use the type adapter to convert the message to its CEL equivalent
-      return _nativeToValue(this, message);
+      final celValue = _nativeToValue(this, message);
+      return celValue;
     }
-    
     return message;
   }
 
