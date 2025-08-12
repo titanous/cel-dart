@@ -48,7 +48,8 @@ class ProtoTypeRegistry {
   }
 
   /// Create a new message instance by type name
-  MessageValue? createMessage(String typeName, [Map<String, dynamic>? fields]) {
+  /// Returns MessageValue on success, ErrorValue on validation error, null if type not found
+  dynamic createMessage(String typeName, [Map<String, dynamic>? fields]) {
     final constructor = _constructors[typeName];
     if (constructor != null) {
       final message = constructor();
@@ -56,7 +57,12 @@ class ProtoTypeRegistry {
       // If fields are provided, set them on the message
       if (fields != null) {
         for (final entry in fields.entries) {
-          _setFieldValue(message, entry.key, entry.value);
+          try {
+            _setFieldValue(message, entry.key, entry.value);
+          } catch (e) {
+            // Return error for validation failures
+            return e; // This will be an ArgumentError with the validation message
+          }
         }
       }
       
@@ -295,7 +301,28 @@ class ProtoTypeRegistry {
         return wrapper;
       case 'google.protobuf.FloatValue':
         final wrapper = pb_wrappers.FloatValue();
-        wrapper.value = value is num ? value.toDouble() : 0.0;
+        if (value is num) {
+          final doubleValue = value.toDouble();
+          // For FloatValue, clamp to float32 range and convert to infinity if needed
+          // Float32 range: approximately ±3.4e38
+          const maxFloat32 = 3.4028235e+38;
+          const minFloat32 = -3.4028235e+38;
+          
+          if (doubleValue.isFinite) {
+            if (doubleValue > maxFloat32) {
+              wrapper.value = double.infinity;
+            } else if (doubleValue < minFloat32) {
+              wrapper.value = double.negativeInfinity;
+            } else {
+              wrapper.value = doubleValue;
+            }
+          } else {
+            // Keep NaN and infinity as-is
+            wrapper.value = doubleValue;
+          }
+        } else {
+          wrapper.value = 0.0;
+        }
         return wrapper;
       case 'google.protobuf.DoubleValue':
         final wrapper = pb_wrappers.DoubleValue();

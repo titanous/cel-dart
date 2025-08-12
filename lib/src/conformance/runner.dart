@@ -574,6 +574,10 @@ class ConformanceTestRunner {
           final msg = pb_wrappers.FloatValue();
           msg.mergeFromBuffer(anyMessage.value);
           return msg;
+        case 'google.protobuf.Value':
+          final msg = pb_struct.Value();
+          msg.mergeFromBuffer(anyMessage.value);
+          return msg;
         case 'google.protobuf.ListValue':
           final msg = pb_struct.ListValue();
           msg.mergeFromBuffer(anyMessage.value);

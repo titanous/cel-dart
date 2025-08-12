@@ -156,32 +156,42 @@ class TypeRegistry implements TypeAdapter {
     
 
     // Try resolving the type name with the container if available
-    MessageValue? messageVal;
+    dynamic result;
 
     if (container != null) {
       // Try each candidate name from the container
       final candidates = container!.resolveCandidateNames(typeName);
       for (final candidate in candidates) {
-        messageVal = protoRegistry!.createMessage(candidate, fields);
-        if (messageVal != null) break;
+        result = protoRegistry!.createMessage(candidate, fields);
+        if (result != null) break;
       }
     } else {
       // No container, try the name directly
-      messageVal = protoRegistry!.createMessage(typeName, fields);
+      result = protoRegistry!.createMessage(typeName, fields);
     }
 
-    if (messageVal == null) return null;
-
-    // Fields are already set by ProtoTypeRegistry
-    final message = messageVal.message;
+    if (result == null) return null;
     
-    // Check if this is a special message type that should auto-unwrap to its CEL value
-    if (_shouldAutoUnwrap(message)) {
-      // Use the type adapter to convert the message to its CEL equivalent
-      final celValue = _nativeToValue(this, message);
-      return celValue;
+    // Check if we got an error (ArgumentError from validation)
+    if (result is ArgumentError) {
+      return ErrorValue(result.message);
     }
-    return message;
+
+    // Check if result is MessageValue
+    if (result is MessageValue) {
+      // Fields are already set by ProtoTypeRegistry
+      final message = result.message;
+      
+      // Check if this is a special message type that should auto-unwrap to its CEL value
+      if (_shouldAutoUnwrap(message)) {
+        // Use the type adapter to convert the message to its CEL equivalent
+        final celValue = _nativeToValue(this, message);
+        return celValue;
+      }
+      return message;
+    }
+    
+    return result;
   }
 
   /// Check if a message should auto-unwrap to its CEL value equivalent
