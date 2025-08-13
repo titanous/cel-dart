@@ -11,12 +11,14 @@ import '../bool.dart';
 import '../list.dart';
 import '../map.dart';
 import '../bytes.dart';
-// import '../timestamp.dart'; // TODO: Implement when available
-// import '../duration.dart'; // TODO: Implement when available
+import '../timestamp.dart';
+import '../duration.dart';
 import '../null_.dart';
 import 'message.dart';
 import '../../../gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
 import '../../../gen/google/protobuf/struct.pb.dart' as pb_struct;
+import '../../../gen/google/protobuf/timestamp.pb.dart' as pb_timestamp;
+import '../../../gen/google/protobuf/duration.pb.dart' as pb_duration;
 import '../enum.dart';
 
 /// Adapter for converting protobuf messages to CEL values
@@ -260,7 +262,9 @@ class ProtobufTypeAdapter {
         value is pb_wrappers.UInt64Value ||
         value is pb_struct.Value ||  // google.protobuf.Value should also auto-convert
         value is pb_struct.ListValue ||  // google.protobuf.ListValue should also auto-convert  
-        value is pb_struct.Struct;  // google.protobuf.Struct should also auto-convert
+        value is pb_struct.Struct ||  // google.protobuf.Struct should also auto-convert
+        value is pb_timestamp.Timestamp ||  // google.protobuf.Timestamp should also auto-convert
+        value is pb_duration.Duration;  // google.protobuf.Duration should also auto-convert
   }
 
   /// Check if a field is a message field (not a wrapper type)
@@ -319,6 +323,12 @@ class ProtobufTypeAdapter {
       return value.hasValue();
     } else if (value is pb_wrappers.UInt64Value) {
       return value.hasValue();
+    } else if (value is pb_timestamp.Timestamp) {
+      // Timestamp is always considered as having a value when constructed
+      return true;
+    } else if (value is pb_duration.Duration) {
+      // Duration is always considered as having a value when constructed
+      return true;
     }
 
     return false;
@@ -375,6 +385,20 @@ class ProtobufTypeAdapter {
       } else if (value is pb_struct.Value) {
         // Convert protobuf Value to appropriate CEL value
         return _adaptProtoValue(value);
+      } else if (value is pb_timestamp.Timestamp) {
+        // Convert protobuf Timestamp to CEL TimestampValue
+        final dateTime = DateTime.fromMillisecondsSinceEpoch(
+          value.seconds.toInt() * 1000 + value.nanos ~/ 1000000,
+          isUtc: true,
+        );
+        return TimestampValue(dateTime);
+      } else if (value is pb_duration.Duration) {
+        // Convert protobuf Duration to CEL DurationValue
+        final duration = Duration(
+          seconds: value.seconds.toInt(),
+          microseconds: value.nanos ~/ 1000,
+        );
+        return DurationValue(duration);
       } else {
         // Check for other well-known types that need special handling
         // Import struct types at top of file

@@ -213,6 +213,21 @@ class OrderedFunctionDispatcher implements FunctionDispatch {
   }
 }
 
+/// CEL type enumeration for function signatures
+enum CelType {
+  any,
+  bool,
+  int,
+  uint,
+  double,
+  string,
+  bytes,
+  list,
+  map,
+  timestamp,
+  duration,
+}
+
 /// Builder for creating function registries with standard CEL functions
 class FunctionRegistryBuilder {
   final FunctionRegistry _registry = FunctionRegistry();

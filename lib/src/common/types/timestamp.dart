@@ -52,7 +52,15 @@ class TimestampValue extends Value implements Comparer {
   /// Add a duration to this timestamp
   Value add(Value other) {
     if (other is DurationValue) {
-      return TimestampValue(dateTime.add(other.value));
+      try {
+        final result = dateTime.add(other.value);
+        if (!_isValidTimestamp(result)) {
+          return ErrorValue('range');
+        }
+        return TimestampValue(result);
+      } catch (e) {
+        return ErrorValue('range');
+      }
     }
     return ErrorValue('cannot add ${other.runtimeType} to timestamp');
   }
@@ -60,12 +68,41 @@ class TimestampValue extends Value implements Comparer {
   /// Subtract a duration or another timestamp
   Value subtract(Value other) {
     if (other is DurationValue) {
-      return TimestampValue(dateTime.subtract(other.value));
+      try {
+        final result = dateTime.subtract(other.value);
+        if (!_isValidTimestamp(result)) {
+          return ErrorValue('range');
+        }
+        return TimestampValue(result);
+      } catch (e) {
+        return ErrorValue('range');
+      }
     }
     if (other is TimestampValue) {
-      // Returns a duration
-      return DurationValue(dateTime.difference(other.dateTime));
+      // Returns a duration - check for overflow
+      try {
+        final difference = dateTime.difference(other.dateTime);
+        if (!_isValidDuration(difference)) {
+          return ErrorValue('range');
+        }
+        return DurationValue(difference);
+      } catch (e) {
+        return ErrorValue('range');
+      }
     }
     return ErrorValue('cannot subtract ${other.runtimeType} from timestamp');
+  }
+
+  /// Check if a timestamp is within valid CEL range (year 1 to 9999)
+  static bool _isValidTimestamp(DateTime dt) {
+    return dt.year >= 1 && dt.year <= 9999;
+  }
+
+  /// Check if a duration is within valid CEL range
+  static bool _isValidDuration(Duration duration) {
+    // CEL duration range: -315,576,000,000 to +315,576,000,000 seconds
+    // This corresponds to approximately +/- 10,000 years
+    const maxSeconds = 315576000000;
+    return duration.inSeconds.abs() <= maxSeconds;
   }
 }

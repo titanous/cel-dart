@@ -21,3 +21,5 @@ export 'src/common/types/list.dart' show ListValue;
 export 'src/common/types/map.dart' show MapValue;
 export 'src/common/types/bytes.dart' show BytesValue;
 export 'src/common/types/error.dart' show ErrorValue;
+export 'src/common/types/timestamp.dart' show TimestampValue;
+export 'src/common/types/duration.dart' show DurationValue;

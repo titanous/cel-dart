@@ -84,11 +84,19 @@ class DurationValue extends Value
   @override
   Value add(Value other) {
     if (other is DurationValue) {
-      return DurationValue(duration + other.duration);
+      try {
+        final result = duration + other.duration;
+        if (!_isValidDuration(result)) {
+          return ErrorValue('range');
+        }
+        return DurationValue(result);
+      } catch (e) {
+        return ErrorValue('range');
+      }
     }
     if (other is TimestampValue) {
       // Adding duration to timestamp returns timestamp
-      return TimestampValue(other.dateTime.add(duration));
+      return other.add(this);
     }
     return ErrorValue('cannot add ${other.runtimeType} to duration');
   }
@@ -96,7 +104,15 @@ class DurationValue extends Value
   @override
   Value subtract(Value other) {
     if (other is DurationValue) {
-      return DurationValue(duration - other.duration);
+      try {
+        final result = duration - other.duration;
+        if (!_isValidDuration(result)) {
+          return ErrorValue('range');
+        }
+        return DurationValue(result);
+      } catch (e) {
+        return ErrorValue('range');
+      }
     }
     return ErrorValue('cannot subtract ${other.runtimeType} from duration');
   }
@@ -104,7 +120,15 @@ class DurationValue extends Value
   @override
   Value multiply(Value other) {
     if (other is IntValue) {
-      return DurationValue(duration * other.value);
+      try {
+        final result = duration * other.value;
+        if (!_isValidDuration(result)) {
+          return ErrorValue('range');
+        }
+        return DurationValue(result);
+      } catch (e) {
+        return ErrorValue('range');
+      }
     }
     return ErrorValue('cannot multiply duration by ${other.runtimeType}');
   }
@@ -136,5 +160,13 @@ class DurationValue extends Value
       return DurationValue(Duration(microseconds: remainder));
     }
     return ErrorValue('cannot take modulo of duration by ${other.runtimeType}');
+  }
+
+  /// Check if a duration is within valid CEL range
+  static bool _isValidDuration(Duration duration) {
+    // CEL duration range: -315,576,000,000 to +315,576,000,000 seconds
+    // This corresponds to approximately +/- 10,000 years
+    const maxSeconds = 315576000000;
+    return duration.inSeconds.abs() <= maxSeconds;
   }
 }

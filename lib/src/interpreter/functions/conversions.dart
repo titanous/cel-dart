@@ -431,14 +431,26 @@ List<Overload> conversionOverloads() {
         }
         if (val is IntValue) {
           // Convert Unix seconds to timestamp
-          return TimestampValue(DateTime.fromMillisecondsSinceEpoch(
-              val.value * 1000,
-              isUtc: true));
+          try {
+            final dateTime = DateTime.fromMillisecondsSinceEpoch(
+                val.value * 1000,
+                isUtc: true);
+            if (dateTime.year < 1 || dateTime.year > 9999) {
+              return ErrorValue('range');
+            }
+            return TimestampValue(dateTime);
+          } catch (e) {
+            return ErrorValue('range');
+          }
         }
         if (val is StringValue) {
           // Parse RFC3339 timestamp
           try {
-            return TimestampValue(DateTime.parse(val.value));
+            final dateTime = DateTime.parse(val.value);
+            if (dateTime.year < 1 || dateTime.year > 9999) {
+              return ErrorValue('range');
+            }
+            return TimestampValue(dateTime);
           } catch (e) {
             return ErrorValue('cannot parse timestamp: "${val.value}"');
           }
@@ -599,7 +611,15 @@ DurationValue _parseDuration(String str) {
     totalMilliseconds = -totalMilliseconds;
   }
 
-  return DurationValue(Duration(milliseconds: totalMilliseconds));
+  final duration = Duration(milliseconds: totalMilliseconds);
+  
+  // Check range - CEL duration range: -315,576,000,000 to +315,576,000,000 seconds
+  const maxSeconds = 315576000000;
+  if (duration.inSeconds.abs() > maxSeconds) {
+    throw FormatException('range');
+  }
+
+  return DurationValue(duration);
 }
 
 bool _isDigit(String char) {

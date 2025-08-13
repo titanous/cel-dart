@@ -26,6 +26,7 @@ void main() {
       'lists',
       'macros',
       'enums',
+      'timestamps',
     ];
 
     for (final suiteName in testSuites) {
@@ -98,6 +99,7 @@ Future<void> _generateConformanceReport(ConformanceTestRunner runner) async {
     'integer_math.json',
     'lists.json',
     'logic.json',
+    'timestamps.json',
     'macros.json',
     'namespace.json',
     'parse.json',
