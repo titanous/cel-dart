@@ -173,6 +173,11 @@ class ProtoTypeRegistry {
   
   /// Convert basic types to match protobuf field expectations
   dynamic _convertBasicTypes(FieldInfo field, dynamic value) {
+    // Handle enum fields - convert string names to enum values
+    if (field.type == 512) { // enum field (ENUM_BIT = 0x200)
+      return _convertEnumField(field, value);
+    }
+    
     // Handle int64 fields (including sint64) - convert Dart int to Int64
     if (field.type == 4096 || field.type == 16384) { // int64 or sint64
       if (value is int) {
@@ -203,6 +208,55 @@ class ProtoTypeRegistry {
     return value;
   }
   
+  /// Convert enum field values - handles both string names and numeric values
+  dynamic _convertEnumField(FieldInfo field, dynamic value) {
+    // If it's already a ProtobufEnum, return as-is
+    if (value is ProtobufEnum) {
+      return value;
+    }
+    
+    // If it's a number, we need to create an enum instance with that value
+    if (value is int) {
+      // Use the field's valueOf function if available
+      try {
+        final valueOf = field.valueOf;
+        if (valueOf != null) {
+          final enumValue = valueOf(value);
+          if (enumValue != null) {
+            return enumValue;
+          }
+        }
+      } catch (_) {
+        // Fallback: allow any integer value for the enum
+      }
+      // If valueOf doesn't work, let the protobuf library handle it
+      return value;
+    }
+    
+    // If it's a string, convert to the corresponding enum value
+    if (value is String) {
+      try {
+        // Try to find the enum value by name using the field's enumValues
+        final enumValues = field.enumValues;
+        if (enumValues != null) {
+          for (final enumValue in enumValues) {
+            if (enumValue.name == value) {
+              return enumValue;
+            }
+          }
+        }
+      } catch (_) {
+        // If direct lookup fails, let protobuf handle it
+      }
+      
+      // If we can't convert the string, let protobuf library try
+      return value;
+    }
+    
+    // For other types, return as-is and let protobuf handle it
+    return value;
+  }
+
   /// Convert values for message fields (ListValue, Any, etc.)
   dynamic _convertMessageField(FieldInfo field, dynamic value) {
     // Get the message type name if available - we need to check field's qualifiedMessageName

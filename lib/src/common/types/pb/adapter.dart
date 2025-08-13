@@ -17,6 +17,7 @@ import '../null_.dart';
 import 'message.dart';
 import '../../../gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
 import '../../../gen/google/protobuf/struct.pb.dart' as pb_struct;
+import '../enum.dart';
 
 /// Adapter for converting protobuf messages to CEL values
 class ProtobufTypeAdapter {
@@ -76,6 +77,10 @@ class ProtobufTypeAdapter {
     for (final field in info.fieldInfo.values) {
       // Check if the field matches by proto name (snake_case) or Dart name (camelCase)
       if (_matchesFieldName(field, fieldName)) {
+        // Special handling for enum fields that might contain unknown values
+        if (_isEnumField(field)) {
+          return _adaptEnumFieldSafely(msg, field);
+        }
         return _adaptFieldValue(msg, field);
       }
     }
@@ -184,7 +189,7 @@ class ProtobufTypeAdapter {
       // For repeated fields, adapt each element
       final elements = <Value>[];
       for (final element in list) {
-        elements.add(_adaptSingleValue(element));
+        elements.add(_adaptSingleValueWithContext(element, msg));
       }
       return ListValue(elements, typeAdapter);
     } else if (field.isMapField) {
@@ -193,7 +198,7 @@ class ProtobufTypeAdapter {
       final entries = <Value, Value>{};
       for (final entry in map.entries) {
         // For now, assume string keys and adapt values
-        entries[_adaptSingleValue(entry.key)] = _adaptSingleValue(entry.value);
+        entries[_adaptSingleValueWithContext(entry.key, msg)] = _adaptSingleValueWithContext(entry.value, msg);
       }
       return MapValue(entries, typeAdapter);
     } else {
@@ -201,13 +206,25 @@ class ProtobufTypeAdapter {
       final hasField = msg.hasField(field.tagNumber);
       final value = msg.getField(field.tagNumber);
 
+      // Special handling for enum fields: 
+      // Even if hasField is false, we should check if we have a valid enum value
+      if (_isEnumField(field)) {
+        // For enum fields, always try to get the value first
+        // Protobuf may return a valid enum even when hasField is false
+        if (value != null) {
+          return _adaptSingleValueWithContext(value, msg);
+        }
+        // Only fall back to default if we truly have no value
+        return _getDefaultValueForType(field.type);
+      }
+
       if (!hasField) {
         // For wrapper types, check if they have been explicitly set with a value
         if (_isWrapperType(value)) {
           // For wrapper types, check if they contain a non-default value
           if (_hasWrapperValue(value)) {
             // Wrapper has a value, process it normally
-            return _adaptSingleValue(value);
+            return _adaptSingleValueWithContext(value, msg);
           } else {
             // Wrapper is unset/default, return null
             return NullValue();
@@ -219,13 +236,13 @@ class ProtobufTypeAdapter {
         if (_isMessageField(field)) {
           // Return the default message instance even though the field isn't set
           // This matches proto3 semantics where unset message fields return their default instances
-          return _adaptSingleValue(value);
+          return _adaptSingleValueWithContext(value, msg);
         }
         
         // Return default value for unset non-wrapper, non-message fields
         return _getDefaultValueForType(field.type);
       }
-      return _adaptSingleValue(value);
+      return _adaptSingleValueWithContext(value, msg);
     }
   }
 
@@ -253,6 +270,15 @@ class ProtobufTypeAdapter {
     const MODIFIER_MASK = 0x400007;
     final baseType = field.type & ~MODIFIER_MASK;
     return (baseType & MESSAGE_BIT) != 0;
+  }
+
+  /// Check if a field is an enum field
+  bool _isEnumField(FieldInfo field) {
+    // Enum fields have the ENUM_BIT set in their type
+    const ENUM_BIT = 0x200;
+    const MODIFIER_MASK = 0x400007;
+    final baseType = field.type & ~MODIFIER_MASK;
+    return (baseType & ENUM_BIT) != 0;
   }
 
   /// Check if a wrapper type has a non-default value
@@ -300,6 +326,11 @@ class ProtobufTypeAdapter {
 
   /// Adapt a single value to CEL value based on its runtime type
   Value _adaptSingleValue(dynamic value) {
+    return _adaptSingleValueWithContext(value, null);
+  }
+
+  /// Adapt a single value to CEL value with message context for enum types
+  Value _adaptSingleValueWithContext(dynamic value, GeneratedMessage? contextMessage) {
     if (value == null) {
       return NullValue();
     }
@@ -313,8 +344,6 @@ class ProtobufTypeAdapter {
         return BytesValue(Uint8List.fromList(value.value));
       } else if (value is pb_wrappers.StringValue) {
         return StringValue(value.value);
-      } else if (value is pb_wrappers.DoubleValue) {
-        return DoubleValue(value.value);
       } else if (value is pb_wrappers.FloatValue) {
         // FloatValue should preserve float precision (32-bit) when auto-unwrapped
         // Convert to float32 precision to match IEEE 754 single precision
@@ -370,8 +399,8 @@ class ProtobufTypeAdapter {
       // Bytes
       return BytesValue(Uint8List.fromList(value));
     } else if (value is ProtobufEnum) {
-      // Enums are represented as integers
-      return IntValue(value.value);
+      // Handle enums based on global mode with context
+      return _adaptProtobufEnumWithContext(value, contextMessage);
     } else {
       // Unknown type, return as null
       return NullValue();
@@ -434,6 +463,89 @@ class ProtobufTypeAdapter {
       return NullValue();
     } else {
       return NullValue();
+    }
+  }
+
+  /// Adapt a protobuf enum value based on the current global enum mode with context
+  Value _adaptProtobufEnumWithContext(ProtobufEnum enumValue, GeneratedMessage? contextMessage) {
+    if (globalEnumRegistry.isGlobalLegacyMode) {
+      // Legacy mode: enums are represented as integers
+      return IntValue(enumValue.value);
+    } else {
+      // Strong mode: enums are distinct types
+      final enumTypeName = _getEnumTypeNameWithContext(enumValue, contextMessage);
+      return EnumValue.createStrong(enumTypeName, enumValue.value);
+    }
+  }
+  
+  /// Get the fully qualified enum type name from a ProtobufEnum instance with context
+  String _getEnumTypeNameWithContext(ProtobufEnum enumValue, GeneratedMessage? contextMessage) {
+    // Extract type name from the runtime type
+    final typeName = enumValue.runtimeType.toString();
+    
+    // Use context message to determine the proper container
+    String container = '';
+    if (contextMessage != null) {
+      final messageTypeName = contextMessage.info_.qualifiedMessageName;
+      // Extract container from message type name
+      final parts = messageTypeName.split('.');
+      if (parts.length >= 3) {
+        // Remove the last part (message name) to get the container
+        container = parts.take(parts.length - 1).join('.');
+      }
+    }
+    
+    // Handle nested enum types like TestAllTypes_NestedEnum
+    if (typeName.contains('_')) {
+      // Convert TestAllTypes_NestedEnum to TestAllTypes.NestedEnum
+      final parts = typeName.split('_');
+      if (parts.length >= 2) {
+        final messageName = parts[0];
+        final enumName = parts.sublist(1).join('_');
+        
+        if (container.isNotEmpty) {
+          return '$container.$messageName.$enumName';
+        } else {
+          return '$messageName.$enumName';
+        }
+      }
+    }
+    
+    // For non-nested enums (like GlobalEnum)
+    if (container.isNotEmpty) {
+      return '$container.$typeName';
+    }
+    
+    // Fallback: use the type name as-is
+    return typeName;
+  }
+
+  /// Safely adapt an enum field value that might contain unknown enum values
+  /// Uses getFieldOrNull to access raw values that might be _UnknownEnumValue objects
+  Value _adaptEnumFieldSafely(GeneratedMessage msg, FieldInfo field) {
+    // Use getFieldOrNull to access the raw stored value, which preserves _UnknownEnumValue objects
+    final rawValue = msg.getFieldOrNull(field.tagNumber);
+    
+    if (rawValue != null) {
+      // Check if this is an unknown enum value
+      if (rawValue.toString().startsWith('UNKNOWN_ENUM_VALUE_')) {
+        // Extract the integer value from the unknown enum
+        final enumValue = (rawValue as dynamic).value as int;
+        if (globalEnumRegistry.isGlobalLegacyMode) {
+          // Legacy mode: return the integer value
+          return IntValue(enumValue);
+        } else {
+          // Strong mode: return as a strong enum with the proper type name
+          final enumTypeName = _getEnumTypeNameWithContext(rawValue, msg);
+          return EnumValue.createStrong(enumTypeName, enumValue);
+        }
+      } else {
+        // This is a known enum value, handle normally
+        return _adaptSingleValueWithContext(rawValue, msg);
+      }
+    } else {
+      // Field is not set, return default
+      return _getDefaultValueForType(field.type);
     }
   }
 

@@ -91,8 +91,8 @@ class ConformanceTestRunner {
           ..mergeFromProto3Json(
             jsonData,
             typeRegistry: typeRegistry,
-            allowUnknownEnumIntegers:
-                true, // Enable proto3-compatible enum handling
+            allowUnknownEnumIntegers: true, // Enable proto2-compatible enum handling
+            permissiveEnums: true, // Enable proto3-compatible enum handling
             ignoreUnknownFields: true, // Handle extension fields gracefully
           );
       } catch (e) {
@@ -312,25 +312,29 @@ class ConformanceTestRunner {
       // For objectValue, we have an Any message that might need to be unpacked
       final anyMessage = value.objectValue;
 
-      // Only unpack if this looks like a well-known protobuf type that should be converted
-      if (anyMessage.typeUrl.contains('google.protobuf') &&
-          (anyMessage.typeUrl.contains('Value') ||
-              anyMessage.typeUrl.contains('Wrapper') ||
-              anyMessage.typeUrl.contains('Struct') ||
-              anyMessage.typeUrl.contains('ListValue') ||
-              anyMessage.typeUrl.contains('Duration') ||
-              anyMessage.typeUrl.contains('Timestamp'))) {
-        try {
-          final unpackedMessage = _unpackAnyMessage(anyMessage);
-          if (unpackedMessage != null) {
-            // Use the protobuf adapter to properly convert the message
+      // Always try to unpack Any messages - not just well-known types
+      try {
+        final unpackedMessage = _unpackAnyMessage(anyMessage);
+        if (unpackedMessage != null) {
+          // For well-known types, use the protobuf adapter to convert to CEL values
+          if (anyMessage.typeUrl.contains('google.protobuf') &&
+              (anyMessage.typeUrl.contains('Value') ||
+                  anyMessage.typeUrl.contains('Wrapper') ||
+                  anyMessage.typeUrl.contains('Struct') ||
+                  anyMessage.typeUrl.contains('ListValue') ||
+                  anyMessage.typeUrl.contains('Duration') ||
+                  anyMessage.typeUrl.contains('Timestamp'))) {
             final adapter = ProtobufTypeAdapter(environment.adapter);
             final adaptedValue = adapter.adaptValue(unpackedMessage);
             return _celValueToNative(adaptedValue);
+          } else {
+            // For other message types (like TestAllTypes), return the unpacked message directly
+            // This allows field access like x.standalone_enum to work correctly
+            return unpackedMessage;
           }
-        } catch (e) {
-          // If unpacking fails, fall through to default behavior
         }
+      } catch (e) {
+        // If unpacking fails, fall through to default behavior
       }
 
       // For non-wrapper types or if unpacking fails, return the Any message as-is
