@@ -1,10 +1,11 @@
 import 'package:fixnum/fixnum.dart';
 import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/int.dart';
-import 'package:cel/src/common/types/uint.dart';
 import 'package:cel/src/common/types/double.dart';
 import 'package:cel/src/common/types/string.dart';
 import 'package:cel/src/common/types/error.dart';
+import 'package:cel/src/interpreter/error_utils.dart';
+import 'package:cel/src/common/types/pb/registry.dart';
 import 'package:cel/src/gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
 import 'package:cel/src/common/types/bytes.dart';
 import 'package:cel/src/common/types/bool.dart';
@@ -12,34 +13,28 @@ import 'package:cel/src/common/types/pb/message.dart';
 import 'dart:typed_data';
 // Import for Any message handling
 import 'package:cel/src/gen/google/protobuf/any.pb.dart' as pb_any;
-import 'package:cel/src/gen/google/protobuf/timestamp.pb.dart' as pb_timestamp;
-import 'package:cel/src/gen/google/protobuf/duration.pb.dart' as pb_duration;
-import 'package:cel/src/gen/google/protobuf/empty.pb.dart' as pb_empty;
-import 'package:cel/src/gen/google/protobuf/struct.pb.dart' as pb_struct;
-import 'package:cel/src/gen/google/protobuf/field_mask.pb.dart' as pb_field_mask;
 import 'package:cel/src/gen/cel/expr/conformance/proto2/test_all_types.pb.dart' as proto2;
 import 'package:cel/src/gen/cel/expr/conformance/proto3/test_all_types.pb.dart' as proto3;
 import 'package:protobuf/protobuf.dart' as pb;
 
 /// Helper for cross-type numeric comparisons
 class NumericCompare {
+  static final ProtoTypeRegistry _registry = ProtoTypeRegistry();
   static Value compare(Value left, Value right) {
-    // Check for errors first
-    if (isError(left)) return left;
-    if (isError(right)) return right;
+    return ErrorUtils.safeBinaryOp(left, right, (lhs, rhs) {
+      // Get numeric values
+      final leftNum = _getNumericValue(lhs);
+      final rightNum = _getNumericValue(rhs);
 
-    // Get numeric values
-    final leftNum = _getNumericValue(left);
-    final rightNum = _getNumericValue(right);
-
-    // Compare and return IntValue result
-    if (leftNum < rightNum) {
-      return IntValue(-1);
-    } else if (leftNum > rightNum) {
-      return IntValue(1);
-    } else {
-      return IntValue(0);
-    }
+      // Compare and return IntValue result
+      if (leftNum < rightNum) {
+        return IntValue(-1);
+      } else if (leftNum > rightNum) {
+        return IntValue(1);
+      } else {
+        return IntValue(0);
+      }
+    });
   }
 
   static num _getNumericValue(Value value) {
@@ -389,7 +384,7 @@ class NumericCompare {
     return false;
   }
 
-  /// Unpack Any message to the actual protobuf message (adapted from conformance runner)
+  /// Unpack Any message using the ProtoTypeRegistry (replaces hardcoded switch statement)
   static pb.GeneratedMessage? _unpackAnyMessage(pb_any.Any anyMessage) {
     try {
       // Check the type URL to determine the message type
@@ -402,72 +397,8 @@ class NumericCompare {
 
       final fullTypeName = parts[1];
 
-      // Map known types to their constructors
-      switch (fullTypeName) {
-        case 'google.protobuf.Int32Value':
-          final msg = pb_wrappers.Int32Value();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        case 'google.protobuf.Int64Value':
-          final msg = pb_wrappers.Int64Value();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        case 'google.protobuf.UInt32Value':
-          final msg = pb_wrappers.UInt32Value();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        case 'google.protobuf.UInt64Value':
-          final msg = pb_wrappers.UInt64Value();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        case 'google.protobuf.BoolValue':
-          final msg = pb_wrappers.BoolValue();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        case 'google.protobuf.StringValue':
-          final msg = pb_wrappers.StringValue();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        case 'google.protobuf.BytesValue':
-          final msg = pb_wrappers.BytesValue();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        case 'google.protobuf.DoubleValue':
-          final msg = pb_wrappers.DoubleValue();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        case 'google.protobuf.FloatValue':
-          final msg = pb_wrappers.FloatValue();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        case 'google.protobuf.ListValue':
-          final msg = pb_struct.ListValue();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        case 'google.protobuf.Struct':
-          final msg = pb_struct.Struct();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        case 'google.protobuf.Duration':
-          final msg = pb_duration.Duration();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        case 'google.protobuf.Timestamp':
-          final msg = pb_timestamp.Timestamp();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        // Add test types - these are the key ones for the failing tests!
-        case 'cel.expr.conformance.proto2.TestAllTypes':
-          final msg = proto2.TestAllTypes();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        case 'cel.expr.conformance.proto3.TestAllTypes':
-          final msg = proto3.TestAllTypes();
-          msg.mergeFromBuffer(anyMessage.value);
-          return msg;
-        default:
-          return null;
-      }
+      // Use the ProtoTypeRegistry to unpack the message dynamically
+      return _registry.unpackAnyMessage(fullTypeName, anyMessage.value);
     } catch (e) {
       // If unpacking fails, return null
       return null;

@@ -16,6 +16,7 @@ import 'package:cel/src/common/types/null_.dart';
 import 'package:cel/src/common/types/list.dart';
 import 'package:cel/src/common/types/map.dart';
 import 'package:cel/src/common/types/enum.dart';
+import '../error_utils.dart';
 
 import 'functions.dart';
 
@@ -25,373 +26,373 @@ List<Overload> conversionOverloads() {
   return [
     // int() conversions
     Overload('int', unaryOperator: (value) {
-      if (isError(value)) return value;
+      return ErrorUtils.safeUnaryOp(value, (val) {
+        if (val is IntValue) {
+          return val;
+        }
+        if (val is UintValue) {
+          // Convert uint to int with overflow checking
+          final uintVal = val.value;
+          // If the Int64 is negative, it means the original uint64 value
+          // was larger than Int64.MAX_VALUE (i.e., >= 2^63), so it can't fit in int64
+          if (uintVal.isNegative) {
+            return ErrorValue('range error');
+          }
+          return IntValue(uintVal.toInt());
+        }
+        if (val is DoubleValue) {
+          final doubleVal = val.value;
+          if (doubleVal.isNaN || doubleVal.isInfinite) {
+            return ErrorValue('cannot convert NaN or Inf to int');
+          }
+          // Check for exact range of int64: -9223372036854775808 to 9223372036854775807
+          // But CEL requires range errors for values at the boundary when cast from double
+          // because the exact double representation may be outside the exact int64 range
+          const maxInt64AsDouble =
+              9223372036854775808.0; // 2^63, just above max int64
+          const minInt64AsDouble =
+              -9223372036854775809.0; // -2^63-1, just below min int64
+          if (doubleVal >= maxInt64AsDouble || doubleVal <= minInt64AsDouble) {
+            return ErrorValue('range');
+          }
+          return IntValue(doubleVal.toInt());
+        }
+        if (val is StringValue) {
+          try {
+            final parsed = int.parse(val.value);
+            return IntValue(parsed);
+          } catch (e) {
+            return ErrorValue('cannot convert string to int: "${val.value}"');
+          }
+        }
+        if (val is BooleanValue) {
+          return IntValue(val.value ? 1 : 0);
+        }
+        if (val is TimestampValue) {
+          // Convert timestamp to Unix seconds
+          return IntValue(val.dateTime.millisecondsSinceEpoch ~/ 1000);
+        }
+        if (val is EnumValue) {
+          // Convert enum to its numeric value
+          return IntValue(val.numericValue);
+        }
 
-      if (value is IntValue) {
-        return value;
-      }
-      if (value is UintValue) {
-        // Convert uint to int with overflow checking
-        final uintVal = value.value;
-        // If the Int64 is negative, it means the original uint64 value
-        // was larger than Int64.MAX_VALUE (i.e., >= 2^63), so it can't fit in int64
-        if (uintVal.isNegative) {
-          return ErrorValue('range error');
-        }
-        return IntValue(uintVal.toInt());
-      }
-      if (value is DoubleValue) {
-        final doubleVal = value.value;
-        if (doubleVal.isNaN || doubleVal.isInfinite) {
-          return ErrorValue('cannot convert NaN or Inf to int');
-        }
-        // Check for exact range of int64: -9223372036854775808 to 9223372036854775807
-        // But CEL requires range errors for values at the boundary when cast from double
-        // because the exact double representation may be outside the exact int64 range
-        const maxInt64AsDouble =
-            9223372036854775808.0; // 2^63, just above max int64
-        const minInt64AsDouble =
-            -9223372036854775809.0; // -2^63-1, just below min int64
-        if (doubleVal >= maxInt64AsDouble || doubleVal <= minInt64AsDouble) {
-          return ErrorValue('range');
-        }
-        return IntValue(doubleVal.toInt());
-      }
-      if (value is StringValue) {
-        try {
-          final parsed = int.parse(value.value);
-          return IntValue(parsed);
-        } catch (e) {
-          return ErrorValue('cannot convert string to int: "${value.value}"');
-        }
-      }
-      if (value is BooleanValue) {
-        return IntValue(value.value ? 1 : 0);
-      }
-      if (value is TimestampValue) {
-        // Convert timestamp to Unix seconds
-        return IntValue(value.dateTime.millisecondsSinceEpoch ~/ 1000);
-      }
-      if (value is EnumValue) {
-        // Convert enum to its numeric value
-        return IntValue(value.numericValue);
-      }
-
-      return ErrorValue(
-          'type conversion error from ${value.runtimeType} to int');
+        return ErrorValue(
+            'type conversion error from ${val.runtimeType} to int');
+      });
     }),
 
     // uint() conversions
     Overload('uint', unaryOperator: (value) {
-      if (isError(value)) return value;
-
-      if (value is UintValue) {
-        return value;
-      }
-      if (value is IntValue) {
-        final intVal = value.value;
-        if (intVal < 0) {
-          return ErrorValue('range error');
+      return ErrorUtils.safeUnaryOp(value, (val) {
+        if (val is UintValue) {
+          return val;
         }
-        return UintValue(intVal);
-      }
-      if (value is DoubleValue) {
-        final doubleVal = value.value;
-        if (doubleVal.isNaN || doubleVal.isInfinite) {
-          return ErrorValue('cannot convert NaN or Inf to uint');
-        }
-        if (doubleVal < 0) {
-          return ErrorValue('range error');
-        }
-        // Check for uint64 max (18446744073709551615)
-        const maxUint64AsDouble =
-            18446744073709551616.0; // 2^64, slightly above max uint64
-        if (doubleVal >= maxUint64AsDouble) {
-          return ErrorValue('range error');
-        }
-        return UintValue(doubleVal.toInt());
-      }
-      if (value is StringValue) {
-        try {
-          // Use BigInt to handle values that might exceed int range
-          final bigInt = BigInt.tryParse(value.value);
-          if (bigInt == null) {
-            return ErrorValue(
-                'cannot convert string to uint: "${value.value}"');
+        if (val is IntValue) {
+          final intVal = val.value;
+          if (intVal < 0) {
+            return ErrorValue('range error');
           }
-          if (bigInt < BigInt.zero) {
+          return UintValue(intVal);
+        }
+        if (val is DoubleValue) {
+          final doubleVal = val.value;
+          if (doubleVal.isNaN || doubleVal.isInfinite) {
+            return ErrorValue('cannot convert NaN or Inf to uint');
+          }
+          if (doubleVal < 0) {
             return ErrorValue('range error');
           }
           // Check for uint64 max (18446744073709551615)
-          final maxUint64 = (BigInt.from(1) << 64) - BigInt.one; // 2^64 - 1
-          if (bigInt > maxUint64) {
-            return ErrorValue(
-                'Positive input exceeds the limit of integer\n$bigInt');
+          const maxUint64AsDouble =
+              18446744073709551616.0; // 2^64, slightly above max uint64
+          if (doubleVal >= maxUint64AsDouble) {
+            return ErrorValue('range error');
           }
-          // Convert BigInt to Int64 to support full uint64 range
-          return UintValue.fromInt64(Int64.parseInt(value.value));
-        } catch (e) {
-          return ErrorValue('cannot convert string to uint: "${value.value}"');
+          return UintValue(doubleVal.toInt());
         }
-      }
+        if (val is StringValue) {
+          try {
+            // Use BigInt to handle values that might exceed int range
+            final bigInt = BigInt.tryParse(val.value);
+            if (bigInt == null) {
+              return ErrorValue(
+                  'cannot convert string to uint: "${val.value}"');
+            }
+            if (bigInt < BigInt.zero) {
+              return ErrorValue('range error');
+            }
+            // Check for uint64 max (18446744073709551615)
+            final maxUint64 = (BigInt.from(1) << 64) - BigInt.one; // 2^64 - 1
+            if (bigInt > maxUint64) {
+              return ErrorValue(
+                  'Positive input exceeds the limit of integer\n$bigInt');
+            }
+            // Convert BigInt to Int64 to support full uint64 range
+            return UintValue.fromInt64(Int64.parseInt(val.value));
+          } catch (e) {
+            return ErrorValue('cannot convert string to uint: "${val.value}"');
+          }
+        }
 
-      return ErrorValue(
-          'type conversion error from ${value.runtimeType} to uint');
+        return ErrorValue(
+            'type conversion error from ${val.runtimeType} to uint');
+      });
     }),
 
     // double() conversions
     Overload('double', unaryOperator: (value) {
-      if (isError(value)) return value;
+      return ErrorUtils.safeUnaryOp(value, (val) {
+        if (val is DoubleValue) {
+          return val;
+        }
+        if (val is IntValue) {
+          return DoubleValue(val.value.toDouble());
+        }
+        if (val is UintValue) {
+          // Convert uint64 stored as Int64 to double as unsigned value
+          final int64Val = val.value;
+          double doubleVal;
+          if (int64Val.isNegative) {
+            // For large uint64 values stored as negative Int64,
+            // we need to add 2^64 to get the correct unsigned value
+            // Using BigInt to avoid precision loss
+            final bigInt = BigInt.from(int64Val.toInt()) + (BigInt.one << 64);
+            doubleVal = bigInt.toDouble();
+          } else {
+            doubleVal = int64Val.toDouble();
+          }
+          return DoubleValue(doubleVal);
+        }
+        if (val is StringValue) {
+          final str = val.value;
+          // Handle special string values
+          if (str == 'NaN') {
+            return DoubleValue(double.nan);
+          }
+          if (str == 'Infinity' || str == 'Inf') {
+            return DoubleValue(double.infinity);
+          }
+          if (str == '-Infinity' || str == '-Inf') {
+            return DoubleValue(double.negativeInfinity);
+          }
+          try {
+            final parsed = double.parse(str);
+            return DoubleValue(parsed);
+          } catch (e) {
+            return ErrorValue(
+                'cannot convert string to double: "${val.value}"');
+          }
+        }
 
-      if (value is DoubleValue) {
-        return value;
-      }
-      if (value is IntValue) {
-        return DoubleValue(value.value.toDouble());
-      }
-      if (value is UintValue) {
-        // Convert uint64 stored as Int64 to double as unsigned value
-        final int64Val = value.value;
-        double doubleVal;
-        if (int64Val.isNegative) {
-          // For large uint64 values stored as negative Int64,
-          // we need to add 2^64 to get the correct unsigned value
-          // Using BigInt to avoid precision loss
-          final bigInt = BigInt.from(int64Val.toInt()) + (BigInt.one << 64);
-          doubleVal = bigInt.toDouble();
-        } else {
-          doubleVal = int64Val.toDouble();
-        }
-        return DoubleValue(doubleVal);
-      }
-      if (value is StringValue) {
-        final str = value.value;
-        // Handle special string values
-        if (str == 'NaN') {
-          return DoubleValue(double.nan);
-        }
-        if (str == 'Infinity' || str == 'Inf') {
-          return DoubleValue(double.infinity);
-        }
-        if (str == '-Infinity' || str == '-Inf') {
-          return DoubleValue(double.negativeInfinity);
-        }
-        try {
-          final parsed = double.parse(str);
-          return DoubleValue(parsed);
-        } catch (e) {
-          return ErrorValue(
-              'cannot convert string to double: "${value.value}"');
-        }
-      }
-
-      return ErrorValue(
-          'type conversion error from ${value.runtimeType} to double');
+        return ErrorValue(
+            'type conversion error from ${val.runtimeType} to double');
+      });
     }),
 
     // string() conversions
     Overload('string', unaryOperator: (value) {
-      if (isError(value)) return value;
-
-      if (value is StringValue) {
-        return value;
-      }
-      if (value is IntValue) {
-        return StringValue(value.value.toString());
-      }
-      if (value is UintValue) {
-        return StringValue(value.value.toString());
-      }
-      if (value is DoubleValue) {
-        final d = value.value;
-        if (d.isNaN) {
-          return StringValue('NaN');
+      return ErrorUtils.safeUnaryOp(value, (val) {
+        if (val is StringValue) {
+          return val;
         }
-        if (d.isInfinite) {
-          return StringValue(d.isNegative ? '-Infinity' : 'Infinity');
+        if (val is IntValue) {
+          return StringValue(val.value.toString());
         }
+        if (val is UintValue) {
+          return StringValue(val.value.toString());
+        }
+        if (val is DoubleValue) {
+          final d = val.value;
+          if (d.isNaN) {
+            return StringValue('NaN');
+          }
+          if (d.isInfinite) {
+            return StringValue(d.isNegative ? '-Infinity' : 'Infinity');
+          }
 
-        // Handle special formatting for small scientific notation numbers
-        final str = d.toString();
-        // Convert scientific notation like -4.5e-3 to decimal form -0.0045
-        if (str.contains('e')) {
-          // Let Dart handle the conversion but ensure proper formatting
-          if (d == d.truncateToDouble() && d.abs() < 1e15) {
-            // For whole numbers that aren't too large, show without decimal
+          // Handle special formatting for small scientific notation numbers
+          final str = d.toString();
+          // Convert scientific notation like -4.5e-3 to decimal form -0.0045
+          if (str.contains('e')) {
+            // Let Dart handle the conversion but ensure proper formatting
+            if (d == d.truncateToDouble() && d.abs() < 1e15) {
+              // For whole numbers that aren't too large, show without decimal
+              return StringValue(d.toInt().toString());
+            }
+            // For scientific notation, convert to decimal if reasonable
+            if (d.abs() >= 1e-6 && d.abs() < 1e6) {
+              final decimal = d
+                  .toStringAsFixed(10)
+                  .replaceAll(RegExp(r'0+$'), '')
+                  .replaceAll(RegExp(r'\.$'), '');
+              return StringValue(decimal);
+            }
+          }
+
+          // Format double to avoid unnecessary decimals for whole numbers
+          if (d == d.truncateToDouble()) {
             return StringValue(d.toInt().toString());
           }
-          // For scientific notation, convert to decimal if reasonable
-          if (d.abs() >= 1e-6 && d.abs() < 1e6) {
-            final decimal = d
-                .toStringAsFixed(10)
-                .replaceAll(RegExp(r'0+$'), '')
-                .replaceAll(RegExp(r'\.$'), '');
-            return StringValue(decimal);
+          return StringValue(d.toString());
+        }
+        if (val is BooleanValue) {
+          return StringValue(val.value ? 'true' : 'false');
+        }
+        if (val is BytesValue) {
+          // Convert bytes to string (UTF-8 decode)
+          try {
+            final str = utf8.decode(val.value);
+            return StringValue(str);
+          } catch (e) {
+            return ErrorValue('invalid UTF-8');
           }
         }
-
-        // Format double to avoid unnecessary decimals for whole numbers
-        if (d == d.truncateToDouble()) {
-          return StringValue(d.toInt().toString());
+        if (val is TimestampValue) {
+          // Format timestamp in RFC3339 format
+          return StringValue(val.dateTime.toIso8601String());
         }
-        return StringValue(d.toString());
-      }
-      if (value is BooleanValue) {
-        return StringValue(value.value ? 'true' : 'false');
-      }
-      if (value is BytesValue) {
-        // Convert bytes to string (UTF-8 decode)
-        try {
-          final str = utf8.decode(value.value);
-          return StringValue(str);
-        } catch (e) {
-          return ErrorValue('invalid UTF-8');
-        }
-      }
-      if (value is TimestampValue) {
-        // Format timestamp in RFC3339 format
-        return StringValue(value.dateTime.toIso8601String());
-      }
-      if (value is DurationValue) {
-        // Format duration in CEL format (e.g., "1h30m")
-        final totalSeconds = value.duration.inSeconds;
-        if (totalSeconds == 0) {
-          return StringValue('0s');
-        }
+        if (val is DurationValue) {
+          // Format duration in CEL format (e.g., "1h30m")
+          final totalSeconds = val.duration.inSeconds;
+          if (totalSeconds == 0) {
+            return StringValue('0s');
+          }
 
-        final parts = <String>[];
-        var seconds = totalSeconds.abs();
+          final parts = <String>[];
+          var seconds = totalSeconds.abs();
 
-        // Hours
-        if (seconds >= 3600) {
-          final hours = seconds ~/ 3600;
-          parts.add('${hours}h');
-          seconds %= 3600;
+          // Hours
+          if (seconds >= 3600) {
+            final hours = seconds ~/ 3600;
+            parts.add('${hours}h');
+            seconds %= 3600;
+          }
+
+          // Minutes
+          if (seconds >= 60) {
+            final minutes = seconds ~/ 60;
+            parts.add('${minutes}m');
+            seconds %= 60;
+          }
+
+          // Seconds
+          if (seconds > 0 || parts.isEmpty) {
+            parts.add('${seconds}s');
+          }
+
+          final result = parts.join();
+          return StringValue(totalSeconds < 0 ? '-$result' : result);
         }
 
-        // Minutes
-        if (seconds >= 60) {
-          final minutes = seconds ~/ 60;
-          parts.add('${minutes}m');
-          seconds %= 60;
-        }
-
-        // Seconds
-        if (seconds > 0 || parts.isEmpty) {
-          parts.add('${seconds}s');
-        }
-
-        final result = parts.join();
-        return StringValue(totalSeconds < 0 ? '-$result' : result);
-      }
-
-      return ErrorValue(
-          'type conversion error from ${value.runtimeType} to string');
+        return ErrorValue(
+            'type conversion error from ${val.runtimeType} to string');
+      });
     }),
 
     // bool() conversions
     Overload('bool', unaryOperator: (value) {
-      if (isError(value)) return value;
-
-      if (value is BooleanValue) {
-        return value;
-      }
-      if (value is StringValue) {
-        final str = value.value;
-        // Support all variants that Go's strconv.ParseBool supports
-        switch (str) {
-          case '1':
-          case 't':
-          case 'T':
-          case 'true':
-          case 'TRUE':
-          case 'True':
-            return BooleanValue(true);
-          case '0':
-          case 'f':
-          case 'F':
-          case 'false':
-          case 'FALSE':
-          case 'False':
-            return BooleanValue(false);
-          default:
-            return ErrorValue('Type conversion error');
+      return ErrorUtils.safeUnaryOp(value, (val) {
+        if (val is BooleanValue) {
+          return val;
         }
-      }
+        if (val is StringValue) {
+          final str = val.value;
+          // Support all variants that Go's strconv.ParseBool supports
+          switch (str) {
+            case '1':
+            case 't':
+            case 'T':
+            case 'true':
+            case 'TRUE':
+            case 'True':
+              return BooleanValue(true);
+            case '0':
+            case 'f':
+            case 'F':
+            case 'false':
+            case 'FALSE':
+            case 'False':
+              return BooleanValue(false);
+            default:
+              return ErrorValue('Type conversion error');
+          }
+        }
 
-      return ErrorValue(
-          'type conversion error from ${value.runtimeType} to bool');
+        return ErrorValue(
+            'type conversion error from ${val.runtimeType} to bool');
+      });
     }),
 
     // bytes() conversions
     Overload('bytes', unaryOperator: (value) {
-      if (isError(value)) return value;
+      return ErrorUtils.safeUnaryOp(value, (val) {
+        if (val is BytesValue) {
+          return val;
+        }
+        if (val is StringValue) {
+          // Convert string to bytes (UTF-8 encode)
+          final bytes = utf8.encode(val.value);
+          return BytesValue(Uint8List.fromList(bytes));
+        }
 
-      if (value is BytesValue) {
-        return value;
-      }
-      if (value is StringValue) {
-        // Convert string to bytes (UTF-8 encode)
-        final bytes = utf8.encode(value.value);
-        return BytesValue(Uint8List.fromList(bytes));
-      }
-
-      return ErrorValue(
-          'type conversion error from ${value.runtimeType} to bytes');
+        return ErrorValue(
+            'type conversion error from ${val.runtimeType} to bytes');
+      });
     }),
 
     // type() function - returns the type of a value
     Overload('type', unaryOperator: (value) {
-      if (isError(value)) return value;
-
-      if (value is IntValue) {
-        return TypeValue('int');
-      }
-      if (value is UintValue) {
-        return TypeValue('uint');
-      }
-      if (value is DoubleValue) {
-        return TypeValue('double');
-      }
-      if (value is StringValue) {
-        return TypeValue('string');
-      }
-      if (value is BooleanValue) {
-        return TypeValue('bool');
-      }
-      if (value is BytesValue) {
-        return TypeValue('bytes');
-      }
-      if (value is NullValue) {
-        return TypeValue('null_type');
-      }
-      if (value is TimestampValue) {
-        return TypeValue('google.protobuf.Timestamp');
-      }
-      if (value is DurationValue) {
-        return TypeValue('google.protobuf.Duration');
-      }
-      if (value is ListValue) {
-        return TypeValue('list');
-      }
-      if (value is MapValue) {
-        return TypeValue('map');
-      }
-      if (value is TypeValue) {
-        // The type of a type is "type"
-        return TypeValue('type');
-      }
-      if (value is EnumValue) {
-        // Return the proper enum type name for strong mode, or "int" for legacy mode
-        if (value.isLegacyMode) {
+      return ErrorUtils.safeUnaryOp(value, (val) {
+        if (val is IntValue) {
           return TypeValue('int');
-        } else {
-          return TypeValue(value.enumType);
         }
-      }
+        if (val is UintValue) {
+          return TypeValue('uint');
+        }
+        if (val is DoubleValue) {
+          return TypeValue('double');
+        }
+        if (val is StringValue) {
+          return TypeValue('string');
+        }
+        if (val is BooleanValue) {
+          return TypeValue('bool');
+        }
+        if (val is BytesValue) {
+          return TypeValue('bytes');
+        }
+        if (val is NullValue) {
+          return TypeValue('null_type');
+        }
+        if (val is TimestampValue) {
+          return TypeValue('google.protobuf.Timestamp');
+        }
+        if (val is DurationValue) {
+          return TypeValue('google.protobuf.Duration');
+        }
+        if (val is ListValue) {
+          return TypeValue('list');
+        }
+        if (val is MapValue) {
+          return TypeValue('map');
+        }
+        if (val is TypeValue) {
+          // The type of a type is "type"
+          return TypeValue('type');
+        }
+        if (val is EnumValue) {
+          // Return the proper enum type name for strong mode, or "int" for legacy mode
+          if (val.isLegacyMode) {
+            return TypeValue('int');
+          } else {
+            return TypeValue(val.enumType);
+          }
+        }
 
-      // For unknown types, return the runtime type name
-      return TypeValue(value.runtimeType.toString());
+        // For unknown types, return the runtime type name
+        return TypeValue(val.runtimeType.toString());
+      });
     }),
 
     // dyn() function - marks a value as dynamic type
@@ -404,48 +405,48 @@ List<Overload> conversionOverloads() {
 
     // duration conversions
     Overload('duration', unaryOperator: (value) {
-      if (isError(value)) return value;
-
-      if (value is DurationValue) {
-        return value;
-      }
-      if (value is StringValue) {
-        // Parse duration string (e.g., "1h30m", "45s", "100ms")
-        try {
-          return _parseDuration(value.value);
-        } catch (e) {
-          return ErrorValue('cannot parse duration: "${value.value}"');
+      return ErrorUtils.safeUnaryOp(value, (val) {
+        if (val is DurationValue) {
+          return val;
         }
-      }
+        if (val is StringValue) {
+          // Parse duration string (e.g., "1h30m", "45s", "100ms")
+          try {
+            return _parseDuration(val.value);
+          } catch (e) {
+            return ErrorValue('cannot parse duration: "${val.value}"');
+          }
+        }
 
-      return ErrorValue(
-          'type conversion error from ${value.runtimeType} to duration');
+        return ErrorValue(
+            'type conversion error from ${val.runtimeType} to duration');
+      });
     }),
 
     // timestamp conversions
     Overload('timestamp', unaryOperator: (value) {
-      if (isError(value)) return value;
-
-      if (value is TimestampValue) {
-        return value;
-      }
-      if (value is IntValue) {
-        // Convert Unix seconds to timestamp
-        return TimestampValue(DateTime.fromMillisecondsSinceEpoch(
-            value.value * 1000,
-            isUtc: true));
-      }
-      if (value is StringValue) {
-        // Parse RFC3339 timestamp
-        try {
-          return TimestampValue(DateTime.parse(value.value));
-        } catch (e) {
-          return ErrorValue('cannot parse timestamp: "${value.value}"');
+      return ErrorUtils.safeUnaryOp(value, (val) {
+        if (val is TimestampValue) {
+          return val;
         }
-      }
+        if (val is IntValue) {
+          // Convert Unix seconds to timestamp
+          return TimestampValue(DateTime.fromMillisecondsSinceEpoch(
+              val.value * 1000,
+              isUtc: true));
+        }
+        if (val is StringValue) {
+          // Parse RFC3339 timestamp
+          try {
+            return TimestampValue(DateTime.parse(val.value));
+          } catch (e) {
+            return ErrorValue('cannot parse timestamp: "${val.value}"');
+          }
+        }
 
-      return ErrorValue(
-          'type conversion error from ${value.runtimeType} to timestamp');
+        return ErrorValue(
+            'type conversion error from ${val.runtimeType} to timestamp');
+      });
     }),
 
     // Enum constructor functions - hardcoded for testing

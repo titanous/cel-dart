@@ -12,6 +12,7 @@ import 'package:cel/src/common/types/uint.dart';
 import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/provider.dart';
 import 'package:cel/src/common/types/pb/message.dart';
+import '../error_utils.dart';
 
 import 'functions.dart';
 
@@ -20,98 +21,102 @@ List<Overload> stringOverloads() {
   return [
     // charAt function
     Overload('charAt', binaryOperator: (str, index) {
-      if (str is! StringValue || index is! IntValue) {
-        return ErrorValue('charAt requires string and int arguments');
-      }
-
-      final s = str.value;
-      final i = index.value.toInt();
-
-      if (i < 0) {
-        return ErrorValue('charAt index must be non-negative');
-      }
-
-      final runes = s.runes.toList();
-      if (i >= runes.length) {
-        if (i == runes.length) {
-          return StringValue('');
+      return ErrorUtils.safeBinaryOp(str, index, (s, i) {
+        if (s is! StringValue || i is! IntValue) {
+          return ErrorValue('charAt requires string and int arguments');
         }
-        return ErrorValue('charAt index out of bounds');
-      }
 
-      return StringValue(String.fromCharCode(runes[i]));
+        final strValue = s.value;
+        final indexValue = i.value.toInt();
+
+        if (indexValue < 0) {
+          return ErrorValue('charAt index must be non-negative');
+        }
+
+        final runes = strValue.runes.toList();
+        if (indexValue >= runes.length) {
+          if (indexValue == runes.length) {
+            return StringValue('');
+          }
+          return ErrorValue('charAt index out of bounds');
+        }
+
+        return StringValue(String.fromCharCode(runes[indexValue]));
+      });
     }),
 
     // indexOf function (2 and 3 arguments)
     Overload('indexOf', functionOperator: (args) {
-      if (args.length == 2) {
-        final str = args[0];
-        final substr = args[1];
+      return ErrorUtils.safeMultiArgOp(args, (arguments) {
+        if (arguments.length == 2) {
+          final str = arguments[0];
+          final substr = arguments[1];
 
-        if (str is! StringValue || substr is! StringValue) {
-          return ErrorValue('indexOf requires string arguments');
+          if (str is! StringValue || substr is! StringValue) {
+            return ErrorValue('indexOf requires string arguments');
+          }
+
+          final strValue = str.value;
+          final substrValue = substr.value;
+
+          if (substrValue.isEmpty) {
+            return IntValue(0);
+          }
+
+          final result = strValue.indexOf(substrValue);
+
+          if (result == -1) {
+            return IntValue(-1);
+          }
+
+          // Convert string position to rune position
+          final runeIndex = strValue.substring(0, result).runes.length;
+          return IntValue(runeIndex);
+        } else if (arguments.length == 3) {
+          final str = arguments[0];
+          final substr = arguments[1];
+          final startArg = arguments[2];
+
+          if (str is! StringValue ||
+              substr is! StringValue ||
+              startArg is! IntValue) {
+            return ErrorValue('indexOf requires string, string, int arguments');
+          }
+
+          final strValue = str.value;
+          final substrValue = substr.value;
+          final start = startArg.value.toInt();
+
+          if (start < 0) {
+            return ErrorValue('indexOf start must be non-negative');
+          }
+
+          if (substrValue.isEmpty) {
+            return IntValue(start);
+          }
+
+          final runes = strValue.runes.toList();
+          if (start > runes.length) {
+            return ErrorValue('index out of range: $start');
+          }
+          if (start == runes.length) {
+            return IntValue(-1);
+          }
+
+          // Convert rune position to string position
+          final strPrefix = String.fromCharCodes(runes.take(start));
+          final result = strValue.indexOf(substrValue, strPrefix.length);
+
+          if (result == -1) {
+            return IntValue(-1);
+          }
+
+          // Convert string position back to rune position
+          final runeIndex = strValue.substring(0, result).runes.length;
+          return IntValue(runeIndex);
         }
-
-        final strValue = str.value;
-        final substrValue = substr.value;
-
-        if (substrValue.isEmpty) {
-          return IntValue(0);
-        }
-
-        final result = strValue.indexOf(substrValue);
-
-        if (result == -1) {
-          return IntValue(-1);
-        }
-
-        // Convert string position to rune position
-        final runeIndex = strValue.substring(0, result).runes.length;
-        return IntValue(runeIndex);
-      } else if (args.length == 3) {
-        final str = args[0];
-        final substr = args[1];
-        final startArg = args[2];
-
-        if (str is! StringValue ||
-            substr is! StringValue ||
-            startArg is! IntValue) {
-          return ErrorValue('indexOf requires string, string, int arguments');
-        }
-
-        final strValue = str.value;
-        final substrValue = substr.value;
-        final start = startArg.value.toInt();
-
-        if (start < 0) {
-          return ErrorValue('indexOf start must be non-negative');
-        }
-
-        if (substrValue.isEmpty) {
-          return IntValue(start);
-        }
-
-        final runes = strValue.runes.toList();
-        if (start > runes.length) {
-          return ErrorValue('index out of range: $start');
-        }
-        if (start == runes.length) {
-          return IntValue(-1);
-        }
-
-        // Convert rune position to string position
-        final strPrefix = String.fromCharCodes(runes.take(start));
-        final result = strValue.indexOf(substrValue, strPrefix.length);
-
-        if (result == -1) {
-          return IntValue(-1);
-        }
-
-        // Convert string position back to rune position
-        final runeIndex = strValue.substring(0, result).runes.length;
-        return IntValue(runeIndex);
-      }
-      return ErrorValue('indexOf requires 2 or 3 arguments');
+        return ErrorValue('indexOf requires 2 or 3 arguments');
+      });
     }),
 
     // lastIndexOf function (2 and 3 arguments)
@@ -193,40 +198,44 @@ List<Overload> stringOverloads() {
 
     // lowerAscii function
     Overload('lowerAscii', unaryOperator: (str) {
-      if (str is! StringValue) {
-        return ErrorValue('lowerAscii requires string argument');
-      }
-
-      final result = StringBuffer();
-      for (final rune in str.value.runes) {
-        if (rune >= 65 && rune <= 90) {
-          // A-Z
-          result.writeCharCode(rune + 32);
-        } else {
-          result.writeCharCode(rune);
+      return ErrorUtils.safeUnaryOp(str, (s) {
+        if (s is! StringValue) {
+          return ErrorValue('lowerAscii requires string argument');
         }
-      }
 
-      return StringValue(result.toString());
+        final result = StringBuffer();
+        for (final rune in s.value.runes) {
+          if (rune >= 65 && rune <= 90) {
+            // A-Z
+            result.writeCharCode(rune + 32);
+          } else {
+            result.writeCharCode(rune);
+          }
+        }
+
+        return StringValue(result.toString());
+      });
     }),
 
     // upperAscii function
     Overload('upperAscii', unaryOperator: (str) {
-      if (str is! StringValue) {
-        return ErrorValue('upperAscii requires string argument');
-      }
-
-      final result = StringBuffer();
-      for (final rune in str.value.runes) {
-        if (rune >= 97 && rune <= 122) {
-          // a-z
-          result.writeCharCode(rune - 32);
-        } else {
-          result.writeCharCode(rune);
+      return ErrorUtils.safeUnaryOp(str, (s) {
+        if (s is! StringValue) {
+          return ErrorValue('upperAscii requires string argument');
         }
-      }
 
-      return StringValue(result.toString());
+        final result = StringBuffer();
+        for (final rune in s.value.runes) {
+          if (rune >= 97 && rune <= 122) {
+            // a-z
+            result.writeCharCode(rune - 32);
+          } else {
+            result.writeCharCode(rune);
+          }
+        }
+
+        return StringValue(result.toString());
+      });
     }),
 
     // trim function
