@@ -6,6 +6,14 @@ import '../ref/provider.dart';
 import '../provider.dart' as cel_provider;
 import 'message.dart';
 import 'adapter.dart';
+import '../bool.dart';
+import '../bytes.dart';
+import '../double.dart';
+import '../int.dart';
+import '../null_.dart';
+import '../string.dart';
+import '../uint.dart';
+import 'dart:typed_data';
 
 // Import Well-Known Types with prefixes to avoid conflicts
 import '../../../gen/google/protobuf/wrappers.pb.dart' as pb_wrappers;
@@ -26,6 +34,7 @@ import '../../../gen/cel/expr/conformance/proto3/test_all_types.pb.dart'
 class ProtoTypeRegistry {
   final Map<String, BuilderInfo> _types = {};
   final Map<String, GeneratedMessage Function()> _constructors = {};
+  final Map<String, dynamic Function(dynamic)> _wrapperFactories = {};
   final TypeAdapter typeAdapter = cel_provider.TypeRegistry();
   late final ProtobufTypeAdapter _adapter;
 
@@ -39,6 +48,11 @@ class ProtoTypeRegistry {
       GeneratedMessage Function() constructor) {
     _types[typeName] = info;
     _constructors[typeName] = constructor;
+  }
+
+  /// Register a wrapper type factory function
+  void registerWrapperFactory(String typeName, dynamic Function(dynamic) factory) {
+    _wrapperFactories[typeName] = factory;
   }
 
   /// Register a file descriptor (for future use with descriptor.proto)
@@ -84,6 +98,44 @@ class ProtoTypeRegistry {
   /// Convert a protobuf message to CEL value
   Value adaptMessage(GeneratedMessage msg) {
     return _adapter.adaptMessage(msg);
+  }
+
+  /// Get default wrapper value for a type name (replaces hardcoded switch in interpretable.dart)
+  Value getWrapperDefaultValue(String typeName, TypeAdapter adapter) {
+    switch (typeName) {
+      case 'google.protobuf.Int32Value':
+      case 'google.protobuf.Int64Value':
+        return IntValue(0);
+      case 'google.protobuf.UInt32Value':
+      case 'google.protobuf.UInt64Value':
+        return UintValue(0);
+      case 'google.protobuf.FloatValue':
+      case 'google.protobuf.DoubleValue':
+        return DoubleValue(0.0);
+      case 'google.protobuf.BoolValue':
+        return BooleanValue(false);
+      case 'google.protobuf.StringValue':
+        return StringValue('');
+      case 'google.protobuf.BytesValue':
+        return BytesValue(Uint8List(0));
+      case 'google.protobuf.ListValue':
+        return adapter.nativeToValue([]);
+      case 'google.protobuf.Struct':
+        return adapter.nativeToValue({});
+      default:
+        return nullValue;
+    }
+  }
+
+  /// Unpack Any message by type name (replaces hardcoded switch in runner.dart)
+  GeneratedMessage? unpackAnyMessage(String fullTypeName, List<int> messageBytes) {
+    final constructor = _constructors[fullTypeName];
+    if (constructor != null) {
+      final msg = constructor();
+      msg.mergeFromBuffer(messageBytes);
+      return msg;
+    }
+    return null;
   }
 
   /// Set a field value on a protobuf message
@@ -282,6 +334,13 @@ class ProtoTypeRegistry {
 
   /// Create a wrapper value of the specified type
   dynamic _createWrapperValue(String typeName, dynamic value) {
+    // Try to use registered factory first
+    final factory = _wrapperFactories[typeName];
+    if (factory != null) {
+      return factory(value);
+    }
+    
+    // Fallback to switch statement for backward compatibility
     switch (typeName) {
       case 'google.protobuf.Int32Value':
         final wrapper = pb_wrappers.Int32Value();
@@ -412,8 +471,102 @@ class ProtoTypeRegistry {
     return result.toString();
   }
 
+  /// Register wrapper factories for dynamic wrapper creation
+  void _registerWrapperFactories() {
+    // Int32Value factory
+    registerWrapperFactory('google.protobuf.Int32Value', (value) {
+      final wrapper = pb_wrappers.Int32Value();
+      wrapper.value = _convertToInt(value);
+      return wrapper;
+    });
+
+    // Int64Value factory
+    registerWrapperFactory('google.protobuf.Int64Value', (value) {
+      final wrapper = pb_wrappers.Int64Value();
+      wrapper.value = _convertToInt64(value);
+      return wrapper;
+    });
+
+    // UInt32Value factory
+    registerWrapperFactory('google.protobuf.UInt32Value', (value) {
+      final wrapper = pb_wrappers.UInt32Value();
+      wrapper.value = _convertToInt(value);
+      return wrapper;
+    });
+
+    // UInt64Value factory
+    registerWrapperFactory('google.protobuf.UInt64Value', (value) {
+      final wrapper = pb_wrappers.UInt64Value();
+      wrapper.value = _convertToInt64(value);
+      return wrapper;
+    });
+
+    // FloatValue factory with proper float32 handling
+    registerWrapperFactory('google.protobuf.FloatValue', (value) {
+      final wrapper = pb_wrappers.FloatValue();
+      if (value is num) {
+        final doubleValue = value.toDouble();
+        // For FloatValue, clamp to float32 range and convert to infinity if needed
+        const maxFloat32 = 3.4028235e+38;
+        const minFloat32 = -3.4028235e+38;
+        
+        if (doubleValue.isFinite) {
+          if (doubleValue > maxFloat32) {
+            wrapper.value = double.infinity;
+          } else if (doubleValue < minFloat32) {
+            wrapper.value = double.negativeInfinity;
+          } else {
+            wrapper.value = doubleValue;
+          }
+        } else {
+          wrapper.value = doubleValue;
+        }
+      } else {
+        wrapper.value = 0.0;
+      }
+      return wrapper;
+    });
+
+    // DoubleValue factory
+    registerWrapperFactory('google.protobuf.DoubleValue', (value) {
+      final wrapper = pb_wrappers.DoubleValue();
+      wrapper.value = value is num ? value.toDouble() : 0.0;
+      return wrapper;
+    });
+
+    // BoolValue factory
+    registerWrapperFactory('google.protobuf.BoolValue', (value) {
+      final wrapper = pb_wrappers.BoolValue();
+      wrapper.value = value is bool ? value : false;
+      return wrapper;
+    });
+
+    // StringValue factory
+    registerWrapperFactory('google.protobuf.StringValue', (value) {
+      final wrapper = pb_wrappers.StringValue();
+      wrapper.value = value?.toString() ?? '';
+      return wrapper;
+    });
+
+    // BytesValue factory
+    registerWrapperFactory('google.protobuf.BytesValue', (value) {
+      final wrapper = pb_wrappers.BytesValue();
+      if (value is List<int>) {
+        wrapper.value = value;
+      } else if (value is String) {
+        wrapper.value = utf8.encode(value);
+      } else {
+        wrapper.value = <int>[];
+      }
+      return wrapper;
+    });
+  }
+
   /// Register all Well-Known Types
   void _registerWellKnownTypes() {
+    // Register wrapper factories
+    _registerWrapperFactories();
+    
     // Wrapper types
     registerMessageType('type.googleapis.com/google.protobuf.DoubleValue',
         pb_wrappers.DoubleValue().info_, () => pb_wrappers.DoubleValue());

@@ -551,7 +551,16 @@ class ConformanceTestRunner {
 
       final fullTypeName = parts[1];
 
-      // Map known types to their constructors
+      // Try to use ProtoTypeRegistry if available
+      final protoRegistry = environment.protoRegistry;
+      if (protoRegistry != null) {
+        final msg = protoRegistry.unpackAnyMessage(fullTypeName, anyMessage.value);
+        if (msg != null) {
+          return msg;
+        }
+      }
+
+      // Fallback to original logic if registry doesn't have the type
       switch (fullTypeName) {
         case 'google.protobuf.Int32Value':
           final msg = pb_wrappers.Int32Value();

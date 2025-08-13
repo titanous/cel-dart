@@ -6,6 +6,7 @@ import 'package:cel/src/common/types/map.dart';
 import 'package:cel/src/common/types/string.dart';
 import 'package:cel/src/common/types/error.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
+import '../error_utils.dart';
 import 'package:cel/src/common/types/traits/container.dart';
 import 'package:cel/src/common/types/traits/indexer.dart';
 import 'package:cel/src/common/types/traits/matcher.dart';
@@ -43,157 +44,160 @@ List<Overload> standardOverloads() {
     // Less than operator
     Overload(Operators.less.name,
         binaryOperator: (leftHandSide, rightHandSide) {
-      if (isError(leftHandSide)) return leftHandSide;
-      if (isError(rightHandSide)) return rightHandSide;
-      if (leftHandSide is! Comparer) {
-        return ErrorValue('no matching overload for \'<\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
-      }
-      final result = leftHandSide.compare(rightHandSide);
-      if (isError(result)) return result;
-      return BooleanValue(result.value < 0);
+      return ErrorUtils.safeBinaryOp(leftHandSide, rightHandSide, (lhs, rhs) {
+        if (lhs is! Comparer) {
+          return ErrorValue('no matching overload for \'<\' with operand types ${lhs.type.name} and ${rhs.type.name}');
+        }
+        final result = lhs.compare(rhs);
+        if (isError(result)) return result;
+        return BooleanValue(result.value < 0);
+      });
     }),
 
     // Less than or equal operator
     Overload(Operators.lessEquals.name,
         binaryOperator: (leftHandSide, rightHandSide) {
-      if (isError(leftHandSide)) return leftHandSide;
-      if (isError(rightHandSide)) return rightHandSide;
-      if (leftHandSide is! Comparer) {
-        return ErrorValue('no matching overload for \'\'<=\'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
-      }
-      final result = leftHandSide.compare(rightHandSide);
-      if (isError(result)) return result;
-      return BooleanValue(result.value <= 0);
+      return ErrorUtils.safeBinaryOp(leftHandSide, rightHandSide, (lhs, rhs) {
+        if (lhs is! Comparer) {
+          return ErrorValue('no matching overload for \'<=\' with operand types ${lhs.type.name} and ${rhs.type.name}');
+        }
+        final result = lhs.compare(rhs);
+        if (isError(result)) return result;
+        return BooleanValue(result.value <= 0);
+      });
     }),
 
     // Greater than operator
     Overload(Operators.greater.name,
         binaryOperator: (leftHandSide, rightHandSide) {
-      if (isError(leftHandSide)) return leftHandSide;
-      if (isError(rightHandSide)) return rightHandSide;
-      if (leftHandSide is! Comparer) {
-        return ErrorValue('no matching overload for \'\'>\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
-      }
-      final result = leftHandSide.compare(rightHandSide);
-      if (isError(result)) return result;
-      return BooleanValue(result.value > 0);
+      return ErrorUtils.safeBinaryOp(leftHandSide, rightHandSide, (lhs, rhs) {
+        if (lhs is! Comparer) {
+          return ErrorValue('no matching overload for \'>\' with operand types ${lhs.type.name} and ${rhs.type.name}');
+        }
+        final result = lhs.compare(rhs);
+        if (isError(result)) return result;
+        return BooleanValue(result.value > 0);
+      });
     }),
 
     // Greater than equal operators
     Overload(Operators.greaterEquals.name,
         binaryOperator: (leftHandSide, rightHandSide) {
-      if (isError(leftHandSide)) return leftHandSide;
-      if (isError(rightHandSide)) return rightHandSide;
-      if (leftHandSide is! Comparer) {
-        return ErrorValue('no matching overload for \'\'>=\'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
-      }
-      final result = leftHandSide.compare(rightHandSide);
-      if (isError(result)) return result;
-      return BooleanValue(result.value >= 0);
+      return ErrorUtils.safeBinaryOp(leftHandSide, rightHandSide, (lhs, rhs) {
+        if (lhs is! Comparer) {
+          return ErrorValue('no matching overload for \'>=\' with operand types ${lhs.type.name} and ${rhs.type.name}');
+        }
+        final result = lhs.compare(rhs);
+        if (isError(result)) return result;
+        return BooleanValue(result.value >= 0);
+      });
     }),
 
     // Add operator
     Overload(Operators.add.name, binaryOperator: (leftHandSide, rightHandSide) {
-      if (isError(leftHandSide)) return leftHandSide;
-      if (isError(rightHandSide)) return rightHandSide;
-      if (leftHandSide is! Adder) {
-        return ErrorValue('no matching overload for \'\'+ \'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
-      }
-      return leftHandSide.add(rightHandSide);
+      return ErrorUtils.safeBinaryOp(leftHandSide, rightHandSide, (lhs, rhs) {
+        if (lhs is! Adder) {
+          return ErrorValue('no matching overload for \'+\' with operand types ${lhs.type.name} and ${rhs.type.name}');
+        }
+        return lhs.add(rhs);
+      });
     }),
 
     // Subtract operators
     Overload(Operators.subtract.name,
         binaryOperator: (leftHandSide, rightHandSide) {
-      if (isError(leftHandSide)) return leftHandSide;
-      if (isError(rightHandSide)) return rightHandSide;
-      if (leftHandSide is! Subtractor) {
-        return ErrorValue('no matching overload for \'\'- \'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
-      }
-      return leftHandSide.subtract(rightHandSide);
+      return ErrorUtils.safeBinaryOp(leftHandSide, rightHandSide, (lhs, rhs) {
+        if (lhs is! Subtractor) {
+          return ErrorValue('no matching overload for \'-\' with operand types ${lhs.type.name} and ${rhs.type.name}');
+        }
+        return lhs.subtract(rhs);
+      });
     }),
 
     // Multiply operator
     Overload(Operators.multiply.name,
         binaryOperator: (leftHandSide, rightHandSide) {
-      if (isError(leftHandSide)) return leftHandSide;
-      if (isError(rightHandSide)) return rightHandSide;
-      if (leftHandSide is! Multiplier) {
-        return ErrorValue('no matching overload for \'\'* \'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
-      }
-      return leftHandSide.multiply(rightHandSide);
+      return ErrorUtils.safeBinaryOp(leftHandSide, rightHandSide, (lhs, rhs) {
+        if (lhs is! Multiplier) {
+          return ErrorValue('no matching overload for \'*\' with operand types ${lhs.type.name} and ${rhs.type.name}');
+        }
+        return lhs.multiply(rhs);
+      });
     }),
 
     // Divide operator
     Overload(Operators.divide.name,
         binaryOperator: (leftHandSide, rightHandSide) {
-      if (isError(leftHandSide)) return leftHandSide;
-      if (isError(rightHandSide)) return rightHandSide;
-      if (leftHandSide is! Divider) {
-        return ErrorValue('no matching overload for \'\'/ \'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
-      }
-      return leftHandSide.divide(rightHandSide);
+      return ErrorUtils.safeBinaryOp(leftHandSide, rightHandSide, (lhs, rhs) {
+        if (lhs is! Divider) {
+          return ErrorValue('no matching overload for \'/\' with operand types ${lhs.type.name} and ${rhs.type.name}');
+        }
+        return lhs.divide(rhs);
+      });
     }),
 
     // Modulo operator
     Overload(Operators.modulo.name,
         binaryOperator: (leftHandSide, rightHandSide) {
-      if (isError(leftHandSide)) return leftHandSide;
-      if (isError(rightHandSide)) return rightHandSide;
-      if (leftHandSide is! Modder) {
-        return ErrorValue('no matching overload for \'\'% \'\'\' with operand types ${leftHandSide.type.name} and ${rightHandSide.type.name}');
-      }
-      return leftHandSide.modulo(rightHandSide);
+      return ErrorUtils.safeBinaryOp(leftHandSide, rightHandSide, (lhs, rhs) {
+        if (lhs is! Modder) {
+          return ErrorValue('no matching overload for \'%\' with operand types ${lhs.type.name} and ${rhs.type.name}');
+        }
+        return lhs.modulo(rhs);
+      });
     }),
 
     // Negate operator (unary minus)
     Overload(
       Operators.negate.name,
       unaryOperator: (value) {
-        if (isError(value)) return value;
-        if (value is! Negater) {
-          return ErrorValue('no matching overload for unary \'\'- \'\'\' with operand type ${value.type.name}');
-        }
-        return value.negate();
+        return ErrorUtils.safeUnaryOp(value, (val) {
+          if (val is! Negater) {
+            return ErrorValue('no matching overload for unary \'-\' with operand type ${val.type.name}');
+          }
+          return val.negate();
+        });
       },
     ),
 
     // Index operator
     // https://github.com/google/cel-go/blob/92fda7d38a37f42d4154147896cfd4ebbf8f846e/interpreter/functions/standard.go#L149
     Overload(Operators.index_.name, binaryOperator: (target, index) {
-      if (isError(target)) return target;
-      if (isError(index)) return index;
-      if (target is! Indexer) {
-        return ErrorValue('no matching overload for operator \'\'[_] \'\'\' with operand types ${target.type.name} and ${index.type.name}');
-      }
-      return target.get(index);
+      return ErrorUtils.safeBinaryOp(target, index, (tgt, idx) {
+        if (tgt is! Indexer) {
+          return ErrorValue('no matching overload for operator \'[_]\' with operand types ${tgt.type.name} and ${idx.type.name}');
+        }
+        return tgt.get(idx);
+      });
     }),
 
     // Size function
     Overload('size', unaryOperator: (value) {
-      if (isError(value)) return value;
-      if (value is! Sizer) {
-        return ErrorValue('no matching overload for function \'\'size\'\'\' with operand type ${value.type.name}');
-      }
-      return IntValue(value.size());
+      return ErrorUtils.safeUnaryOp(value, (val) {
+        if (val is! Sizer) {
+          return ErrorValue('no matching overload for function \'size\' with operand type ${val.type.name}');
+        }
+        return IntValue(val.size());
+      });
     }),
 
     // Unique function - checks if all elements in a list are unique
     Overload('unique', unaryOperator: (value) {
-      if (isError(value)) return value;
-      if (value is! ListValue) {
-        return ErrorValue('no matching overload for function \'\'unique\'\'\' with operand type ${value.type.name}');
-      }
-      final seen = <dynamic>{};
-      for (final item in value.value) {
-        // Use the actual value for comparison to handle Value wrapper objects
-        final key = item.value;
-        if (seen.contains(key)) {
-          return BooleanValue(false);
+      return ErrorUtils.safeUnaryOp(value, (val) {
+        if (val is! ListValue) {
+          return ErrorValue('no matching overload for function \'unique\' with operand type ${val.type.name}');
         }
-        seen.add(key);
-      }
-      return BooleanValue(true);
+        final seen = <dynamic>{};
+        for (final item in val.value) {
+          // Use the actual value for comparison to handle Value wrapper objects
+          final key = item.value;
+          if (seen.contains(key)) {
+            return BooleanValue(false);
+          }
+          seen.add(key);
+        }
+        return BooleanValue(true);
+      });
     }),
 
     // GetField function - dynamic field access for messages/maps

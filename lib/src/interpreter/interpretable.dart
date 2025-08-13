@@ -12,6 +12,7 @@ import 'package:cel/src/common/types/null_.dart';
 import 'package:cel/src/common/types/list.dart';
 import 'package:cel/src/common/types/map.dart';
 import 'package:cel/src/common/types/pb/message.dart';
+import 'package:cel/src/common/types/pb/registry.dart';
 import 'package:cel/src/common/types/provider.dart';
 import 'package:protobuf/protobuf.dart' show GeneratedMessage;
 
@@ -569,6 +570,15 @@ class MessageInterpretable implements Interpretable {
   }
 
   Value _getWrapperDefaultValue(String typeName) {
+    // Try to use ProtoTypeRegistry if available
+    if (adapter is TypeRegistry) {
+      final typeRegistry = adapter as TypeRegistry;
+      if (typeRegistry.protoRegistry != null) {
+        return typeRegistry.protoRegistry!.getWrapperDefaultValue(typeName, adapter);
+      }
+    }
+    
+    // Fallback to original logic if registry not available
     switch (typeName) {
       case 'google.protobuf.Int32Value':
       case 'google.protobuf.Int64Value':
@@ -590,7 +600,7 @@ class MessageInterpretable implements Interpretable {
       case 'google.protobuf.Struct':
         return adapter.nativeToValue({});
       default:
-        return NullValue();
+        return nullValue;
     }
   }
 }
