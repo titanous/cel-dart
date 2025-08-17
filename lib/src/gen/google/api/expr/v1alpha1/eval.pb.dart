@@ -53,7 +53,7 @@ class EvalState_Result extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  EvalState_Result clone() => EvalState_Result()..mergeFromMessage(this);
+  EvalState_Result clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   EvalState_Result copyWith(void Function(EvalState_Result) updates) =>
       super.copyWith((message) => updates(message as EvalState_Result))
@@ -79,8 +79,6 @@ class EvalState_Result extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set expr($fixnum.Int64 value) => $_setInt64(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasExpr() => $_has(0);
-  @$pb.TagNumber(1)
   void clearExpr() => $_clearField(1);
 
   /// The index in `values` of the resulting value.
@@ -88,8 +86,6 @@ class EvalState_Result extends $pb.GeneratedMessage {
   $fixnum.Int64 get value => $_getI64(1);
   @$pb.TagNumber(2)
   set value($fixnum.Int64 value) => $_setInt64(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasValue() => $_has(1);
   @$pb.TagNumber(2)
   void clearValue() => $_clearField(2);
 }
@@ -130,7 +126,7 @@ class EvalState extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  EvalState clone() => EvalState()..mergeFromMessage(this);
+  EvalState clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   EvalState copyWith(void Function(EvalState) updates) =>
       super.copyWith((message) => updates(message as EvalState)) as EvalState;
@@ -196,7 +192,7 @@ class ExprValue extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'google.api.expr.v1alpha1'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3])
+    ..oo(0, [1, 2, 3], 'kind')
     ..aOM<$0.Value>(1, _omitFieldNames ? '' : 'value',
         subBuilder: $0.Value.create)
     ..aOM<ErrorSet>(2, _omitFieldNames ? '' : 'error',
@@ -206,7 +202,7 @@ class ExprValue extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ExprValue clone() => ExprValue()..mergeFromMessage(this);
+  ExprValue clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ExprValue copyWith(void Function(ExprValue) updates) =>
       super.copyWith((message) => updates(message as ExprValue)) as ExprValue;
@@ -333,7 +329,7 @@ class ErrorSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ErrorSet clone() => ErrorSet()..mergeFromMessage(this);
+  ErrorSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ErrorSet copyWith(void Function(ErrorSet) updates) =>
       super.copyWith((message) => updates(message as ErrorSet)) as ErrorSet;
@@ -386,7 +382,7 @@ class UnknownSet extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  UnknownSet clone() => UnknownSet()..mergeFromMessage(this);
+  UnknownSet clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   UnknownSet copyWith(void Function(UnknownSet) updates) =>
       super.copyWith((message) => updates(message as UnknownSet)) as UnknownSet;

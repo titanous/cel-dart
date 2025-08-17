@@ -55,8 +55,7 @@ class TestAllTypes_NestedMessage extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TestAllTypes_NestedMessage clone() =>
-      TestAllTypes_NestedMessage()..mergeFromMessage(this);
+  TestAllTypes_NestedMessage clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TestAllTypes_NestedMessage copyWith(
           void Function(TestAllTypes_NestedMessage) updates) =>
@@ -121,8 +120,7 @@ class TestAllTypes_NestedGroup extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TestAllTypes_NestedGroup clone() =>
-      TestAllTypes_NestedGroup()..mergeFromMessage(this);
+  TestAllTypes_NestedGroup clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TestAllTypes_NestedGroup copyWith(
           void Function(TestAllTypes_NestedGroup) updates) =>
@@ -930,8 +928,8 @@ class TestAllTypes extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance.proto2'),
       createEmptyInstance: create)
-    ..oo(0, [21, 22])
-    ..oo(1, [400, 401, 402])
+    ..oo(0, [21, 22], 'nested_type')
+    ..oo(1, [400, 401, 402], 'kind')
     ..a<$core.int>(1, _omitFieldNames ? '' : 'singleInt32', $pb.PbFieldType.O3,
         defaultOrMaker: -32)
     ..a<$fixnum.Int64>(
@@ -2301,7 +2299,7 @@ class TestAllTypes extends $pb.GeneratedMessage {
     ..hasExtensions = true;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TestAllTypes clone() => TestAllTypes()..mergeFromMessage(this);
+  TestAllTypes clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TestAllTypes copyWith(void Function(TestAllTypes) updates) =>
       super.copyWith((message) => updates(message as TestAllTypes))
@@ -3461,7 +3459,7 @@ class NestedTestAllTypes extends $pb.GeneratedMessage {
         subBuilder: TestAllTypes.create);
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  NestedTestAllTypes clone() => NestedTestAllTypes()..mergeFromMessage(this);
+  NestedTestAllTypes clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   NestedTestAllTypes copyWith(void Function(NestedTestAllTypes) updates) =>
       super.copyWith((message) => updates(message as NestedTestAllTypes))
@@ -3533,7 +3531,7 @@ class TestRequired extends $pb.GeneratedMessage {
         presence: $pb.FieldPresence.legacyRequired);
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TestRequired clone() => TestRequired()..mergeFromMessage(this);
+  TestRequired clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TestRequired copyWith(void Function(TestRequired) updates) =>
       super.copyWith((message) => updates(message as TestRequired))

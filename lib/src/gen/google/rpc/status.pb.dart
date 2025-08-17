@@ -60,7 +60,7 @@ class Status extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Status clone() => Status()..mergeFromMessage(this);
+  Status clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Status copyWith(void Function(Status) updates) =>
       super.copyWith((message) => updates(message as Status)) as Status;
@@ -85,8 +85,6 @@ class Status extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set code($core.int value) => $_setSignedInt32(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasCode() => $_has(0);
-  @$pb.TagNumber(1)
   void clearCode() => $_clearField(1);
 
   /// A developer-facing error message, which should be in English. Any
@@ -97,8 +95,6 @@ class Status extends $pb.GeneratedMessage {
   $core.String get message => $_getSZ(1);
   @$pb.TagNumber(2)
   set message($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasMessage() => $_has(1);
   @$pb.TagNumber(2)
   void clearMessage() => $_clearField(2);
 

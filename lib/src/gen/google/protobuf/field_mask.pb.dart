@@ -240,13 +240,12 @@ class FieldMask extends $pb.GeneratedMessage with $mixin.FieldMaskMixin {
       package:
           const $pb.PackageName(_omitMessageNames ? '' : 'google.protobuf'),
       createEmptyInstance: create,
-      toProto3Json: $mixin.FieldMaskMixin.toProto3JsonHelper,
-      fromProto3Json: $mixin.FieldMaskMixin.fromProto3JsonHelper)
+      wellKnownType: $mixin.WellKnownType.fieldMask)
     ..pPS(1, _omitFieldNames ? '' : 'paths')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  FieldMask clone() => FieldMask()..mergeFromMessage(this);
+  FieldMask clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   FieldMask copyWith(void Function(FieldMask) updates) =>
       super.copyWith((message) => updates(message as FieldMask)) as FieldMask;

@@ -77,7 +77,7 @@ class CheckedExpr extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CheckedExpr clone() => CheckedExpr()..mergeFromMessage(this);
+  CheckedExpr clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   CheckedExpr copyWith(void Function(CheckedExpr) updates) =>
       super.copyWith((message) => updates(message as CheckedExpr))
@@ -160,8 +160,6 @@ class CheckedExpr extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   set exprVersion($core.String value) => $_setString(4, value);
   @$pb.TagNumber(6)
-  $core.bool hasExprVersion() => $_has(4);
-  @$pb.TagNumber(6)
   void clearExprVersion() => $_clearField(6);
 }
 
@@ -192,7 +190,7 @@ class Type_ListType extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Type_ListType clone() => Type_ListType()..mergeFromMessage(this);
+  Type_ListType clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Type_ListType copyWith(void Function(Type_ListType) updates) =>
       super.copyWith((message) => updates(message as Type_ListType))
@@ -255,7 +253,7 @@ class Type_MapType extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Type_MapType clone() => Type_MapType()..mergeFromMessage(this);
+  Type_MapType clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Type_MapType copyWith(void Function(Type_MapType) updates) =>
       super.copyWith((message) => updates(message as Type_MapType))
@@ -331,7 +329,7 @@ class Type_FunctionType extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Type_FunctionType clone() => Type_FunctionType()..mergeFromMessage(this);
+  Type_FunctionType clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Type_FunctionType copyWith(void Function(Type_FunctionType) updates) =>
       super.copyWith((message) => updates(message as Type_FunctionType))
@@ -400,7 +398,7 @@ class Type_AbstractType extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Type_AbstractType clone() => Type_AbstractType()..mergeFromMessage(this);
+  Type_AbstractType clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Type_AbstractType copyWith(void Function(Type_AbstractType) updates) =>
       super.copyWith((message) => updates(message as Type_AbstractType))
@@ -425,8 +423,6 @@ class Type_AbstractType extends $pb.GeneratedMessage {
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
@@ -515,7 +511,7 @@ class Type extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'Type',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14], 'type_kind')
     ..aOM<$1.Empty>(1, _omitFieldNames ? '' : 'dyn',
         subBuilder: $1.Empty.create)
     ..e<$2.NullValue>(2, _omitFieldNames ? '' : 'null', $pb.PbFieldType.OE,
@@ -553,7 +549,7 @@ class Type extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Type clone() => Type()..mergeFromMessage(this);
+  Type clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Type copyWith(void Function(Type) updates) =>
       super.copyWith((message) => updates(message as Type)) as Type;
@@ -775,7 +771,7 @@ class Decl_IdentDecl extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Decl_IdentDecl clone() => Decl_IdentDecl()..mergeFromMessage(this);
+  Decl_IdentDecl clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Decl_IdentDecl copyWith(void Function(Decl_IdentDecl) updates) =>
       super.copyWith((message) => updates(message as Decl_IdentDecl))
@@ -840,8 +836,6 @@ class Decl_IdentDecl extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   set doc($core.String value) => $_setString(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasDoc() => $_has(2);
-  @$pb.TagNumber(3)
   void clearDoc() => $_clearField(3);
 }
 
@@ -900,8 +894,7 @@ class Decl_FunctionDecl_Overload extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Decl_FunctionDecl_Overload clone() =>
-      Decl_FunctionDecl_Overload()..mergeFromMessage(this);
+  Decl_FunctionDecl_Overload clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Decl_FunctionDecl_Overload copyWith(
           void Function(Decl_FunctionDecl_Overload) updates) =>
@@ -932,8 +925,6 @@ class Decl_FunctionDecl_Overload extends $pb.GeneratedMessage {
   $core.String get overloadId => $_getSZ(0);
   @$pb.TagNumber(1)
   set overloadId($core.String value) => $_setString(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasOverloadId() => $_has(0);
   @$pb.TagNumber(1)
   void clearOverloadId() => $_clearField(1);
 
@@ -980,8 +971,6 @@ class Decl_FunctionDecl_Overload extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   set isInstanceFunction($core.bool value) => $_setBool(4, value);
   @$pb.TagNumber(5)
-  $core.bool hasIsInstanceFunction() => $_has(4);
-  @$pb.TagNumber(5)
   void clearIsInstanceFunction() => $_clearField(5);
 
   /// Documentation string for the overload.
@@ -1010,8 +999,6 @@ class Decl_FunctionDecl_Overload extends $pb.GeneratedMessage {
   $core.String get doc => $_getSZ(5);
   @$pb.TagNumber(6)
   set doc($core.String value) => $_setString(5, value);
-  @$pb.TagNumber(6)
-  $core.bool hasDoc() => $_has(5);
   @$pb.TagNumber(6)
   void clearDoc() => $_clearField(6);
 }
@@ -1052,7 +1039,7 @@ class Decl_FunctionDecl extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Decl_FunctionDecl clone() => Decl_FunctionDecl()..mergeFromMessage(this);
+  Decl_FunctionDecl clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Decl_FunctionDecl copyWith(void Function(Decl_FunctionDecl) updates) =>
       super.copyWith((message) => updates(message as Decl_FunctionDecl))
@@ -1091,8 +1078,6 @@ class Decl_FunctionDecl extends $pb.GeneratedMessage {
   $core.String get doc => $_getSZ(1);
   @$pb.TagNumber(2)
   set doc($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasDoc() => $_has(1);
   @$pb.TagNumber(2)
   void clearDoc() => $_clearField(2);
 }
@@ -1134,7 +1119,7 @@ class Decl extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'Decl',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.expr'),
       createEmptyInstance: create)
-    ..oo(0, [2, 3])
+    ..oo(0, [2, 3], 'decl_kind')
     ..aOS(1, _omitFieldNames ? '' : 'name',
         presence: $pb.FieldPresence.implicit)
     ..aOM<Decl_IdentDecl>(2, _omitFieldNames ? '' : 'ident',
@@ -1144,7 +1129,7 @@ class Decl extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Decl clone() => Decl()..mergeFromMessage(this);
+  Decl clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Decl copyWith(void Function(Decl) updates) =>
       super.copyWith((message) => updates(message as Decl)) as Decl;
@@ -1179,8 +1164,6 @@ class Decl extends $pb.GeneratedMessage {
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
@@ -1244,7 +1227,7 @@ class Reference extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Reference clone() => Reference()..mergeFromMessage(this);
+  Reference clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Reference copyWith(void Function(Reference) updates) =>
       super.copyWith((message) => updates(message as Reference)) as Reference;
@@ -1267,8 +1250,6 @@ class Reference extends $pb.GeneratedMessage {
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 

@@ -56,7 +56,7 @@ class ParsedExpr extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ParsedExpr clone() => ParsedExpr()..mergeFromMessage(this);
+  ParsedExpr clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ParsedExpr copyWith(void Function(ParsedExpr) updates) =>
       super.copyWith((message) => updates(message as ParsedExpr)) as ParsedExpr;
@@ -128,7 +128,7 @@ class Expr_Ident extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Expr_Ident clone() => Expr_Ident()..mergeFromMessage(this);
+  Expr_Ident clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Expr_Ident copyWith(void Function(Expr_Ident) updates) =>
       super.copyWith((message) => updates(message as Expr_Ident)) as Expr_Ident;
@@ -155,8 +155,6 @@ class Expr_Ident extends $pb.GeneratedMessage {
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 }
@@ -197,7 +195,7 @@ class Expr_Select extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Expr_Select clone() => Expr_Select()..mergeFromMessage(this);
+  Expr_Select clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Expr_Select copyWith(void Function(Expr_Select) updates) =>
       super.copyWith((message) => updates(message as Expr_Select))
@@ -240,8 +238,6 @@ class Expr_Select extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   set field_2($core.String value) => $_setString(1, value);
   @$pb.TagNumber(2)
-  $core.bool hasField_2() => $_has(1);
-  @$pb.TagNumber(2)
   void clearField_2() => $_clearField(2);
 
   /// Whether the select is to be interpreted as a field presence test.
@@ -251,8 +247,6 @@ class Expr_Select extends $pb.GeneratedMessage {
   $core.bool get testOnly => $_getBF(2);
   @$pb.TagNumber(3)
   set testOnly($core.bool value) => $_setBool(2, value);
-  @$pb.TagNumber(3)
-  $core.bool hasTestOnly() => $_has(2);
   @$pb.TagNumber(3)
   void clearTestOnly() => $_clearField(3);
 }
@@ -295,7 +289,7 @@ class Expr_Call extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Expr_Call clone() => Expr_Call()..mergeFromMessage(this);
+  Expr_Call clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Expr_Call copyWith(void Function(Expr_Call) updates) =>
       super.copyWith((message) => updates(message as Expr_Call)) as Expr_Call;
@@ -331,8 +325,6 @@ class Expr_Call extends $pb.GeneratedMessage {
   $core.String get function => $_getSZ(1);
   @$pb.TagNumber(2)
   set function($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasFunction() => $_has(1);
   @$pb.TagNumber(2)
   void clearFunction() => $_clearField(2);
 
@@ -377,7 +369,7 @@ class Expr_CreateList extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Expr_CreateList clone() => Expr_CreateList()..mergeFromMessage(this);
+  Expr_CreateList clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Expr_CreateList copyWith(void Function(Expr_CreateList) updates) =>
       super.copyWith((message) => updates(message as Expr_CreateList))
@@ -451,7 +443,7 @@ class Expr_CreateStruct_Entry extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'google.api.expr.v1alpha1'),
       createEmptyInstance: create)
-    ..oo(0, [2, 3])
+    ..oo(0, [2, 3], 'key_kind')
     ..aInt64(1, _omitFieldNames ? '' : 'id',
         presence: $pb.FieldPresence.implicit)
     ..aOS(2, _omitFieldNames ? '' : 'fieldKey')
@@ -462,8 +454,7 @@ class Expr_CreateStruct_Entry extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Expr_CreateStruct_Entry clone() =>
-      Expr_CreateStruct_Entry()..mergeFromMessage(this);
+  Expr_CreateStruct_Entry clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Expr_CreateStruct_Entry copyWith(
           void Function(Expr_CreateStruct_Entry) updates) =>
@@ -495,8 +486,6 @@ class Expr_CreateStruct_Entry extends $pb.GeneratedMessage {
   $fixnum.Int64 get id => $_getI64(0);
   @$pb.TagNumber(1)
   set id($fixnum.Int64 value) => $_setInt64(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
   void clearId() => $_clearField(1);
 
@@ -544,8 +533,6 @@ class Expr_CreateStruct_Entry extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   set optionalEntry($core.bool value) => $_setBool(4, value);
   @$pb.TagNumber(5)
-  $core.bool hasOptionalEntry() => $_has(4);
-  @$pb.TagNumber(5)
   void clearOptionalEntry() => $_clearField(5);
 }
 
@@ -587,7 +574,7 @@ class Expr_CreateStruct extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Expr_CreateStruct clone() => Expr_CreateStruct()..mergeFromMessage(this);
+  Expr_CreateStruct clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Expr_CreateStruct copyWith(void Function(Expr_CreateStruct) updates) =>
       super.copyWith((message) => updates(message as Expr_CreateStruct))
@@ -613,8 +600,6 @@ class Expr_CreateStruct extends $pb.GeneratedMessage {
   $core.String get messageName => $_getSZ(0);
   @$pb.TagNumber(1)
   set messageName($core.String value) => $_setString(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasMessageName() => $_has(0);
   @$pb.TagNumber(1)
   void clearMessageName() => $_clearField(1);
 
@@ -731,7 +716,7 @@ class Expr_Comprehension extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Expr_Comprehension clone() => Expr_Comprehension()..mergeFromMessage(this);
+  Expr_Comprehension clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Expr_Comprehension copyWith(void Function(Expr_Comprehension) updates) =>
       super.copyWith((message) => updates(message as Expr_Comprehension))
@@ -759,8 +744,6 @@ class Expr_Comprehension extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set iterVar($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasIterVar() => $_has(0);
-  @$pb.TagNumber(1)
   void clearIterVar() => $_clearField(1);
 
   /// The range over which the comprehension iterates.
@@ -780,8 +763,6 @@ class Expr_Comprehension extends $pb.GeneratedMessage {
   $core.String get accuVar => $_getSZ(2);
   @$pb.TagNumber(3)
   set accuVar($core.String value) => $_setString(2, value);
-  @$pb.TagNumber(3)
-  $core.bool hasAccuVar() => $_has(2);
   @$pb.TagNumber(3)
   void clearAccuVar() => $_clearField(3);
 
@@ -848,8 +829,6 @@ class Expr_Comprehension extends $pb.GeneratedMessage {
   $core.String get iterVar2 => $_getSZ(7);
   @$pb.TagNumber(8)
   set iterVar2($core.String value) => $_setString(7, value);
-  @$pb.TagNumber(8)
-  $core.bool hasIterVar2() => $_has(7);
   @$pb.TagNumber(8)
   void clearIterVar2() => $_clearField(8);
 }
@@ -929,7 +908,7 @@ class Expr extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'google.api.expr.v1alpha1'),
       createEmptyInstance: create)
-    ..oo(0, [3, 4, 5, 6, 7, 8, 9])
+    ..oo(0, [3, 4, 5, 6, 7, 8, 9], 'expr_kind')
     ..aInt64(2, _omitFieldNames ? '' : 'id',
         presence: $pb.FieldPresence.implicit)
     ..aOM<Constant>(3, _omitFieldNames ? '' : 'constExpr',
@@ -949,7 +928,7 @@ class Expr extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Expr clone() => Expr()..mergeFromMessage(this);
+  Expr clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Expr copyWith(void Function(Expr) updates) =>
       super.copyWith((message) => updates(message as Expr)) as Expr;
@@ -977,8 +956,6 @@ class Expr extends $pb.GeneratedMessage {
   $fixnum.Int64 get id => $_getI64(0);
   @$pb.TagNumber(2)
   set id($fixnum.Int64 value) => $_setInt64(0, value);
-  @$pb.TagNumber(2)
-  $core.bool hasId() => $_has(0);
   @$pb.TagNumber(2)
   void clearId() => $_clearField(2);
 
@@ -1146,7 +1123,7 @@ class Constant extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'google.api.expr.v1alpha1'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9], 'constant_kind')
     ..e<$2.NullValue>(1, _omitFieldNames ? '' : 'nullValue', $pb.PbFieldType.OE,
         defaultOrMaker: $2.NullValue.NULL_VALUE,
         valueOf: $2.NullValue.valueOf,
@@ -1168,7 +1145,7 @@ class Constant extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Constant clone() => Constant()..mergeFromMessage(this);
+  Constant clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Constant copyWith(void Function(Constant) updates) =>
       super.copyWith((message) => updates(message as Constant)) as Constant;
@@ -1332,8 +1309,7 @@ class SourceInfo_Extension_Version extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SourceInfo_Extension_Version clone() =>
-      SourceInfo_Extension_Version()..mergeFromMessage(this);
+  SourceInfo_Extension_Version clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SourceInfo_Extension_Version copyWith(
           void Function(SourceInfo_Extension_Version) updates) =>
@@ -1363,8 +1339,6 @@ class SourceInfo_Extension_Version extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set major($fixnum.Int64 value) => $_setInt64(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasMajor() => $_has(0);
-  @$pb.TagNumber(1)
   void clearMajor() => $_clearField(1);
 
   /// Minor version changes must not change the observed behavior from
@@ -1373,8 +1347,6 @@ class SourceInfo_Extension_Version extends $pb.GeneratedMessage {
   $fixnum.Int64 get minor => $_getI64(1);
   @$pb.TagNumber(2)
   set minor($fixnum.Int64 value) => $_setInt64(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasMinor() => $_has(1);
   @$pb.TagNumber(2)
   void clearMinor() => $_clearField(2);
 }
@@ -1419,8 +1391,7 @@ class SourceInfo_Extension extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SourceInfo_Extension clone() =>
-      SourceInfo_Extension()..mergeFromMessage(this);
+  SourceInfo_Extension clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SourceInfo_Extension copyWith(void Function(SourceInfo_Extension) updates) =>
       super.copyWith((message) => updates(message as SourceInfo_Extension))
@@ -1445,8 +1416,6 @@ class SourceInfo_Extension extends $pb.GeneratedMessage {
   $core.String get id => $_getSZ(0);
   @$pb.TagNumber(1)
   set id($core.String value) => $_setString(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasId() => $_has(0);
   @$pb.TagNumber(1)
   void clearId() => $_clearField(1);
 
@@ -1529,7 +1498,7 @@ class SourceInfo extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SourceInfo clone() => SourceInfo()..mergeFromMessage(this);
+  SourceInfo clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SourceInfo copyWith(void Function(SourceInfo) updates) =>
       super.copyWith((message) => updates(message as SourceInfo)) as SourceInfo;
@@ -1553,8 +1522,6 @@ class SourceInfo extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set syntaxVersion($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasSyntaxVersion() => $_has(0);
-  @$pb.TagNumber(1)
   void clearSyntaxVersion() => $_clearField(1);
 
   /// The location name. All position information attached to an expression is
@@ -1566,8 +1533,6 @@ class SourceInfo extends $pb.GeneratedMessage {
   $core.String get location => $_getSZ(1);
   @$pb.TagNumber(2)
   set location($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasLocation() => $_has(1);
   @$pb.TagNumber(2)
   void clearLocation() => $_clearField(2);
 
@@ -1648,7 +1613,7 @@ class SourcePosition extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SourcePosition clone() => SourcePosition()..mergeFromMessage(this);
+  SourcePosition clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SourcePosition copyWith(void Function(SourcePosition) updates) =>
       super.copyWith((message) => updates(message as SourcePosition))
@@ -1674,8 +1639,6 @@ class SourcePosition extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set location($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasLocation() => $_has(0);
-  @$pb.TagNumber(1)
   void clearLocation() => $_clearField(1);
 
   /// The UTF-8 code unit offset.
@@ -1683,8 +1646,6 @@ class SourcePosition extends $pb.GeneratedMessage {
   $core.int get offset => $_getIZ(1);
   @$pb.TagNumber(2)
   set offset($core.int value) => $_setSignedInt32(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasOffset() => $_has(1);
   @$pb.TagNumber(2)
   void clearOffset() => $_clearField(2);
 
@@ -1695,8 +1656,6 @@ class SourcePosition extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   set line($core.int value) => $_setSignedInt32(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasLine() => $_has(2);
-  @$pb.TagNumber(3)
   void clearLine() => $_clearField(3);
 
   /// The 0-based index of the starting position within the line of source text
@@ -1705,8 +1664,6 @@ class SourcePosition extends $pb.GeneratedMessage {
   $core.int get column => $_getIZ(3);
   @$pb.TagNumber(4)
   set column($core.int value) => $_setSignedInt32(3, value);
-  @$pb.TagNumber(4)
-  $core.bool hasColumn() => $_has(3);
   @$pb.TagNumber(4)
   void clearColumn() => $_clearField(4);
 }

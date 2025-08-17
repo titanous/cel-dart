@@ -60,7 +60,7 @@ class TestSuite extends $pb.GeneratedMessage {
         subBuilder: TestSection.create);
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TestSuite clone() => TestSuite()..mergeFromMessage(this);
+  TestSuite clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TestSuite copyWith(void Function(TestSuite) updates) =>
       super.copyWith((message) => updates(message as TestSuite)) as TestSuite;
@@ -84,8 +84,6 @@ class TestSuite extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
-  @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
   /// Description of the test suite.
@@ -93,8 +91,6 @@ class TestSuite extends $pb.GeneratedMessage {
   $core.String get description => $_getSZ(1);
   @$pb.TagNumber(2)
   set description($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasDescription() => $_has(1);
   @$pb.TagNumber(2)
   void clearDescription() => $_clearField(2);
 
@@ -140,7 +136,7 @@ class TestSection extends $pb.GeneratedMessage {
         subBuilder: TestCase.create);
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TestSection clone() => TestSection()..mergeFromMessage(this);
+  TestSection clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TestSection copyWith(void Function(TestSection) updates) =>
       super.copyWith((message) => updates(message as TestSection))
@@ -165,8 +161,6 @@ class TestSection extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
-  @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
   /// Description of the test section.
@@ -174,8 +168,6 @@ class TestSection extends $pb.GeneratedMessage {
   $core.String get description => $_getSZ(1);
   @$pb.TagNumber(2)
   set description($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasDescription() => $_has(1);
   @$pb.TagNumber(2)
   void clearDescription() => $_clearField(2);
 
@@ -254,7 +246,7 @@ class TestCase extends $pb.GeneratedMessage {
         presence: $pb.FieldPresence.implicit);
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TestCase clone() => TestCase()..mergeFromMessage(this);
+  TestCase clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TestCase copyWith(void Function(TestCase) updates) =>
       super.copyWith((message) => updates(message as TestCase)) as TestCase;
@@ -278,8 +270,6 @@ class TestCase extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
-  @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
   /// A description of the test.
@@ -288,8 +278,6 @@ class TestCase extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   set description($core.String value) => $_setString(1, value);
   @$pb.TagNumber(2)
-  $core.bool hasDescription() => $_has(1);
-  @$pb.TagNumber(2)
   void clearDescription() => $_clearField(2);
 
   /// The text of the CEL expression.
@@ -297,8 +285,6 @@ class TestCase extends $pb.GeneratedMessage {
   $core.String get expr => $_getSZ(2);
   @$pb.TagNumber(3)
   set expr($core.String value) => $_setString(2, value);
-  @$pb.TagNumber(3)
-  $core.bool hasExpr() => $_has(2);
   @$pb.TagNumber(3)
   void clearExpr() => $_clearField(3);
 
@@ -369,8 +355,6 @@ class TestCase extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   set disableCheck($core.bool value) => $_setBool(8, value);
   @$pb.TagNumber(9)
-  $core.bool hasDisableCheck() => $_has(8);
-  @$pb.TagNumber(9)
   void clearDisableCheck() => $_clearField(9);
 }
 
@@ -408,14 +392,14 @@ class InputContext extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance.test'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2])
+    ..oo(0, [1, 2], 'input_context_kind')
     ..aOM<$2.Any>(1, _omitFieldNames ? '' : 'contextMessage',
         subBuilder: $2.Any.create)
     ..aOS(2, _omitFieldNames ? '' : 'contextExpr')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  InputContext clone() => InputContext()..mergeFromMessage(this);
+  InputContext clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   InputContext copyWith(void Function(InputContext) updates) =>
       super.copyWith((message) => updates(message as InputContext))
@@ -499,14 +483,14 @@ class InputValue extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance.test'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2])
+    ..oo(0, [1, 2], 'kind')
     ..aOM<$3.Value>(1, _omitFieldNames ? '' : 'value',
         subBuilder: $3.Value.create)
     ..aOS(2, _omitFieldNames ? '' : 'expr')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  InputValue clone() => InputValue()..mergeFromMessage(this);
+  InputValue clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   InputValue copyWith(void Function(InputValue) updates) =>
       super.copyWith((message) => updates(message as InputValue)) as InputValue;
@@ -598,7 +582,7 @@ class TestOutput extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance.test'),
       createEmptyInstance: create)
-    ..oo(0, [8, 9, 10, 11])
+    ..oo(0, [8, 9, 10, 11], 'result_kind')
     ..aOM<$3.Value>(8, _omitFieldNames ? '' : 'resultValue',
         subBuilder: $3.Value.create)
     ..aOS(9, _omitFieldNames ? '' : 'resultExpr')
@@ -609,7 +593,7 @@ class TestOutput extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TestOutput clone() => TestOutput()..mergeFromMessage(this);
+  TestOutput clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TestOutput copyWith(void Function(TestOutput) updates) =>
       super.copyWith((message) => updates(message as TestOutput)) as TestOutput;

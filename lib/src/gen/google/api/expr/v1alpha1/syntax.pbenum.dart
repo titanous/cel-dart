@@ -15,43 +15,38 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 /// CEL component specifier.
-class SourceInfo_Extension_Component extends $pb.ProtobufEnum {
+enum SourceInfo_Extension_Component implements $pb.ProtobufEnum {
   /// Unspecified, default.
-  static const SourceInfo_Extension_Component COMPONENT_UNSPECIFIED =
-      SourceInfo_Extension_Component._(
-          0, _omitEnumNames ? '' : 'COMPONENT_UNSPECIFIED');
+  COMPONENT_UNSPECIFIED(0, _omitEnumNames ? '' : 'COMPONENT_UNSPECIFIED'),
 
   /// Parser. Converts a CEL string to an AST.
-  static const SourceInfo_Extension_Component COMPONENT_PARSER =
-      SourceInfo_Extension_Component._(
-          1, _omitEnumNames ? '' : 'COMPONENT_PARSER');
+  COMPONENT_PARSER(1, _omitEnumNames ? '' : 'COMPONENT_PARSER'),
 
   /// Type checker. Checks that references in an AST are defined and types
   /// agree.
-  static const SourceInfo_Extension_Component COMPONENT_TYPE_CHECKER =
-      SourceInfo_Extension_Component._(
-          2, _omitEnumNames ? '' : 'COMPONENT_TYPE_CHECKER');
+  COMPONENT_TYPE_CHECKER(2, _omitEnumNames ? '' : 'COMPONENT_TYPE_CHECKER'),
 
   /// Runtime. Evaluates a parsed and optionally checked CEL AST against a
   /// context.
-  static const SourceInfo_Extension_Component COMPONENT_RUNTIME =
-      SourceInfo_Extension_Component._(
-          3, _omitEnumNames ? '' : 'COMPONENT_RUNTIME');
+  COMPONENT_RUNTIME(3, _omitEnumNames ? '' : 'COMPONENT_RUNTIME'),
+  ;
 
-  static const $core.List<SourceInfo_Extension_Component> values =
-      <SourceInfo_Extension_Component>[
-    COMPONENT_UNSPECIFIED,
-    COMPONENT_PARSER,
-    COMPONENT_TYPE_CHECKER,
-    COMPONENT_RUNTIME,
-  ];
-
-  static final $core.List<SourceInfo_Extension_Component?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 3);
+  static final $core.Map<$core.int, SourceInfo_Extension_Component> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
   static SourceInfo_Extension_Component? valueOf($core.int value) =>
-      value < 0 || value >= _byValue.length ? null : _byValue[value];
+      _byValue[value];
 
-  const SourceInfo_Extension_Component._(super.value, super.name);
+  @$core.override
+  final $core.int value;
+
+  @$core.override
+  final $core.String name;
+
+  const SourceInfo_Extension_Component(this.value, this.name);
+
+  /// Returns this enum's [name] or the [value] if names are not represented.
+  @$core.override
+  $core.String toString() => name == '' ? value.toString() : name;
 }
 
 const $core.bool _omitEnumNames =

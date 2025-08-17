@@ -306,23 +306,23 @@ class ProtobufTypeAdapter {
 
     // Check each wrapper type and see if it has a non-default value
     if (value is pb_wrappers.BoolValue) {
-      return value.hasValue();
+      return value.hasField(1);  // value field is at tag 1
     } else if (value is pb_wrappers.BytesValue) {
-      return value.hasValue();
+      return value.hasField(1);
     } else if (value is pb_wrappers.StringValue) {
-      return value.hasValue();
+      return value.hasField(1);
     } else if (value is pb_wrappers.DoubleValue) {
-      return value.hasValue();
+      return value.hasField(1);
     } else if (value is pb_wrappers.FloatValue) {
-      return value.hasValue();
+      return value.hasField(1);
     } else if (value is pb_wrappers.Int32Value) {
-      return value.hasValue();
+      return value.hasField(1);
     } else if (value is pb_wrappers.Int64Value) {
-      return value.hasValue();
+      return value.hasField(1);
     } else if (value is pb_wrappers.UInt32Value) {
-      return value.hasValue();
+      return value.hasField(1);
     } else if (value is pb_wrappers.UInt64Value) {
-      return value.hasValue();
+      return value.hasField(1);
     } else if (value is pb_timestamp.Timestamp) {
       // Timestamp is always considered as having a value when constructed
       return true;

@@ -1,11 +1,7 @@
 version: v2
 plugins:
-  - local: protoc-gen-dart
+  - local: ["dart", "run", "protoc_plugin"]
     out: lib/src/gen
+    opt: default_api_level=API_LEVEL_HYBRID
     include_imports: true
     include_wkt: true
-managed:
-  enabled: true
-  override:
-    - file_option: go_package_prefix
-      value: github.com/cel-dart/cel-dart/gen

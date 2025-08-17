@@ -100,7 +100,7 @@ class Value extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'google.api.expr.v1alpha1'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 15])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 15], 'kind')
     ..e<$1.NullValue>(1, _omitFieldNames ? '' : 'nullValue', $pb.PbFieldType.OE,
         defaultOrMaker: $1.NullValue.NULL_VALUE,
         valueOf: $1.NullValue.valueOf,
@@ -127,7 +127,7 @@ class Value extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Value clone() => Value()..mergeFromMessage(this);
+  Value clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Value copyWith(void Function(Value) updates) =>
       super.copyWith((message) => updates(message as Value)) as Value;
@@ -310,7 +310,7 @@ class EnumValue extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  EnumValue clone() => EnumValue()..mergeFromMessage(this);
+  EnumValue clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   EnumValue copyWith(void Function(EnumValue) updates) =>
       super.copyWith((message) => updates(message as EnumValue)) as EnumValue;
@@ -334,8 +334,6 @@ class EnumValue extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set type($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasType() => $_has(0);
-  @$pb.TagNumber(1)
   void clearType() => $_clearField(1);
 
   /// The value of the enum.
@@ -343,8 +341,6 @@ class EnumValue extends $pb.GeneratedMessage {
   $core.int get value => $_getIZ(1);
   @$pb.TagNumber(2)
   set value($core.int value) => $_setSignedInt32(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasValue() => $_has(1);
   @$pb.TagNumber(2)
   void clearValue() => $_clearField(2);
 }
@@ -381,7 +377,7 @@ class ListValue extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ListValue clone() => ListValue()..mergeFromMessage(this);
+  ListValue clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ListValue copyWith(void Function(ListValue) updates) =>
       super.copyWith((message) => updates(message as ListValue)) as ListValue;
@@ -435,7 +431,7 @@ class MapValue_Entry extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MapValue_Entry clone() => MapValue_Entry()..mergeFromMessage(this);
+  MapValue_Entry clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MapValue_Entry copyWith(void Function(MapValue_Entry) updates) =>
       super.copyWith((message) => updates(message as MapValue_Entry))
@@ -516,7 +512,7 @@ class MapValue extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  MapValue clone() => MapValue()..mergeFromMessage(this);
+  MapValue clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   MapValue copyWith(void Function(MapValue) updates) =>
       super.copyWith((message) => updates(message as MapValue)) as MapValue;

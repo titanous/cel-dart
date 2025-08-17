@@ -43,7 +43,7 @@ class PolicySpec_Import extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  PolicySpec_Import clone() => PolicySpec_Import()..mergeFromMessage(this);
+  PolicySpec_Import clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   PolicySpec_Import copyWith(void Function(PolicySpec_Import) updates) =>
       super.copyWith((message) => updates(message as PolicySpec_Import))
@@ -67,8 +67,6 @@ class PolicySpec_Import extends $pb.GeneratedMessage {
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 }
@@ -108,7 +106,7 @@ class PolicySpec_Variable extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  PolicySpec_Variable clone() => PolicySpec_Variable()..mergeFromMessage(this);
+  PolicySpec_Variable clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   PolicySpec_Variable copyWith(void Function(PolicySpec_Variable) updates) =>
       super.copyWith((message) => updates(message as PolicySpec_Variable))
@@ -133,8 +131,6 @@ class PolicySpec_Variable extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
-  @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
   @$pb.TagNumber(2)
@@ -142,16 +138,12 @@ class PolicySpec_Variable extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   set description($core.String value) => $_setString(1, value);
   @$pb.TagNumber(2)
-  $core.bool hasDescription() => $_has(1);
-  @$pb.TagNumber(2)
   void clearDescription() => $_clearField(2);
 
   @$pb.TagNumber(3)
   $core.String get expression => $_getSZ(2);
   @$pb.TagNumber(3)
   set expression($core.String value) => $_setString(2, value);
-  @$pb.TagNumber(3)
-  $core.bool hasExpression() => $_has(2);
   @$pb.TagNumber(3)
   void clearExpression() => $_clearField(3);
 }
@@ -196,7 +188,7 @@ class PolicySpec_Rule extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  PolicySpec_Rule clone() => PolicySpec_Rule()..mergeFromMessage(this);
+  PolicySpec_Rule clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   PolicySpec_Rule copyWith(void Function(PolicySpec_Rule) updates) =>
       super.copyWith((message) => updates(message as PolicySpec_Rule))
@@ -221,16 +213,12 @@ class PolicySpec_Rule extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set id($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasId() => $_has(0);
-  @$pb.TagNumber(1)
   void clearId() => $_clearField(1);
 
   @$pb.TagNumber(2)
   $core.String get description => $_getSZ(1);
   @$pb.TagNumber(2)
   set description($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasDescription() => $_has(1);
   @$pb.TagNumber(2)
   void clearDescription() => $_clearField(2);
 
@@ -277,7 +265,7 @@ class PolicySpec_Match extends $pb.GeneratedMessage {
       _omitMessageNames ? '' : 'PolicySpec.Match',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'cel.policy'),
       createEmptyInstance: create)
-    ..oo(0, [2, 3])
+    ..oo(0, [2, 3], 'action')
     ..aOS(1, _omitFieldNames ? '' : 'condition')
     ..aOS(2, _omitFieldNames ? '' : 'output')
     ..aOM<PolicySpec_Rule>(3, _omitFieldNames ? '' : 'rule',
@@ -287,7 +275,7 @@ class PolicySpec_Match extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  PolicySpec_Match clone() => PolicySpec_Match()..mergeFromMessage(this);
+  PolicySpec_Match clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   PolicySpec_Match copyWith(void Function(PolicySpec_Match) updates) =>
       super.copyWith((message) => updates(message as PolicySpec_Match))
@@ -313,9 +301,9 @@ class PolicySpec_Match extends $pb.GeneratedMessage {
 
   /// If unset, the default is "true".
   @$pb.TagNumber(1)
-  $core.String get condition => $_getSZ(0);
+  $core.String? get condition => $_getSNullable(0);
   @$pb.TagNumber(1)
-  set condition($core.String value) => $_setString(0, value);
+  set condition($core.String? value) => $_setStringNullable(0, value);
   @$pb.TagNumber(1)
   $core.bool hasCondition() => $_has(0);
   @$pb.TagNumber(1)
@@ -345,8 +333,6 @@ class PolicySpec_Match extends $pb.GeneratedMessage {
   $core.String get explanation => $_getSZ(3);
   @$pb.TagNumber(4)
   set explanation($core.String value) => $_setString(3, value);
-  @$pb.TagNumber(4)
-  $core.bool hasExplanation() => $_has(3);
   @$pb.TagNumber(4)
   void clearExplanation() => $_clearField(4);
 }
@@ -406,7 +392,7 @@ class PolicySpec extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  PolicySpec clone() => PolicySpec()..mergeFromMessage(this);
+  PolicySpec clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   PolicySpec copyWith(void Function(PolicySpec) updates) =>
       super.copyWith((message) => updates(message as PolicySpec)) as PolicySpec;
@@ -429,8 +415,6 @@ class PolicySpec extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
-  @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
   @$pb.TagNumber(2)
@@ -442,9 +426,9 @@ class PolicySpec extends $pb.GeneratedMessage {
 
   /// If set, [PolicySpec][match] and [PolicySpec][rule] must be unset.
   @$pb.TagNumber(4)
-  $core.String get output => $_getSZ(3);
+  $core.String? get output => $_getSNullable(3);
   @$pb.TagNumber(4)
-  set output($core.String value) => $_setString(3, value);
+  set output($core.String? value) => $_setStringNullable(3, value);
   @$pb.TagNumber(4)
   $core.bool hasOutput() => $_has(3);
   @$pb.TagNumber(4)
@@ -452,9 +436,9 @@ class PolicySpec extends $pb.GeneratedMessage {
 
   /// If set, [PolicySpec][match] and [PolicySpec][rule] must be unset.
   @$pb.TagNumber(5)
-  $core.String get description => $_getSZ(4);
+  $core.String? get description => $_getSNullable(4);
   @$pb.TagNumber(5)
-  set description($core.String value) => $_setString(4, value);
+  set description($core.String? value) => $_setStringNullable(4, value);
   @$pb.TagNumber(5)
   $core.bool hasDescription() => $_has(4);
   @$pb.TagNumber(5)
@@ -462,9 +446,9 @@ class PolicySpec extends $pb.GeneratedMessage {
 
   /// If set, [PolicySpec][match] and [PolicySpec][rule] must be unset.
   @$pb.TagNumber(6)
-  $core.String get explanation => $_getSZ(5);
+  $core.String? get explanation => $_getSNullable(5);
   @$pb.TagNumber(6)
-  set explanation($core.String value) => $_setString(5, value);
+  set explanation($core.String? value) => $_setStringNullable(5, value);
   @$pb.TagNumber(6)
   $core.bool hasExplanation() => $_has(5);
   @$pb.TagNumber(6)

@@ -91,7 +91,8 @@ class ConformanceTestRunner {
           ..mergeFromProto3Json(
             jsonData,
             typeRegistry: typeRegistry,
-            allowUnknownEnumIntegers: true, // Enable proto2-compatible enum handling
+            allowUnknownEnumIntegers:
+                true, // Enable proto2-compatible enum handling
             permissiveEnums: true, // Enable proto3-compatible enum handling
             ignoreUnknownFields: true, // Handle extension fields gracefully
           );
@@ -162,7 +163,7 @@ class ConformanceTestRunner {
 
       // Create an environment with the container if provided
       Environment testEnv = environment;
-      if (test.hasContainer() && test.container.isNotEmpty) {
+      if (test.container.isNotEmpty) {
         // Create a new environment with the container namespace
         testEnv = Environment.withProtos(
           registry: environment.protoRegistry ?? ProtoTypeRegistry(),
@@ -178,7 +179,7 @@ class ConformanceTestRunner {
       final ast = testEnv.compile(test.expr);
 
       // Check if we expect a parse error
-      if (test.hasDisableCheck() && test.disableCheck) {
+      if (test.disableCheck) {
         // We're not checking, just evaluating
       }
 
@@ -353,7 +354,8 @@ class ConformanceTestRunner {
       return {'typeValue': value.typeValue};
     } else if (value.hasEnumValue()) {
       // Handle enumValue for strong enum mode tests
-      return EnumValue.createStrong(value.enumValue.type, value.enumValue.value);
+      return EnumValue.createStrong(
+          value.enumValue.type, value.enumValue.value);
     }
 
     // Handle other types as needed
@@ -413,7 +415,9 @@ class ConformanceTestRunner {
     }
 
     // Handle type values: actual is a string, expected is {'typeValue': string}
-    if (actual is String && expected is Map && expected.containsKey('typeValue')) {
+    if (actual is String &&
+        expected is Map &&
+        expected.containsKey('typeValue')) {
       return actual == expected['typeValue'];
     }
 
@@ -422,26 +426,30 @@ class ConformanceTestRunner {
       if (actual is double || expected is double) {
         final actualDouble = actual.toDouble();
         final expectedDouble = expected.toDouble();
-        
+
         // Handle special cases: Infinity, -Infinity, NaN
         if (actualDouble.isInfinite && expectedDouble.isInfinite) {
-          return actualDouble == expectedDouble; // Handles +Infinity vs -Infinity
+          return actualDouble ==
+              expectedDouble; // Handles +Infinity vs -Infinity
         }
         if (actualDouble.isNaN && expectedDouble.isNaN) {
           return true; // Both NaN, consider equal for test purposes
         }
-        if (actualDouble.isInfinite || expectedDouble.isInfinite ||
-            actualDouble.isNaN || expectedDouble.isNaN) {
+        if (actualDouble.isInfinite ||
+            expectedDouble.isInfinite ||
+            actualDouble.isNaN ||
+            expectedDouble.isNaN) {
           return false; // One is special, the other is not
         }
-        
+
         return (actualDouble - expectedDouble).abs() < 1e-9;
       }
     }
 
     // Handle EnumValue comparison for strong enum mode tests
     if (actual is EnumValue && expected is EnumValue) {
-      return actual.enumType == expected.enumType && actual.numericValue == expected.numericValue;
+      return actual.enumType == expected.enumType &&
+          actual.numericValue == expected.numericValue;
     }
 
     return actual == expected;
@@ -558,7 +566,8 @@ class ConformanceTestRunner {
       // Try to use ProtoTypeRegistry if available
       final protoRegistry = environment.protoRegistry;
       if (protoRegistry != null) {
-        final msg = protoRegistry.unpackAnyMessage(fullTypeName, anyMessage.value);
+        final msg =
+            protoRegistry.unpackAnyMessage(fullTypeName, anyMessage.value);
         if (msg != null) {
           return msg;
         }

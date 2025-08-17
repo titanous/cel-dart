@@ -15,38 +15,36 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 /// Severities of issues.
-class IssueDetails_Severity extends $pb.ProtobufEnum {
+enum IssueDetails_Severity implements $pb.ProtobufEnum {
   /// An unspecified severity.
-  static const IssueDetails_Severity SEVERITY_UNSPECIFIED =
-      IssueDetails_Severity._(0, _omitEnumNames ? '' : 'SEVERITY_UNSPECIFIED');
+  SEVERITY_UNSPECIFIED(0, _omitEnumNames ? '' : 'SEVERITY_UNSPECIFIED'),
 
   /// Deprecation issue for statements and method that may no longer be
   /// supported or maintained.
-  static const IssueDetails_Severity DEPRECATION =
-      IssueDetails_Severity._(1, _omitEnumNames ? '' : 'DEPRECATION');
+  DEPRECATION(1, _omitEnumNames ? '' : 'DEPRECATION'),
 
   /// Warnings such as: unused variables.
-  static const IssueDetails_Severity WARNING =
-      IssueDetails_Severity._(2, _omitEnumNames ? '' : 'WARNING');
+  WARNING(2, _omitEnumNames ? '' : 'WARNING'),
 
   /// Errors such as: unmatched curly braces or variable redefinition.
-  static const IssueDetails_Severity ERROR =
-      IssueDetails_Severity._(3, _omitEnumNames ? '' : 'ERROR');
+  ERROR(3, _omitEnumNames ? '' : 'ERROR'),
+  ;
 
-  static const $core.List<IssueDetails_Severity> values =
-      <IssueDetails_Severity>[
-    SEVERITY_UNSPECIFIED,
-    DEPRECATION,
-    WARNING,
-    ERROR,
-  ];
+  static final $core.Map<$core.int, IssueDetails_Severity> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static IssueDetails_Severity? valueOf($core.int value) => _byValue[value];
 
-  static final $core.List<IssueDetails_Severity?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 3);
-  static IssueDetails_Severity? valueOf($core.int value) =>
-      value < 0 || value >= _byValue.length ? null : _byValue[value];
+  @$core.override
+  final $core.int value;
 
-  const IssueDetails_Severity._(super.value, super.name);
+  @$core.override
+  final $core.String name;
+
+  const IssueDetails_Severity(this.value, this.name);
+
+  /// Returns this enum's [name] or the [value] if names are not represented.
+  @$core.override
+  $core.String toString() => name == '' ? value.toString() : name;
 }
 
 const $core.bool _omitEnumNames =

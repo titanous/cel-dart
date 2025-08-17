@@ -69,8 +69,7 @@ class Proto2ExtensionScopedMessage extends $pb.GeneratedMessage {
           subBuilder: $0.TestAllTypes.create);
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Proto2ExtensionScopedMessage clone() =>
-      Proto2ExtensionScopedMessage()..mergeFromMessage(this);
+  Proto2ExtensionScopedMessage clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Proto2ExtensionScopedMessage copyWith(
           void Function(Proto2ExtensionScopedMessage) updates) =>

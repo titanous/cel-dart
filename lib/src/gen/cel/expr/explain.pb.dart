@@ -51,7 +51,7 @@ class Explain_ExprStep extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Explain_ExprStep clone() => Explain_ExprStep()..mergeFromMessage(this);
+  Explain_ExprStep clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Explain_ExprStep copyWith(void Function(Explain_ExprStep) updates) =>
       super.copyWith((message) => updates(message as Explain_ExprStep))
@@ -77,8 +77,6 @@ class Explain_ExprStep extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set id($fixnum.Int64 value) => $_setInt64(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasId() => $_has(0);
-  @$pb.TagNumber(1)
   void clearId() => $_clearField(1);
 
   /// Index of the value in the values list.
@@ -86,8 +84,6 @@ class Explain_ExprStep extends $pb.GeneratedMessage {
   $core.int get valueIndex => $_getIZ(1);
   @$pb.TagNumber(2)
   set valueIndex($core.int value) => $_setSignedInt32(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasValueIndex() => $_has(1);
   @$pb.TagNumber(2)
   void clearValueIndex() => $_clearField(2);
 }
@@ -126,7 +122,7 @@ class Explain extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Explain clone() => Explain()..mergeFromMessage(this);
+  Explain clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Explain copyWith(void Function(Explain) updates) =>
       super.copyWith((message) => updates(message as Explain)) as Explain;

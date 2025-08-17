@@ -55,7 +55,7 @@ class Environment_Import extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Environment_Import clone() => Environment_Import()..mergeFromMessage(this);
+  Environment_Import clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Environment_Import copyWith(void Function(Environment_Import) updates) =>
       super.copyWith((message) => updates(message as Environment_Import))
@@ -80,8 +80,6 @@ class Environment_Import extends $pb.GeneratedMessage {
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 }
@@ -116,8 +114,7 @@ class Environment_ContextVariable extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Environment_ContextVariable clone() =>
-      Environment_ContextVariable()..mergeFromMessage(this);
+  Environment_ContextVariable clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Environment_ContextVariable copyWith(
           void Function(Environment_ContextVariable) updates) =>
@@ -145,8 +142,6 @@ class Environment_ContextVariable extends $pb.GeneratedMessage {
   $core.String get typeName => $_getSZ(0);
   @$pb.TagNumber(1)
   set typeName($core.String value) => $_setString(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasTypeName() => $_has(0);
   @$pb.TagNumber(1)
   void clearTypeName() => $_clearField(1);
 }
@@ -234,7 +229,7 @@ class Environment extends $pb.GeneratedMessage {
         presence: $pb.FieldPresence.implicit);
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Environment clone() => Environment()..mergeFromMessage(this);
+  Environment clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Environment copyWith(void Function(Environment) updates) =>
       super.copyWith((message) => updates(message as Environment))
@@ -259,8 +254,6 @@ class Environment extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
-  @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
   /// Description for the current environment
@@ -268,8 +261,6 @@ class Environment extends $pb.GeneratedMessage {
   $core.String get description => $_getSZ(1);
   @$pb.TagNumber(2)
   set description($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasDescription() => $_has(1);
   @$pb.TagNumber(2)
   void clearDescription() => $_clearField(2);
 
@@ -283,8 +274,6 @@ class Environment extends $pb.GeneratedMessage {
   $core.String get container => $_getSZ(2);
   @$pb.TagNumber(3)
   set container($core.String value) => $_setString(2, value);
-  @$pb.TagNumber(3)
-  $core.bool hasContainer() => $_has(2);
   @$pb.TagNumber(3)
   void clearContainer() => $_clearField(3);
 
@@ -353,8 +342,6 @@ class Environment extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   set disableStandardCelDeclarations($core.bool value) => $_setBool(10, value);
   @$pb.TagNumber(11)
-  $core.bool hasDisableStandardCelDeclarations() => $_has(10);
-  @$pb.TagNumber(11)
   void clearDisableStandardCelDeclarations() => $_clearField(11);
 
   /// If provided, uses the provided FileDescriptorSet to extend types available
@@ -382,8 +369,6 @@ class Environment extends $pb.GeneratedMessage {
   $core.bool get enableMacroCallTracking => $_getBF(12);
   @$pb.TagNumber(13)
   set enableMacroCallTracking($core.bool value) => $_setBool(12, value);
-  @$pb.TagNumber(13)
-  $core.bool hasEnableMacroCallTracking() => $_has(12);
   @$pb.TagNumber(13)
   void clearEnableMacroCallTracking() => $_clearField(13);
 }
@@ -434,7 +419,7 @@ class Validator extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Validator clone() => Validator()..mergeFromMessage(this);
+  Validator clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Validator copyWith(void Function(Validator) updates) =>
       super.copyWith((message) => updates(message as Validator)) as Validator;
@@ -456,8 +441,6 @@ class Validator extends $pb.GeneratedMessage {
   $core.String get name => $_getSZ(0);
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
   @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
@@ -503,7 +486,7 @@ class Feature extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Feature clone() => Feature()..mergeFromMessage(this);
+  Feature clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Feature copyWith(void Function(Feature) updates) =>
       super.copyWith((message) => updates(message as Feature)) as Feature;
@@ -527,8 +510,6 @@ class Feature extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
-  @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
   /// State of the feature flab.
@@ -536,8 +517,6 @@ class Feature extends $pb.GeneratedMessage {
   $core.bool get enabled => $_getBF(1);
   @$pb.TagNumber(2)
   set enabled($core.bool value) => $_setBool(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasEnabled() => $_has(1);
   @$pb.TagNumber(2)
   void clearEnabled() => $_clearField(2);
 }
@@ -576,7 +555,7 @@ class Extension extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Extension clone() => Extension()..mergeFromMessage(this);
+  Extension clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Extension copyWith(void Function(Extension) updates) =>
       super.copyWith((message) => updates(message as Extension)) as Extension;
@@ -600,8 +579,6 @@ class Extension extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
-  @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
   /// Version of the extension library.
@@ -609,8 +586,6 @@ class Extension extends $pb.GeneratedMessage {
   $core.String get version => $_getSZ(1);
   @$pb.TagNumber(2)
   set version($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasVersion() => $_has(1);
   @$pb.TagNumber(2)
   void clearVersion() => $_clearField(2);
 }
@@ -667,7 +642,7 @@ class LibrarySubset extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  LibrarySubset clone() => LibrarySubset()..mergeFromMessage(this);
+  LibrarySubset clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   LibrarySubset copyWith(void Function(LibrarySubset) updates) =>
       super.copyWith((message) => updates(message as LibrarySubset))
@@ -694,8 +669,6 @@ class LibrarySubset extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set disabled($core.bool value) => $_setBool(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasDisabled() => $_has(0);
-  @$pb.TagNumber(1)
   void clearDisabled() => $_clearField(1);
 
   /// Disables macros for the given library.
@@ -703,8 +676,6 @@ class LibrarySubset extends $pb.GeneratedMessage {
   $core.bool get disableMacros => $_getBF(1);
   @$pb.TagNumber(2)
   set disableMacros($core.bool value) => $_setBool(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasDisableMacros() => $_has(1);
   @$pb.TagNumber(2)
   void clearDisableMacros() => $_clearField(2);
 

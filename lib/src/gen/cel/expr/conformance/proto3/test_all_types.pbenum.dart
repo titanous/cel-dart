@@ -15,46 +15,54 @@ import 'dart:core' as $core;
 import 'package:protobuf/protobuf.dart' as $pb;
 
 /// This proto tests that global enums are resolved correctly.
-class GlobalEnum extends $pb.ProtobufEnum {
-  static const GlobalEnum GOO = GlobalEnum._(0, _omitEnumNames ? '' : 'GOO');
-  static const GlobalEnum GAR = GlobalEnum._(1, _omitEnumNames ? '' : 'GAR');
-  static const GlobalEnum GAZ = GlobalEnum._(2, _omitEnumNames ? '' : 'GAZ');
+enum GlobalEnum implements $pb.ProtobufEnum {
+  GOO(0, _omitEnumNames ? '' : 'GOO'),
 
-  static const $core.List<GlobalEnum> values = <GlobalEnum>[
-    GOO,
-    GAR,
-    GAZ,
-  ];
+  GAR(1, _omitEnumNames ? '' : 'GAR'),
 
-  static final $core.List<GlobalEnum?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 2);
-  static GlobalEnum? valueOf($core.int value) =>
-      value < 0 || value >= _byValue.length ? null : _byValue[value];
+  GAZ(2, _omitEnumNames ? '' : 'GAZ'),
+  ;
 
-  const GlobalEnum._(super.value, super.name);
+  static final $core.Map<$core.int, GlobalEnum> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static GlobalEnum? valueOf($core.int value) => _byValue[value];
+
+  @$core.override
+  final $core.int value;
+
+  @$core.override
+  final $core.String name;
+
+  const GlobalEnum(this.value, this.name);
+
+  /// Returns this enum's [name] or the [value] if names are not represented.
+  @$core.override
+  $core.String toString() => name == '' ? value.toString() : name;
 }
 
-class TestAllTypes_NestedEnum extends $pb.ProtobufEnum {
-  static const TestAllTypes_NestedEnum FOO =
-      TestAllTypes_NestedEnum._(0, _omitEnumNames ? '' : 'FOO');
-  static const TestAllTypes_NestedEnum BAR =
-      TestAllTypes_NestedEnum._(1, _omitEnumNames ? '' : 'BAR');
-  static const TestAllTypes_NestedEnum BAZ =
-      TestAllTypes_NestedEnum._(2, _omitEnumNames ? '' : 'BAZ');
+enum TestAllTypes_NestedEnum implements $pb.ProtobufEnum {
+  FOO(0, _omitEnumNames ? '' : 'FOO'),
 
-  static const $core.List<TestAllTypes_NestedEnum> values =
-      <TestAllTypes_NestedEnum>[
-    FOO,
-    BAR,
-    BAZ,
-  ];
+  BAR(1, _omitEnumNames ? '' : 'BAR'),
 
-  static final $core.List<TestAllTypes_NestedEnum?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 2);
-  static TestAllTypes_NestedEnum? valueOf($core.int value) =>
-      value < 0 || value >= _byValue.length ? null : _byValue[value];
+  BAZ(2, _omitEnumNames ? '' : 'BAZ'),
+  ;
 
-  const TestAllTypes_NestedEnum._(super.value, super.name);
+  static final $core.Map<$core.int, TestAllTypes_NestedEnum> _byValue =
+      $pb.ProtobufEnum.initByValue(values);
+  static TestAllTypes_NestedEnum? valueOf($core.int value) => _byValue[value];
+
+  @$core.override
+  final $core.int value;
+
+  @$core.override
+  final $core.String name;
+
+  const TestAllTypes_NestedEnum(this.value, this.name);
+
+  /// Returns this enum's [name] or the [value] if names are not represented.
+  @$core.override
+  $core.String toString() => name == '' ? value.toString() : name;
 }
 
 const $core.bool _omitEnumNames =

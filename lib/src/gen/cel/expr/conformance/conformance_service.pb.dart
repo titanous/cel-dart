@@ -67,7 +67,7 @@ class ParseRequest extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ParseRequest clone() => ParseRequest()..mergeFromMessage(this);
+  ParseRequest clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ParseRequest copyWith(void Function(ParseRequest) updates) =>
       super.copyWith((message) => updates(message as ParseRequest))
@@ -93,8 +93,6 @@ class ParseRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set celSource($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasCelSource() => $_has(0);
-  @$pb.TagNumber(1)
   void clearCelSource() => $_clearField(1);
 
   /// Tag for version of CEL syntax, for future use.
@@ -102,8 +100,6 @@ class ParseRequest extends $pb.GeneratedMessage {
   $core.String get syntaxVersion => $_getSZ(1);
   @$pb.TagNumber(2)
   set syntaxVersion($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasSyntaxVersion() => $_has(1);
   @$pb.TagNumber(2)
   void clearSyntaxVersion() => $_clearField(2);
 
@@ -113,8 +109,6 @@ class ParseRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   set sourceLocation($core.String value) => $_setString(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasSourceLocation() => $_has(2);
-  @$pb.TagNumber(3)
   void clearSourceLocation() => $_clearField(3);
 
   /// Prevent macro expansion.  See "Macros" in Language Defiinition.
@@ -122,8 +116,6 @@ class ParseRequest extends $pb.GeneratedMessage {
   $core.bool get disableMacros => $_getBF(3);
   @$pb.TagNumber(4)
   set disableMacros($core.bool value) => $_setBool(3, value);
-  @$pb.TagNumber(4)
-  $core.bool hasDisableMacros() => $_has(3);
   @$pb.TagNumber(4)
   void clearDisableMacros() => $_clearField(4);
 }
@@ -161,7 +153,7 @@ class ParseResponse extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ParseResponse clone() => ParseResponse()..mergeFromMessage(this);
+  ParseResponse clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ParseResponse copyWith(void Function(ParseResponse) updates) =>
       super.copyWith((message) => updates(message as ParseResponse))
@@ -239,7 +231,7 @@ class CheckRequest extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CheckRequest clone() => CheckRequest()..mergeFromMessage(this);
+  CheckRequest clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   CheckRequest copyWith(void Function(CheckRequest) updates) =>
       super.copyWith((message) => updates(message as CheckRequest))
@@ -284,8 +276,6 @@ class CheckRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   set container($core.String value) => $_setString(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasContainer() => $_has(2);
-  @$pb.TagNumber(3)
   void clearContainer() => $_clearField(3);
 
   /// If true, use only the declarations in [type_env][google.api.expr.conformance.v1alpha1.CheckRequest.type_env].  If false (default),
@@ -295,8 +285,6 @@ class CheckRequest extends $pb.GeneratedMessage {
   $core.bool get noStdEnv => $_getBF(3);
   @$pb.TagNumber(4)
   set noStdEnv($core.bool value) => $_setBool(3, value);
-  @$pb.TagNumber(4)
-  $core.bool hasNoStdEnv() => $_has(3);
   @$pb.TagNumber(4)
   void clearNoStdEnv() => $_clearField(4);
 }
@@ -334,7 +322,7 @@ class CheckResponse extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  CheckResponse clone() => CheckResponse()..mergeFromMessage(this);
+  CheckResponse clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   CheckResponse copyWith(void Function(CheckResponse) updates) =>
       super.copyWith((message) => updates(message as CheckResponse))
@@ -409,7 +397,7 @@ class EvalRequest extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2])
+    ..oo(0, [1, 2], 'expr_kind')
     ..aOM<$0.ParsedExpr>(1, _omitFieldNames ? '' : 'parsedExpr',
         subBuilder: $0.ParsedExpr.create)
     ..aOM<$2.CheckedExpr>(2, _omitFieldNames ? '' : 'checkedExpr',
@@ -426,7 +414,7 @@ class EvalRequest extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  EvalRequest clone() => EvalRequest()..mergeFromMessage(this);
+  EvalRequest clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   EvalRequest copyWith(void Function(EvalRequest) updates) =>
       super.copyWith((message) => updates(message as EvalRequest))
@@ -484,8 +472,6 @@ class EvalRequest extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   set container($core.String value) => $_setString(3, value);
   @$pb.TagNumber(4)
-  $core.bool hasContainer() => $_has(3);
-  @$pb.TagNumber(4)
   void clearContainer() => $_clearField(4);
 }
 
@@ -522,7 +508,7 @@ class EvalResponse extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  EvalResponse clone() => EvalResponse()..mergeFromMessage(this);
+  EvalResponse clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   EvalResponse copyWith(void Function(EvalResponse) updates) =>
       super.copyWith((message) => updates(message as EvalResponse))
@@ -603,7 +589,7 @@ class SourcePosition extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SourcePosition clone() => SourcePosition()..mergeFromMessage(this);
+  SourcePosition clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SourcePosition copyWith(void Function(SourcePosition) updates) =>
       super.copyWith((message) => updates(message as SourcePosition))
@@ -629,8 +615,6 @@ class SourcePosition extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set location($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasLocation() => $_has(0);
-  @$pb.TagNumber(1)
   void clearLocation() => $_clearField(1);
 
   /// The UTF-8 code unit offset.
@@ -638,8 +622,6 @@ class SourcePosition extends $pb.GeneratedMessage {
   $core.int get offset => $_getIZ(1);
   @$pb.TagNumber(2)
   set offset($core.int value) => $_setSignedInt32(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasOffset() => $_has(1);
   @$pb.TagNumber(2)
   void clearOffset() => $_clearField(2);
 
@@ -650,8 +632,6 @@ class SourcePosition extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   set line($core.int value) => $_setSignedInt32(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasLine() => $_has(2);
-  @$pb.TagNumber(3)
   void clearLine() => $_clearField(3);
 
   /// The 0-based index of the starting position within the line of source text
@@ -660,8 +640,6 @@ class SourcePosition extends $pb.GeneratedMessage {
   $core.int get column => $_getIZ(3);
   @$pb.TagNumber(4)
   set column($core.int value) => $_setSignedInt32(3, value);
-  @$pb.TagNumber(4)
-  $core.bool hasColumn() => $_has(3);
   @$pb.TagNumber(4)
   void clearColumn() => $_clearField(4);
 }
@@ -709,7 +687,7 @@ class IssueDetails extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  IssueDetails clone() => IssueDetails()..mergeFromMessage(this);
+  IssueDetails clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   IssueDetails copyWith(void Function(IssueDetails) updates) =>
       super.copyWith((message) => updates(message as IssueDetails))
@@ -735,8 +713,6 @@ class IssueDetails extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set severity(IssueDetails_Severity value) => $_setField(1, value);
   @$pb.TagNumber(1)
-  $core.bool hasSeverity() => $_has(0);
-  @$pb.TagNumber(1)
   void clearSeverity() => $_clearField(1);
 
   /// Position in the source, if known.
@@ -756,8 +732,6 @@ class IssueDetails extends $pb.GeneratedMessage {
   $fixnum.Int64 get id => $_getI64(2);
   @$pb.TagNumber(3)
   set id($fixnum.Int64 value) => $_setInt64(2, value);
-  @$pb.TagNumber(3)
-  $core.bool hasId() => $_has(2);
   @$pb.TagNumber(3)
   void clearId() => $_clearField(3);
 }

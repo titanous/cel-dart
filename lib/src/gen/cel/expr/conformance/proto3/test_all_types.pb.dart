@@ -56,8 +56,7 @@ class TestAllTypes_NestedMessage extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TestAllTypes_NestedMessage clone() =>
-      TestAllTypes_NestedMessage()..mergeFromMessage(this);
+  TestAllTypes_NestedMessage clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TestAllTypes_NestedMessage copyWith(
           void Function(TestAllTypes_NestedMessage) updates) =>
@@ -86,8 +85,6 @@ class TestAllTypes_NestedMessage extends $pb.GeneratedMessage {
   $core.int get bb => $_getIZ(0);
   @$pb.TagNumber(1)
   set bb($core.int value) => $_setSignedInt32(0, value);
-  @$pb.TagNumber(1)
-  $core.bool hasBb() => $_has(0);
   @$pb.TagNumber(1)
   void clearBb() => $_clearField(1);
 }
@@ -862,8 +859,8 @@ class TestAllTypes extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'cel.expr.conformance.proto3'),
       createEmptyInstance: create)
-    ..oo(0, [21, 22])
-    ..oo(1, [400, 401, 402])
+    ..oo(0, [21, 22], 'nested_type')
+    ..oo(1, [400, 401, 402], 'kind')
     ..a<$core.int>(1, _omitFieldNames ? '' : 'singleInt32', $pb.PbFieldType.O3,
         presence: $pb.FieldPresence.implicit)
     ..aInt64(2, _omitFieldNames ? '' : 'singleInt64',
@@ -2238,7 +2235,7 @@ class TestAllTypes extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TestAllTypes clone() => TestAllTypes()..mergeFromMessage(this);
+  TestAllTypes clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TestAllTypes copyWith(void Function(TestAllTypes) updates) =>
       super.copyWith((message) => updates(message as TestAllTypes))
@@ -2271,16 +2268,12 @@ class TestAllTypes extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set singleInt32($core.int value) => $_setSignedInt32(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasSingleInt32() => $_has(0);
-  @$pb.TagNumber(1)
   void clearSingleInt32() => $_clearField(1);
 
   @$pb.TagNumber(2)
   $fixnum.Int64 get singleInt64 => $_getI64(1);
   @$pb.TagNumber(2)
   set singleInt64($fixnum.Int64 value) => $_setInt64(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasSingleInt64() => $_has(1);
   @$pb.TagNumber(2)
   void clearSingleInt64() => $_clearField(2);
 
@@ -2289,16 +2282,12 @@ class TestAllTypes extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   set singleUint32($core.int value) => $_setUnsignedInt32(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasSingleUint32() => $_has(2);
-  @$pb.TagNumber(3)
   void clearSingleUint32() => $_clearField(3);
 
   @$pb.TagNumber(4)
   $fixnum.Int64 get singleUint64 => $_getI64(3);
   @$pb.TagNumber(4)
   set singleUint64($fixnum.Int64 value) => $_setInt64(3, value);
-  @$pb.TagNumber(4)
-  $core.bool hasSingleUint64() => $_has(3);
   @$pb.TagNumber(4)
   void clearSingleUint64() => $_clearField(4);
 
@@ -2307,16 +2296,12 @@ class TestAllTypes extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   set singleSint32($core.int value) => $_setSignedInt32(4, value);
   @$pb.TagNumber(5)
-  $core.bool hasSingleSint32() => $_has(4);
-  @$pb.TagNumber(5)
   void clearSingleSint32() => $_clearField(5);
 
   @$pb.TagNumber(6)
   $fixnum.Int64 get singleSint64 => $_getI64(5);
   @$pb.TagNumber(6)
   set singleSint64($fixnum.Int64 value) => $_setInt64(5, value);
-  @$pb.TagNumber(6)
-  $core.bool hasSingleSint64() => $_has(5);
   @$pb.TagNumber(6)
   void clearSingleSint64() => $_clearField(6);
 
@@ -2325,16 +2310,12 @@ class TestAllTypes extends $pb.GeneratedMessage {
   @$pb.TagNumber(7)
   set singleFixed32($core.int value) => $_setUnsignedInt32(6, value);
   @$pb.TagNumber(7)
-  $core.bool hasSingleFixed32() => $_has(6);
-  @$pb.TagNumber(7)
   void clearSingleFixed32() => $_clearField(7);
 
   @$pb.TagNumber(8)
   $fixnum.Int64 get singleFixed64 => $_getI64(7);
   @$pb.TagNumber(8)
   set singleFixed64($fixnum.Int64 value) => $_setInt64(7, value);
-  @$pb.TagNumber(8)
-  $core.bool hasSingleFixed64() => $_has(7);
   @$pb.TagNumber(8)
   void clearSingleFixed64() => $_clearField(8);
 
@@ -2343,16 +2324,12 @@ class TestAllTypes extends $pb.GeneratedMessage {
   @$pb.TagNumber(9)
   set singleSfixed32($core.int value) => $_setSignedInt32(8, value);
   @$pb.TagNumber(9)
-  $core.bool hasSingleSfixed32() => $_has(8);
-  @$pb.TagNumber(9)
   void clearSingleSfixed32() => $_clearField(9);
 
   @$pb.TagNumber(10)
   $fixnum.Int64 get singleSfixed64 => $_getI64(9);
   @$pb.TagNumber(10)
   set singleSfixed64($fixnum.Int64 value) => $_setInt64(9, value);
-  @$pb.TagNumber(10)
-  $core.bool hasSingleSfixed64() => $_has(9);
   @$pb.TagNumber(10)
   void clearSingleSfixed64() => $_clearField(10);
 
@@ -2361,16 +2338,12 @@ class TestAllTypes extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   set singleFloat($core.double value) => $_setFloat(10, value);
   @$pb.TagNumber(11)
-  $core.bool hasSingleFloat() => $_has(10);
-  @$pb.TagNumber(11)
   void clearSingleFloat() => $_clearField(11);
 
   @$pb.TagNumber(12)
   $core.double get singleDouble => $_getN(11);
   @$pb.TagNumber(12)
   set singleDouble($core.double value) => $_setDouble(11, value);
-  @$pb.TagNumber(12)
-  $core.bool hasSingleDouble() => $_has(11);
   @$pb.TagNumber(12)
   void clearSingleDouble() => $_clearField(12);
 
@@ -2379,16 +2352,12 @@ class TestAllTypes extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   set singleBool($core.bool value) => $_setBool(12, value);
   @$pb.TagNumber(13)
-  $core.bool hasSingleBool() => $_has(12);
-  @$pb.TagNumber(13)
   void clearSingleBool() => $_clearField(13);
 
   @$pb.TagNumber(14)
   $core.String get singleString => $_getSZ(13);
   @$pb.TagNumber(14)
   set singleString($core.String value) => $_setString(13, value);
-  @$pb.TagNumber(14)
-  $core.bool hasSingleString() => $_has(13);
   @$pb.TagNumber(14)
   void clearSingleString() => $_clearField(14);
 
@@ -2397,23 +2366,21 @@ class TestAllTypes extends $pb.GeneratedMessage {
   @$pb.TagNumber(15)
   set singleBytes($core.List<$core.int> value) => $_setBytes(14, value);
   @$pb.TagNumber(15)
-  $core.bool hasSingleBytes() => $_has(14);
-  @$pb.TagNumber(15)
   void clearSingleBytes() => $_clearField(15);
 
   @$pb.TagNumber(16)
-  $core.bool get optionalBool => $_getBF(15);
+  $core.bool? get optionalBool => $_getBNullable(15);
   @$pb.TagNumber(16)
-  set optionalBool($core.bool value) => $_setBool(15, value);
+  set optionalBool($core.bool? value) => $_setBoolNullable(15, value);
   @$pb.TagNumber(16)
   $core.bool hasOptionalBool() => $_has(15);
   @$pb.TagNumber(16)
   void clearOptionalBool() => $_clearField(16);
 
   @$pb.TagNumber(17)
-  $core.String get optionalString => $_getSZ(16);
+  $core.String? get optionalString => $_getSNullable(16);
   @$pb.TagNumber(17)
-  set optionalString($core.String value) => $_setString(16, value);
+  set optionalString($core.String? value) => $_setStringNullable(16, value);
   @$pb.TagNumber(17)
   $core.bool hasOptionalString() => $_has(16);
   @$pb.TagNumber(17)
@@ -2424,8 +2391,6 @@ class TestAllTypes extends $pb.GeneratedMessage {
   $core.bool get in_18 => $_getBF(17);
   @$pb.TagNumber(18)
   set in_18($core.bool value) => $_setBool(17, value);
-  @$pb.TagNumber(18)
-  $core.bool hasIn_18() => $_has(17);
   @$pb.TagNumber(18)
   void clearIn_18() => $_clearField(18);
 
@@ -2466,8 +2431,6 @@ class TestAllTypes extends $pb.GeneratedMessage {
   TestAllTypes_NestedEnum get standaloneEnum => $_getN(21);
   @$pb.TagNumber(24)
   set standaloneEnum(TestAllTypes_NestedEnum value) => $_setField(24, value);
-  @$pb.TagNumber(24)
-  $core.bool hasStandaloneEnum() => $_has(21);
   @$pb.TagNumber(24)
   void clearStandaloneEnum() => $_clearField(24);
 
@@ -2833,14 +2796,12 @@ class TestAllTypes extends $pb.GeneratedMessage {
   @$pb.TagNumber(115)
   set nullValue($3.NullValue value) => $_setField(115, value);
   @$pb.TagNumber(115)
-  $core.bool hasNullValue() => $_has(96);
-  @$pb.TagNumber(115)
   void clearNullValue() => $_clearField(115);
 
   @$pb.TagNumber(116)
-  $3.NullValue get optionalNullValue => $_getN(97);
+  $3.NullValue? get optionalNullValue => $_getNullable(97);
   @$pb.TagNumber(116)
-  set optionalNullValue($3.NullValue value) => $_setField(116, value);
+  set optionalNullValue($3.NullValue? value) => $_setFieldNullable(116, value);
   @$pb.TagNumber(116)
   $core.bool hasOptionalNullValue() => $_has(97);
   @$pb.TagNumber(116)
@@ -3408,7 +3369,7 @@ class NestedTestAllTypes extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  NestedTestAllTypes clone() => NestedTestAllTypes()..mergeFromMessage(this);
+  NestedTestAllTypes clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   NestedTestAllTypes copyWith(void Function(NestedTestAllTypes) updates) =>
       super.copyWith((message) => updates(message as NestedTestAllTypes))

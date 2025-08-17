@@ -53,8 +53,7 @@ class Struct extends $pb.GeneratedMessage with $mixin.StructMixin {
       package:
           const $pb.PackageName(_omitMessageNames ? '' : 'google.protobuf'),
       createEmptyInstance: create,
-      toProto3Json: $mixin.StructMixin.toProto3JsonHelper,
-      fromProto3Json: $mixin.StructMixin.fromProto3JsonHelper)
+      wellKnownType: $mixin.WellKnownType.struct)
     ..m<$core.String, Value>(1, _omitFieldNames ? '' : 'fields',
         entryClassName: 'Struct.FieldsEntry',
         keyFieldType: $pb.PbFieldType.OS,
@@ -65,7 +64,7 @@ class Struct extends $pb.GeneratedMessage with $mixin.StructMixin {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Struct clone() => Struct()..mergeFromMessage(this);
+  Struct clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Struct copyWith(void Function(Struct) updates) =>
       super.copyWith((message) => updates(message as Struct)) as Struct;
@@ -146,9 +145,8 @@ class Value extends $pb.GeneratedMessage with $mixin.ValueMixin {
       package:
           const $pb.PackageName(_omitMessageNames ? '' : 'google.protobuf'),
       createEmptyInstance: create,
-      toProto3Json: $mixin.ValueMixin.toProto3JsonHelper,
-      fromProto3Json: $mixin.ValueMixin.fromProto3JsonHelper)
-    ..oo(0, [1, 2, 3, 4, 5, 6])
+      wellKnownType: $mixin.WellKnownType.value)
+    ..oo(0, [1, 2, 3, 4, 5, 6], 'kind')
     ..e<NullValue>(1, _omitFieldNames ? '' : 'nullValue', $pb.PbFieldType.OE,
         defaultOrMaker: NullValue.NULL_VALUE,
         valueOf: NullValue.valueOf,
@@ -164,7 +162,7 @@ class Value extends $pb.GeneratedMessage with $mixin.ValueMixin {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  Value clone() => Value()..mergeFromMessage(this);
+  Value clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Value copyWith(void Function(Value) updates) =>
       super.copyWith((message) => updates(message as Value)) as Value;
@@ -276,14 +274,13 @@ class ListValue extends $pb.GeneratedMessage with $mixin.ListValueMixin {
       package:
           const $pb.PackageName(_omitMessageNames ? '' : 'google.protobuf'),
       createEmptyInstance: create,
-      toProto3Json: $mixin.ListValueMixin.toProto3JsonHelper,
-      fromProto3Json: $mixin.ListValueMixin.fromProto3JsonHelper)
+      wellKnownType: $mixin.WellKnownType.listValue)
     ..pc<Value>(1, _omitFieldNames ? '' : 'values', $pb.PbFieldType.PM,
         subBuilder: Value.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ListValue clone() => ListValue()..mergeFromMessage(this);
+  ListValue clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ListValue copyWith(void Function(ListValue) updates) =>
       super.copyWith((message) => updates(message as ListValue)) as ListValue;

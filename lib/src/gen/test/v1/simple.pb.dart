@@ -60,7 +60,7 @@ class SimpleTestFile extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SimpleTestFile clone() => SimpleTestFile()..mergeFromMessage(this);
+  SimpleTestFile clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SimpleTestFile copyWith(void Function(SimpleTestFile) updates) =>
       super.copyWith((message) => updates(message as SimpleTestFile))
@@ -86,8 +86,6 @@ class SimpleTestFile extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
-  @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
   /// A description of the file.
@@ -95,8 +93,6 @@ class SimpleTestFile extends $pb.GeneratedMessage {
   $core.String get description => $_getSZ(1);
   @$pb.TagNumber(2)
   set description($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasDescription() => $_has(1);
   @$pb.TagNumber(2)
   void clearDescription() => $_clearField(2);
 
@@ -145,7 +141,7 @@ class SimpleTestSection extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SimpleTestSection clone() => SimpleTestSection()..mergeFromMessage(this);
+  SimpleTestSection clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SimpleTestSection copyWith(void Function(SimpleTestSection) updates) =>
       super.copyWith((message) => updates(message as SimpleTestSection))
@@ -171,8 +167,6 @@ class SimpleTestSection extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
-  @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
   /// A description of the section.
@@ -180,8 +174,6 @@ class SimpleTestSection extends $pb.GeneratedMessage {
   $core.String get description => $_getSZ(1);
   @$pb.TagNumber(2)
   set description($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasDescription() => $_has(1);
   @$pb.TagNumber(2)
   void clearDescription() => $_clearField(2);
 
@@ -264,7 +256,7 @@ class SimpleTest extends $pb.GeneratedMessage {
       package: const $pb.PackageName(
           _omitMessageNames ? '' : 'google.api.expr.test.v1'),
       createEmptyInstance: create)
-    ..oo(0, [8, 9, 10, 11, 12, 16])
+    ..oo(0, [8, 9, 10, 11, 12, 16], 'result_matcher')
     ..aOS(1, _omitFieldNames ? '' : 'name',
         presence: $pb.FieldPresence.implicit)
     ..aOS(2, _omitFieldNames ? '' : 'description',
@@ -303,7 +295,7 @@ class SimpleTest extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  SimpleTest clone() => SimpleTest()..mergeFromMessage(this);
+  SimpleTest clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   SimpleTest copyWith(void Function(SimpleTest) updates) =>
       super.copyWith((message) => updates(message as SimpleTest)) as SimpleTest;
@@ -331,8 +323,6 @@ class SimpleTest extends $pb.GeneratedMessage {
   @$pb.TagNumber(1)
   set name($core.String value) => $_setString(0, value);
   @$pb.TagNumber(1)
-  $core.bool hasName() => $_has(0);
-  @$pb.TagNumber(1)
   void clearName() => $_clearField(1);
 
   /// A description of the test.
@@ -340,8 +330,6 @@ class SimpleTest extends $pb.GeneratedMessage {
   $core.String get description => $_getSZ(1);
   @$pb.TagNumber(2)
   set description($core.String value) => $_setString(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasDescription() => $_has(1);
   @$pb.TagNumber(2)
   void clearDescription() => $_clearField(2);
 
@@ -351,8 +339,6 @@ class SimpleTest extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   set expr($core.String value) => $_setString(2, value);
   @$pb.TagNumber(3)
-  $core.bool hasExpr() => $_has(2);
-  @$pb.TagNumber(3)
   void clearExpr() => $_clearField(3);
 
   /// Disables all macro expansion in parsing.
@@ -361,8 +347,6 @@ class SimpleTest extends $pb.GeneratedMessage {
   @$pb.TagNumber(4)
   set disableMacros($core.bool value) => $_setBool(3, value);
   @$pb.TagNumber(4)
-  $core.bool hasDisableMacros() => $_has(3);
-  @$pb.TagNumber(4)
   void clearDisableMacros() => $_clearField(4);
 
   /// Disables the check phase.
@@ -370,8 +354,6 @@ class SimpleTest extends $pb.GeneratedMessage {
   $core.bool get disableCheck => $_getBF(4);
   @$pb.TagNumber(5)
   set disableCheck($core.bool value) => $_setBool(4, value);
-  @$pb.TagNumber(5)
-  $core.bool hasDisableCheck() => $_has(4);
   @$pb.TagNumber(5)
   void clearDisableCheck() => $_clearField(5);
 
@@ -455,8 +437,6 @@ class SimpleTest extends $pb.GeneratedMessage {
   @$pb.TagNumber(13)
   set container($core.String value) => $_setString(12, value);
   @$pb.TagNumber(13)
-  $core.bool hasContainer() => $_has(12);
-  @$pb.TagNumber(13)
   void clearContainer() => $_clearField(13);
 
   /// Disables the evaluate phase.
@@ -464,8 +444,6 @@ class SimpleTest extends $pb.GeneratedMessage {
   $core.bool get checkOnly => $_getBF(13);
   @$pb.TagNumber(15)
   set checkOnly($core.bool value) => $_setBool(13, value);
-  @$pb.TagNumber(15)
-  $core.bool hasCheckOnly() => $_has(13);
   @$pb.TagNumber(15)
   void clearCheckOnly() => $_clearField(15);
 
@@ -515,7 +493,7 @@ class TypedResult extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  TypedResult clone() => TypedResult()..mergeFromMessage(this);
+  TypedResult clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   TypedResult copyWith(void Function(TypedResult) updates) =>
       super.copyWith((message) => updates(message as TypedResult))
@@ -589,7 +567,7 @@ class ErrorSetMatcher extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  ErrorSetMatcher clone() => ErrorSetMatcher()..mergeFromMessage(this);
+  ErrorSetMatcher clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   ErrorSetMatcher copyWith(void Function(ErrorSetMatcher) updates) =>
       super.copyWith((message) => updates(message as ErrorSetMatcher))
@@ -644,7 +622,7 @@ class UnknownSetMatcher extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
-  UnknownSetMatcher clone() => UnknownSetMatcher()..mergeFromMessage(this);
+  UnknownSetMatcher clone() => deepCopy();
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   UnknownSetMatcher copyWith(void Function(UnknownSetMatcher) updates) =>
       super.copyWith((message) => updates(message as UnknownSetMatcher))
