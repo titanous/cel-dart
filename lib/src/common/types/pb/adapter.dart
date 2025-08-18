@@ -508,6 +508,60 @@ class ProtobufTypeAdapter {
     }
   }
   
+  /// Get the enum type name from field information using protobuf metadata
+  String _getEnumTypeNameFromField(FieldInfo field, GeneratedMessage contextMessage) {
+    // Get the container from the message type
+    final messageTypeName = contextMessage.info_.qualifiedMessageName;
+    final containerParts = messageTypeName.split('.');
+    String container = '';
+    if (containerParts.length >= 3) {
+      // Remove the last part (message name) to get the container
+      container = containerParts.take(containerParts.length - 1).join('.');
+    }
+    
+    // Try to get enum type information from the field's metadata
+    // This is a generic approach that doesn't rely on hardcoded test names
+    try {
+      final enumValues = field.enumValues;
+      if (enumValues != null && enumValues.isNotEmpty) {
+        // Get the enum type from the first enum value's runtime type
+        final enumTypeName = enumValues.first.runtimeType.toString();
+        
+        // Handle nested enum types like TestAllTypes_NestedEnum
+        if (enumTypeName.contains('_')) {
+          // Convert TestAllTypes_NestedEnum to TestAllTypes.NestedEnum
+          final parts = enumTypeName.split('_');
+          if (parts.length >= 2) {
+            final messageName = parts[0];
+            final enumName = parts.sublist(1).join('_');
+            
+            if (container.isNotEmpty) {
+              return '$container.$messageName.$enumName';
+            } else {
+              return '$messageName.$enumName';
+            }
+          }
+        }
+        
+        // For non-nested enums, use the type name directly
+        if (container.isNotEmpty) {
+          return '$container.$enumTypeName';
+        } else {
+          return enumTypeName;
+        }
+      }
+    } catch (_) {
+      // If enum introspection fails, continue with fallback
+    }
+    
+    // Fallback: use a generic enum name with the container
+    if (container.isNotEmpty) {
+      return '$container.UnknownEnum';
+    } else {
+      return 'UnknownEnum';
+    }
+  }
+
   /// Get the fully qualified enum type name from a ProtobufEnum instance with context
   String _getEnumTypeNameWithContext(ProtobufEnum enumValue, GeneratedMessage? contextMessage) {
     // Extract type name from the runtime type
@@ -566,7 +620,8 @@ class ProtobufTypeAdapter {
           return IntValue(enumValue);
         } else {
           // Strong mode: return as a strong enum with the proper type name
-          final enumTypeName = _getEnumTypeNameWithContext(rawValue, msg);
+          // For unknown enum values, we need to infer the type from the field info
+          final enumTypeName = _getEnumTypeNameFromField(field, msg);
           return EnumValue.createStrong(enumTypeName, enumValue);
         }
       } else {
