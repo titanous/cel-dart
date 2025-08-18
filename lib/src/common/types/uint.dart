@@ -139,4 +139,11 @@ class UintValue extends Value
     // Following Go implementation, this returns an error
     return ErrorValue('cannot negate unsigned integer');
   }
+
+  @override
+  dynamic convertToNative() {
+    // Convert Int64 back to native Dart int to avoid type casting issues
+    // with unsigned literals in expressions like "this % 2u == 0u"
+    return value.toInt();
+  }
 }

@@ -1,3 +1,4 @@
+import 'package:fixnum/fixnum.dart';
 import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
 import 'package:cel/src/common/types/traits/math.dart';
@@ -31,7 +32,10 @@ class IntValue extends Value
 
   @override
   add(Value other) {
-    final otherValue = other.value as int;
+    final otherRawValue = other.value;
+    final otherValue = otherRawValue is Int64 
+        ? otherRawValue.toInt() 
+        : otherRawValue as int;
     
     // Check for integer overflow in addition
     // Constants for int64 range
@@ -53,7 +57,10 @@ class IntValue extends Value
 
   @override
   divide(Value denominator) {
-    final denominatorValue = denominator.value as int;
+    final denominatorRawValue = denominator.value;
+    final denominatorValue = denominatorRawValue is Int64 
+        ? denominatorRawValue.toInt() 
+        : denominatorRawValue as int;
     if (denominatorValue == 0) {
       return divideByZeroError;
     }
@@ -66,26 +73,32 @@ class IntValue extends Value
 
   @override
   modulo(Value denominator) {
-    final denominatorValue = denominator.value as int;
-    if (denominatorValue == 0) {
+    final denominatorValue = denominator.value;
+    final denom = denominatorValue is Int64 
+        ? denominatorValue.toInt() 
+        : denominatorValue as int;
+    if (denom == 0) {
       return moduloByZeroError;
     }
     // Check for integer overflow: MinInt64 % -1
-    if (value == -9223372036854775808 && denominatorValue == -1) {
+    if (value == -9223372036854775808 && denom == -1) {
       return intOverflowError;
     }
     
     // Implement CEL/Go modulo semantics where result has same sign as dividend
     // Go: a % b = a - (a / b) * b (using truncated division)
-    final quotient = value ~/ denominatorValue;  // Truncated division
-    final result = value - (quotient * denominatorValue);
+    final quotient = value ~/ denom;  // Truncated division
+    final result = value - (quotient * denom);
     
     return IntValue(result);
   }
 
   @override
   multiply(Value other) {
-    final otherValue = other.value as int;
+    final otherRawValue = other.value;
+    final otherValue = otherRawValue is Int64 
+        ? otherRawValue.toInt() 
+        : otherRawValue as int;
     
     // Constants for int64 range  
     const int64Min = -9223372036854775808;
@@ -117,7 +130,10 @@ class IntValue extends Value
 
   @override
   subtract(Value subtrahend) {
-    final subtrahendValue = subtrahend.value as int;
+    final subtrahendRawValue = subtrahend.value;
+    final subtrahendValue = subtrahendRawValue is Int64 
+        ? subtrahendRawValue.toInt() 
+        : subtrahendRawValue as int;
     
     // Check for integer overflow in subtraction
     // Constants for int64 range
