@@ -24,11 +24,8 @@ import '../../../gen/google/protobuf/empty.pb.dart' as pb_empty;
 import '../../../gen/google/protobuf/struct.pb.dart' as pb_struct;
 import '../../../gen/google/protobuf/field_mask.pb.dart' as pb_field_mask;
 
-// Import test types for conformance tests
-import '../../../gen/cel/expr/conformance/proto2/test_all_types.pb.dart'
-    as proto2;
-import '../../../gen/cel/expr/conformance/proto3/test_all_types.pb.dart'
-    as proto3;
+// Import enum registry for globalEnumRegistry access
+import '../enum.dart';
 
 /// Registry for protobuf types in CEL
 class ProtoTypeRegistry {
@@ -704,20 +701,6 @@ class ProtoTypeRegistry {
     registerMessageType('type.googleapis.com/google.protobuf.FieldMask',
         pb_field_mask.FieldMask().info_, () => pb_field_mask.FieldMask());
 
-    // Test types for conformance tests
-    registerMessageType(
-        'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes',
-        proto2.TestAllTypes().info_,
-        () => proto2.TestAllTypes());
-    registerMessageType(
-        'type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes',
-        proto3.TestAllTypes().info_,
-        () => proto3.TestAllTypes());
-    // Also register with fully qualified names for direct resolution
-    registerMessageType('cel.expr.conformance.proto2.TestAllTypes',
-        proto2.TestAllTypes().info_, () => proto2.TestAllTypes());
-    registerMessageType('cel.expr.conformance.proto3.TestAllTypes',
-        proto3.TestAllTypes().info_, () => proto3.TestAllTypes());
 
     // Register short names for Well-Known Types for CEL expressions
     registerMessageType('google.protobuf.BoolValue',

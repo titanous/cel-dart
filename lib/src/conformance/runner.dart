@@ -69,7 +69,29 @@ class ConformanceTestRunner {
   static Environment _createDefaultEnvironment() {
     // Create an environment with protobuf support
     final protoRegistry = ProtoTypeRegistry();
+    
+    // Register test types for conformance tests
+    _registerTestTypes(protoRegistry);
+    
     return Environment.withProtos(registry: protoRegistry);
+  }
+  
+  /// Register test-specific protobuf types for conformance testing
+  static void _registerTestTypes(ProtoTypeRegistry registry) {
+    // Test types for conformance tests
+    registry.registerMessageType(
+        'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes',
+        proto2.TestAllTypes().info_,
+        () => proto2.TestAllTypes());
+    registry.registerMessageType(
+        'type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes',
+        proto3.TestAllTypes().info_,
+        () => proto3.TestAllTypes());
+    // Also register with fully qualified names for direct resolution
+    registry.registerMessageType('cel.expr.conformance.proto2.TestAllTypes',
+        proto2.TestAllTypes().info_, () => proto2.TestAllTypes());
+    registry.registerMessageType('cel.expr.conformance.proto3.TestAllTypes',
+        proto3.TestAllTypes().info_, () => proto3.TestAllTypes());
   }
 
   /// Run a single test file
