@@ -80,7 +80,8 @@ class ProtobufTypeAdapter {
       // Check if the field matches by proto name (snake_case) or Dart name (camelCase)
       if (_matchesFieldName(field, fieldName)) {
         // Special handling for enum fields that might contain unknown values
-        if (_isEnumField(field)) {
+        // But only for singular enum fields - repeated enum fields should use normal handling
+        if (_isEnumField(field) && !field.isRepeated) {
           return _adaptEnumFieldSafely(msg, field);
         }
         return _adaptFieldValue(msg, field);
@@ -187,13 +188,18 @@ class ProtobufTypeAdapter {
   Value _adaptFieldValue(GeneratedMessage msg, FieldInfo field) {
     if (field.isRepeated) {
       // Handle repeated fields
-      final list = msg.getField(field.tagNumber) as List;
-      // For repeated fields, adapt each element
-      final elements = <Value>[];
-      for (final element in list) {
-        elements.add(_adaptSingleValueWithContext(element, msg));
+      final fieldValue = msg.getField(field.tagNumber);
+      if (fieldValue is List) {
+        // For repeated fields, adapt each element
+        final elements = <Value>[];
+        for (final element in fieldValue) {
+          elements.add(_adaptSingleValueWithContext(element, msg));
+        }
+        return ListValue(elements, typeAdapter);
+      } else {
+        // If not a list (e.g., uninitialized repeated field), return empty list
+        return ListValue([], typeAdapter);
       }
-      return ListValue(elements, typeAdapter);
     } else if (field.isMapField) {
       // Handle map fields
       final map = msg.getField(field.tagNumber) as Map;

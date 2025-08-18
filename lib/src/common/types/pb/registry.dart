@@ -153,7 +153,22 @@ class ProtoTypeRegistry {
     
     if (matchingField != null) {
       final convertedValue = _convertValueForField(matchingField, value);
-      message.setField(matchingField.tagNumber, convertedValue);
+      
+      // Special handling for repeated fields
+      if (matchingField.isRepeated && convertedValue is List) {
+        // For repeated fields, get the existing list and add all elements
+        final existingList = message.getField(matchingField.tagNumber) as List;
+        existingList.clear(); // Clear existing elements
+        
+        // Convert each element for the field and add to the list
+        for (final element in convertedValue) {
+          final convertedElement = _convertBasicTypes(matchingField, element);
+          existingList.add(convertedElement);
+        }
+      } else {
+        // For singular fields, set directly
+        message.setField(matchingField.tagNumber, convertedValue);
+      }
     }
   }
 
@@ -217,6 +232,11 @@ class ProtoTypeRegistry {
     
     // If it's a number, we need to create an enum instance with that value
     if (value is int) {
+      // Check for integer range validation (enum values should be within int32 range)
+      if (value > 2147483647 || value < -2147483648) {
+        throw ArgumentError('range');
+      }
+      
       // Use the field's valueOf function if available
       try {
         final valueOf = field.valueOf;
@@ -227,7 +247,19 @@ class ProtoTypeRegistry {
           }
         }
       } catch (_) {
-        // Fallback: allow any integer value for the enum
+        // Fallback: try to use enumValues directly
+        try {
+          final enumValues = field.enumValues;
+          if (enumValues != null) {
+            for (final enumValue in enumValues) {
+              if (enumValue.value == value) {
+                return enumValue;
+              }
+            }
+          }
+        } catch (_) {
+          // Last fallback: allow any integer value for the enum
+        }
       }
       // If valueOf doesn't work, let the protobuf library handle it
       return value;
