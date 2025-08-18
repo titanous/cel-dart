@@ -1,5 +1,7 @@
 import '../function_registry.dart';
-import '../functions/functions.dart';
+import '../functions/functions.dart' as func;
+import '../../common/types/ref/value.dart';
+import '../../common/types/error.dart';
 
 /// Base class for CEL extensions that provide modular functionality
 abstract class CelExtension {
@@ -7,15 +9,15 @@ abstract class CelExtension {
   String get name;
   
   /// The functions provided by this extension
-  List<Overload> get functions;
+  List<func.Overload> get functions;
   
   /// Register this extension's functions into a registry
   void registerFunctions(FunctionRegistry registry) {
     for (final function in functions) {
       final dispatch = SimpleFunctionDispatch(
         function.functionOperator != null 
-          ? function.functionOperator!
-          : (args) => _convertLegacyOverload(function, args),
+          ? (List<Value> args) => function.functionOperator!(args) as Value
+          : (List<Value> args) => _convertLegacyOverload(function, args),
         FunctionSignature(function.name, [], CelType.any), // TODO: Extract proper types
       );
       registry.registerFunction(function.name, dispatch);
@@ -23,7 +25,7 @@ abstract class CelExtension {
   }
   
   /// Convert legacy overload to new function format
-  Value _convertLegacyOverload(Overload overload, List<Value> args) {
+  Value _convertLegacyOverload(func.Overload overload, List<Value> args) {
     if (overload.unaryOperator != null && args.length == 1) {
       return overload.unaryOperator!(args[0]);
     }

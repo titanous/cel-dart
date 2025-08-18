@@ -70,7 +70,6 @@ class BytesValue extends Value implements Comparer, Sizer, Receiver, Adder {
     return BytesValue(result);
   }
 
-  @override
   Value equal(Value other) {
     if (other is! BytesValue) {
       return BooleanValue(false);

@@ -1,5 +1,4 @@
 import 'functions/functions.dart';
-import '../common/types/error.dart';
 import '../common/types/ref/value.dart';
 
 class Dispatcher {
