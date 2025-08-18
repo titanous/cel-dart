@@ -27,6 +27,22 @@ import '../../../gen/google/protobuf/field_mask.pb.dart' as pb_field_mask;
 // Import enum registry for globalEnumRegistry access
 import '../enum.dart';
 
+/// Custom implementation of unknown enum value that matches protobuf.dart's internal behavior
+class _CelUnknownEnumValue extends ProtobufEnum {
+  _CelUnknownEnumValue(int value) : super(value, 'UNKNOWN_ENUM_VALUE_$value');
+
+  @override
+  String toString() => 'UNKNOWN_ENUM_VALUE_$value';
+
+  @override
+  bool operator ==(Object other) {
+    return other is _CelUnknownEnumValue && other.value == value;
+  }
+
+  @override
+  int get hashCode => value.hashCode;
+}
+
 /// Registry for protobuf types in CEL
 class ProtoTypeRegistry {
   final Map<String, BuilderInfo> _types = {};
@@ -273,17 +289,16 @@ class ProtoTypeRegistry {
             return enumValue;
           }
           // If valueOf returns null, this is an unknown enum value
-          // For protobuf, we can allow the integer value to be stored directly
-          // The protobuf library should handle unknown enum values correctly
-          return value;
+          // Create a proper unknown enum value that protobuf.dart expects
+          return _CelUnknownEnumValue(value);
         }
       } catch (_) {
         // valueOf failed, continue
       }
       
       // If we reach here, field.valueOf is null or failed
-      // Return the integer value and let protobuf handle it
-      return value;
+      // Create a proper unknown enum value that protobuf.dart expects
+      return _CelUnknownEnumValue(value);
     }
     
     // If it's a string, convert to the corresponding enum value
