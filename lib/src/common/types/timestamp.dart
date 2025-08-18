@@ -1,12 +1,15 @@
 import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/traits/traits.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
+import 'package:cel/src/common/types/traits/indexer.dart';
 import 'package:cel/src/common/types/int.dart';
 import 'package:cel/src/common/types/error.dart';
 import 'package:cel/src/common/types/duration.dart';
+import 'package:cel/src/common/types/string.dart';
+import 'package:cel/src/common/types/null_.dart';
 
 /// Represents a CEL timestamp value (google.protobuf.Timestamp)
-class TimestampValue extends Value implements Comparer {
+class TimestampValue extends Value implements Comparer, Indexer {
   TimestampValue(this.dateTime);
 
   final DateTime dateTime;
@@ -15,7 +18,7 @@ class TimestampValue extends Value implements Comparer {
   dynamic get value => dateTime;
 
   @override
-  Type_ get type => Type_('google.protobuf.Timestamp', {Traits.ComparerType});
+  Type_ get type => Type_('google.protobuf.Timestamp', {Traits.ComparerType, Traits.IndexerType});
 
   @override
   dynamic convertToNative() => dateTime;
@@ -104,5 +107,25 @@ class TimestampValue extends Value implements Comparer {
     // This corresponds to approximately +/- 10,000 years
     const maxSeconds = 315576000000;
     return duration.inSeconds.abs() <= maxSeconds;
+  }
+
+  /// Get field value by name for protobuf compatibility
+  @override
+  Value get(Value field) {
+    if (field is! StringValue) {
+      return NullValue();
+    }
+
+    final fieldName = field.value;
+    switch (fieldName) {
+      case 'seconds':
+        // Return seconds since Unix epoch (1970-01-01 00:00:00 UTC)
+        return IntValue(dateTime.millisecondsSinceEpoch ~/ 1000);
+      case 'nanos':
+        // Return the nanosecond portion (microseconds * 1000)
+        return IntValue((dateTime.microsecondsSinceEpoch % 1000000) * 1000);
+      default:
+        return NullValue();
+    }
   }
 }

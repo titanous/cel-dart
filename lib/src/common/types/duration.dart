@@ -2,13 +2,16 @@ import 'package:cel/src/common/types/ref/value.dart';
 import 'package:cel/src/common/types/traits/traits.dart';
 import 'package:cel/src/common/types/traits/comparer.dart';
 import 'package:cel/src/common/types/traits/math.dart';
+import 'package:cel/src/common/types/traits/indexer.dart';
 import 'package:cel/src/common/types/int.dart';
 import 'package:cel/src/common/types/error.dart';
 import 'package:cel/src/common/types/timestamp.dart';
+import 'package:cel/src/common/types/string.dart';
+import 'package:cel/src/common/types/null_.dart';
 
 /// Represents a CEL duration value (google.protobuf.Duration)
 class DurationValue extends Value
-    implements Comparer, Adder, Subtractor, Multiplier, Divider {
+    implements Comparer, Adder, Subtractor, Multiplier, Divider, Indexer {
   final Duration duration;
 
   DurationValue(this.duration);
@@ -22,7 +25,8 @@ class DurationValue extends Value
         Traits.AdderType,
         Traits.SubtractorType,
         Traits.MultiplierType,
-        Traits.DividerType
+        Traits.DividerType,
+        Traits.IndexerType
       });
 
   @override
@@ -168,5 +172,27 @@ class DurationValue extends Value
     // This corresponds to approximately +/- 10,000 years
     const maxSeconds = 315576000000;
     return duration.inSeconds.abs() <= maxSeconds;
+  }
+
+  /// Get field value by name for protobuf compatibility
+  @override
+  Value get(Value field) {
+    if (field is! StringValue) {
+      return NullValue();
+    }
+
+    final fieldName = field.value;
+    switch (fieldName) {
+      case 'seconds':
+        // Return the whole seconds portion
+        return IntValue(duration.inSeconds);
+      case 'nanos':
+        // Return the nanosecond portion (microseconds * 1000)
+        // We need to get just the fractional part, not including whole seconds
+        final microsInSecond = duration.inMicroseconds % 1000000;
+        return IntValue(microsInSecond * 1000);
+      default:
+        return NullValue();
+    }
   }
 }
