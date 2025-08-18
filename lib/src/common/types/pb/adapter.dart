@@ -360,6 +360,8 @@ class ProtobufTypeAdapter {
         return BytesValue(Uint8List.fromList(value.value));
       } else if (value is pb_wrappers.StringValue) {
         return StringValue(value.value);
+      } else if (value is pb_wrappers.DoubleValue) {
+        return DoubleValue(value.value);
       } else if (value is pb_wrappers.FloatValue) {
         // FloatValue should preserve float precision (32-bit) when auto-unwrapped
         // Convert to float32 precision to match IEEE 754 single precision

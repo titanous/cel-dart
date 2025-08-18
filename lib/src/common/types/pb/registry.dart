@@ -478,65 +478,85 @@ class ProtoTypeRegistry {
     switch (typeName) {
       case 'google.protobuf.Int32Value':
         final wrapper = pb_wrappers.Int32Value();
-        wrapper.value = _convertToInt(value);
+        final intValue = _convertToInt(value);
+        // For zero values, create empty wrapper (proto wrapper semantics)
+        if (intValue != 0) {
+          wrapper.value = intValue;
+        }
         return wrapper;
       case 'google.protobuf.Int64Value':
         final wrapper = pb_wrappers.Int64Value();
-        wrapper.value = _convertToInt64(value);
+        final int64Value = _convertToInt64(value);
+        // For zero values, create empty wrapper (proto wrapper semantics)
+        if (int64Value != 0) {
+          wrapper.value = int64Value;
+        }
         return wrapper;
       case 'google.protobuf.UInt32Value':
         final wrapper = pb_wrappers.UInt32Value();
-        wrapper.value = _convertToInt(value);
+        final uintValue = _convertToInt(value);
+        // For zero values, create empty wrapper (proto wrapper semantics)
+        if (uintValue != 0) {
+          wrapper.value = uintValue;
+        }
         return wrapper;
       case 'google.protobuf.UInt64Value':
         final wrapper = pb_wrappers.UInt64Value();
-        wrapper.value = _convertToInt64(value);
+        final uint64Value = _convertToInt64(value);
+        // For zero values, create empty wrapper (proto wrapper semantics)
+        if (uint64Value != 0) {
+          wrapper.value = uint64Value;
+        }
         return wrapper;
       case 'google.protobuf.FloatValue':
         final wrapper = pb_wrappers.FloatValue();
         if (value is num) {
           final doubleValue = value.toDouble();
-          // For FloatValue, clamp to float32 range and convert to infinity if needed
-          // Float32 range: approximately ±3.4e38
-          const maxFloat32 = 3.4028235e+38;
-          const minFloat32 = -3.4028235e+38;
-          
-          if (doubleValue.isFinite) {
-            if (doubleValue > maxFloat32) {
-              wrapper.value = double.infinity;
-            } else if (doubleValue < minFloat32) {
-              wrapper.value = double.negativeInfinity;
-            } else {
-              wrapper.value = doubleValue;
-            }
-          } else {
-            // Keep NaN and infinity as-is
-            wrapper.value = doubleValue;
+          // Convert to float32 precision first
+          final float32Value = _toFloat32(doubleValue);
+          // For zero values (including underflow to zero), create empty wrapper (proto wrapper semantics)
+          if (float32Value != 0.0) {
+            wrapper.value = float32Value;
           }
-        } else {
-          wrapper.value = 0.0;
         }
         return wrapper;
       case 'google.protobuf.DoubleValue':
         final wrapper = pb_wrappers.DoubleValue();
-        wrapper.value = value is num ? value.toDouble() : 0.0;
+        final doubleValue = value is num ? value.toDouble() : 0.0;
+        // For zero values, create empty wrapper (proto wrapper semantics)
+        if (doubleValue != 0.0) {
+          wrapper.value = doubleValue;
+        }
         return wrapper;
       case 'google.protobuf.BoolValue':
         final wrapper = pb_wrappers.BoolValue();
-        wrapper.value = value is bool ? value : false;
+        final boolValue = value is bool ? value : false;
+        // For false values, create empty wrapper (proto wrapper semantics)
+        if (boolValue != false) {
+          wrapper.value = boolValue;
+        }
         return wrapper;
       case 'google.protobuf.StringValue':
         final wrapper = pb_wrappers.StringValue();
-        wrapper.value = value?.toString() ?? '';
+        final stringValue = value?.toString() ?? '';
+        // For empty strings, create empty wrapper (proto wrapper semantics)
+        if (stringValue != '') {
+          wrapper.value = stringValue;
+        }
         return wrapper;
       case 'google.protobuf.BytesValue':
         final wrapper = pb_wrappers.BytesValue();
+        List<int> bytesValue;
         if (value is List<int>) {
-          wrapper.value = value;
+          bytesValue = value;
         } else if (value is String) {
-          wrapper.value = utf8.encode(value);
+          bytesValue = utf8.encode(value);
         } else {
-          wrapper.value = <int>[];
+          bytesValue = <int>[];
+        }
+        // For empty bytes, create empty wrapper (proto wrapper semantics)
+        if (bytesValue.isNotEmpty) {
+          wrapper.value = bytesValue;
         }
         return wrapper;
       default:
@@ -610,28 +630,44 @@ class ProtoTypeRegistry {
     // Int32Value factory
     registerWrapperFactory('google.protobuf.Int32Value', (value) {
       final wrapper = pb_wrappers.Int32Value();
-      wrapper.value = _convertToInt(value);
+      final intValue = _convertToInt(value);
+      // For zero values, create empty wrapper (proto wrapper semantics)
+      if (intValue != 0) {
+        wrapper.value = intValue;
+      }
       return wrapper;
     });
 
     // Int64Value factory
     registerWrapperFactory('google.protobuf.Int64Value', (value) {
       final wrapper = pb_wrappers.Int64Value();
-      wrapper.value = _convertToInt64(value);
+      final int64Value = _convertToInt64(value);
+      // For zero values, create empty wrapper (proto wrapper semantics)
+      if (int64Value != 0) {
+        wrapper.value = int64Value;
+      }
       return wrapper;
     });
 
     // UInt32Value factory
     registerWrapperFactory('google.protobuf.UInt32Value', (value) {
       final wrapper = pb_wrappers.UInt32Value();
-      wrapper.value = _convertToInt(value);
+      final uintValue = _convertToInt(value);
+      // For zero values, create empty wrapper (proto wrapper semantics)
+      if (uintValue != 0) {
+        wrapper.value = uintValue;
+      }
       return wrapper;
     });
 
     // UInt64Value factory
     registerWrapperFactory('google.protobuf.UInt64Value', (value) {
       final wrapper = pb_wrappers.UInt64Value();
-      wrapper.value = _convertToInt64(value);
+      final uint64Value = _convertToInt64(value);
+      // For zero values, create empty wrapper (proto wrapper semantics)
+      if (uint64Value != 0) {
+        wrapper.value = uint64Value;
+      }
       return wrapper;
     });
 
@@ -640,23 +676,12 @@ class ProtoTypeRegistry {
       final wrapper = pb_wrappers.FloatValue();
       if (value is num) {
         final doubleValue = value.toDouble();
-        // For FloatValue, clamp to float32 range and convert to infinity if needed
-        const maxFloat32 = 3.4028235e+38;
-        const minFloat32 = -3.4028235e+38;
-        
-        if (doubleValue.isFinite) {
-          if (doubleValue > maxFloat32) {
-            wrapper.value = double.infinity;
-          } else if (doubleValue < minFloat32) {
-            wrapper.value = double.negativeInfinity;
-          } else {
-            wrapper.value = doubleValue;
-          }
-        } else {
-          wrapper.value = doubleValue;
+        // Convert to float32 precision first
+        final float32Value = _toFloat32(doubleValue);
+        // For zero values (including underflow to zero), create empty wrapper (proto wrapper semantics)
+        if (float32Value != 0.0) {
+          wrapper.value = float32Value;
         }
-      } else {
-        wrapper.value = 0.0;
       }
       return wrapper;
     });
@@ -664,33 +689,50 @@ class ProtoTypeRegistry {
     // DoubleValue factory
     registerWrapperFactory('google.protobuf.DoubleValue', (value) {
       final wrapper = pb_wrappers.DoubleValue();
-      wrapper.value = value is num ? value.toDouble() : 0.0;
+      final doubleValue = value is num ? value.toDouble() : 0.0;
+      // For zero values, create empty wrapper (proto wrapper semantics)
+      if (doubleValue != 0.0) {
+        wrapper.value = doubleValue;
+      }
       return wrapper;
     });
 
     // BoolValue factory
     registerWrapperFactory('google.protobuf.BoolValue', (value) {
       final wrapper = pb_wrappers.BoolValue();
-      wrapper.value = value is bool ? value : false;
+      final boolValue = value is bool ? value : false;
+      // For false values, create empty wrapper (proto wrapper semantics)
+      if (boolValue != false) {
+        wrapper.value = boolValue;
+      }
       return wrapper;
     });
 
     // StringValue factory
     registerWrapperFactory('google.protobuf.StringValue', (value) {
       final wrapper = pb_wrappers.StringValue();
-      wrapper.value = value?.toString() ?? '';
+      final stringValue = value?.toString() ?? '';
+      // For empty strings, create empty wrapper (proto wrapper semantics)
+      if (stringValue != '') {
+        wrapper.value = stringValue;
+      }
       return wrapper;
     });
 
     // BytesValue factory
     registerWrapperFactory('google.protobuf.BytesValue', (value) {
       final wrapper = pb_wrappers.BytesValue();
+      List<int> bytesValue;
       if (value is List<int>) {
-        wrapper.value = value;
+        bytesValue = value;
       } else if (value is String) {
-        wrapper.value = utf8.encode(value);
+        bytesValue = utf8.encode(value);
       } else {
-        wrapper.value = <int>[];
+        bytesValue = <int>[];
+      }
+      // For empty bytes, create empty wrapper (proto wrapper semantics)
+      if (bytesValue.isNotEmpty) {
+        wrapper.value = bytesValue;
       }
       return wrapper;
     });
@@ -829,5 +871,13 @@ class ProtoTypeRegistry {
     }
     
     return false;
+  }
+
+  /// Convert a double to float32 precision (IEEE 754 single precision)
+  double _toFloat32(double value) {
+    // Use typed_data to convert to 32-bit float precision
+    final buffer = ByteData(4);
+    buffer.setFloat32(0, value, Endian.host);
+    return buffer.getFloat32(0, Endian.host);
   }
 }
