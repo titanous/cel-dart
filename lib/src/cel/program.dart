@@ -53,7 +53,7 @@ class Program extends Equatable {
     // Skipped porting Pools since there is no concurrency in this
     // implementation.
     final Activation vars =
-        EvalActivation(input, typeAdapter: environment.adapter);
+        EvalActivation(input, typeAdapter: environment.adapter, container: environment.container?.name);
     return _interpretable.evaluate(vars).convertToNative();
   }
 

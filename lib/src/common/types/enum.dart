@@ -216,13 +216,24 @@ class EnumRegistry {
   /// Current global enum mode setting  
   bool _globalLegacyMode = true;
   
+  /// Current container context for enum resolution
+  String? _currentContainer;
+  
   /// Set the global enum mode for all newly resolved enums
   void setGlobalMode({required bool isLegacyMode}) {
     _globalLegacyMode = isLegacyMode;
   }
   
+  /// Set the current container context for enum resolution
+  void setCurrentContainer(String? container) {
+    _currentContainer = container;
+  }
+  
   /// Get the current global enum mode
   bool get isGlobalLegacyMode => _globalLegacyMode;
+  
+  /// Get the current container context
+  String? get currentContainer => _currentContainer;
   
   /// Register an enum type with its constants
   void registerEnum(String enumTypeName, Map<String, int> constants, {bool isLegacyMode = true}) {
@@ -246,6 +257,9 @@ class EnumRegistry {
   /// Get an enum namespace by short name (e.g., "GlobalEnum") with container context
   /// Returns a new EnumNamespace with the current global mode setting
   EnumNamespace? resolveEnumNamespace(String shortName, String? container) {
+    // Use the provided container, or fall back to the current container context
+    final effectiveContainer = container ?? _currentContainer;
+    
     // Try exact match first
     if (_enumNamespaces.containsKey(shortName)) {
       final baseNamespace = _enumNamespaces[shortName]!;
@@ -253,9 +267,9 @@ class EnumRegistry {
                           isLegacyMode: _globalLegacyMode);
     }
     
-    // Try with container prefix
-    if (container != null && container.isNotEmpty) {
-      final fullName = '$container.$shortName';
+    // Try with effective container prefix
+    if (effectiveContainer != null && effectiveContainer.isNotEmpty) {
+      final fullName = '$effectiveContainer.$shortName';
       if (_enumNamespaces.containsKey(fullName)) {
         final baseNamespace = _enumNamespaces[fullName]!;
         return EnumNamespace(baseNamespace.enumTypeName, baseNamespace.constants,
@@ -264,25 +278,25 @@ class EnumRegistry {
     }
     
     // Try all registered enums to find one that ends with the short name
+    // PREFER the effective container if available
+    EnumNamespace? fallback;
     for (final entry in _enumNamespaces.entries) {
       if (entry.key.endsWith('.$shortName') || entry.key == shortName) {
-        // Additional check: if container is specified, prefer matching container
-        if (container != null && entry.key.startsWith(container)) {
+        // Prefer matching the effective container
+        if (effectiveContainer != null && entry.key.startsWith(effectiveContainer)) {
           return EnumNamespace(entry.value.enumTypeName, entry.value.constants,
                               isLegacyMode: _globalLegacyMode);
+        }
+        // Store as fallback
+        if (fallback == null) {
+          fallback = EnumNamespace(entry.value.enumTypeName, entry.value.constants,
+                                  isLegacyMode: _globalLegacyMode);
         }
       }
     }
     
-    // Final fallback: return any enum that ends with the short name
-    for (final entry in _enumNamespaces.entries) {
-      if (entry.key.endsWith('.$shortName') || entry.key == shortName) {
-        return EnumNamespace(entry.value.enumTypeName, entry.value.constants,
-                            isLegacyMode: _globalLegacyMode);
-      }
-    }
-    
-    return null;
+    // Return fallback if no container-specific match found
+    return fallback;
   }
   
   /// Get all registered enum type names
@@ -340,6 +354,9 @@ final globalEnumRegistry = EnumRegistry();
 List<Overload> generateEnumConstructorOverloads() {
   final overloads = <Overload>[];
   
+  // Collect all unique short names to avoid duplicates
+  final processedNames = <String>{};
+  
   for (final enumTypeName in globalEnumRegistry.registeredTypes) {
     // Extract the simple name (e.g., "GlobalEnum" from "cel.expr.conformance.proto2.GlobalEnum")
     final simpleName = enumTypeName.split('.').last;
@@ -352,6 +369,12 @@ List<Overload> generateEnumConstructorOverloads() {
       functionName = '${parts[parts.length - 2]}.$simpleName';
     }
     
+    // Skip if we've already processed this function name
+    if (processedNames.contains(functionName)) {
+      continue;
+    }
+    processedNames.add(functionName);
+    
     // Create constructor overload for int argument: GlobalEnum(1) or TestAllTypes.NestedEnum(1)
     overloads.add(
       Overload(functionName, functionOperator: (args) {
@@ -363,23 +386,39 @@ List<Overload> generateEnumConstructorOverloads() {
         
         // Handle int argument
         if (arg is IntValue) {
-          final namespace = globalEnumRegistry.getEnumNamespace(enumTypeName);
-          if (namespace != null) {
-            // Always use the current global mode, not the stored namespace mode
-            final currentMode = globalEnumRegistry.isGlobalLegacyMode;
-            return EnumNamespace(namespace.enumTypeName, namespace.constants,
-                                isLegacyMode: currentMode)
-                .resolveConstantByValue(arg.value) ?? 
-                EnumValue.createStrong(enumTypeName, arg.value);
+          // Check for integer range validation (enum values should be within int32 range)
+          if (arg.value > 2147483647 || arg.value < -2147483648) {
+            return ErrorValue('range');
+          }
+          
+          // IMPORTANT: Don't use the hardcoded enumTypeName, instead resolve dynamically
+          // based on the current container context.
+          // We'll use the globalEnumRegistry's current container-aware resolution
+          final shortName = functionName.contains('.') ? functionName : simpleName;
+          final resolvedNamespace = globalEnumRegistry.resolveEnumNamespace(shortName, null);
+          
+          if (resolvedNamespace != null) {
+            final value = resolvedNamespace.resolveConstantByValue(arg.value);
+            if (value != null) {
+              return value;
+            }
+            // Fallback: create strong enum value with the resolved enum type name
+            return EnumValue.createStrong(resolvedNamespace.enumTypeName, arg.value);
           }
         }
         
         // Handle string argument: TestAllTypes.NestedEnum('BAZ')
         if (arg is StringValue) {
-          final namespace = globalEnumRegistry.getEnumNamespace(enumTypeName);
-          if (namespace != null) {
-            return namespace.resolveConstant(arg.value) ?? 
-                   ErrorValue('invalid enum constant: ${arg.value} for $functionName');
+          // IMPORTANT: Don't use the hardcoded enumTypeName, instead resolve dynamically
+          final shortName = functionName.contains('.') ? functionName : simpleName;
+          final resolvedNamespace = globalEnumRegistry.resolveEnumNamespace(shortName, null);
+          
+          if (resolvedNamespace != null) {
+            final value = resolvedNamespace.resolveConstant(arg.value);
+            if (value != null) {
+              return value;
+            }
+            return ErrorValue('invalid enum constant: ${arg.value} for $functionName');
           }
         }
         

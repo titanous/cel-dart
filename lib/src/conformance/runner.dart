@@ -168,6 +168,8 @@ class ConformanceTestRunner {
       if (sectionName != null) {
         final isLegacyMode = sectionName.startsWith('legacy');
         globalEnumRegistry.setGlobalMode(isLegacyMode: isLegacyMode);
+        // Set the current container context in the enum registry
+        globalEnumRegistry.setCurrentContainer(test.container);
       }
 
       // Create an environment with the container if provided
