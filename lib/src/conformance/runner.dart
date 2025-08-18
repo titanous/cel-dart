@@ -340,9 +340,10 @@ class ConformanceTestRunner {
             final adaptedValue = adapter.adaptValue(unpackedMessage);
             return _celValueToNative(adaptedValue);
           } else {
-            // For other message types (like TestAllTypes), return the unpacked message directly
-            // This allows field access like x.standalone_enum to work correctly
-            return unpackedMessage;
+            // For other message types (like TestAllTypes), wrap in MessageValue for proper CEL field access
+            // This ensures that enum fields are accessed through the adapter correctly
+            final adapter = ProtobufTypeAdapter(environment.adapter);
+            return adapter.adaptMessage(unpackedMessage);
           }
         }
       } catch (e) {

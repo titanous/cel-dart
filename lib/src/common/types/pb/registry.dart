@@ -230,6 +230,15 @@ class ProtoTypeRegistry {
       return value;
     }
     
+    // If it's a CEL EnumValue, extract the integer value for conversion
+    if (value.runtimeType.toString().contains('EnumValue')) {
+      final enumValue = value as dynamic;
+      if (enumValue.value != null) {
+        // Use the integer value from the CEL EnumValue
+        return _convertEnumField(field, enumValue.value);
+      }
+    }
+    
     // If it's a number, we need to create an enum instance with that value
     if (value is int) {
       // Check for integer range validation (enum values should be within int32 range)
