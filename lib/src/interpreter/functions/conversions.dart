@@ -487,76 +487,8 @@ List<Overload> conversionOverloads() {
       });
     }),
 
-    // Enum constructor functions - hardcoded for testing
-    // TODO: Make these dynamic based on registered enum types
-    
-    // GlobalEnum constructor
-    Overload('GlobalEnum', functionOperator: (args) {
-      if (args.length != 1) {
-        return ErrorValue('GlobalEnum constructor requires exactly 1 argument');
-      }
-      
-      final arg = args[0];
-      if (arg is IntValue) {
-        // Ensure enum registry is initialized
-        if (globalEnumRegistry.registeredTypes.isEmpty) {
-          globalEnumRegistry.discoverAndRegisterProtobufEnums();
-        }
-        
-        // Create enum value with current global mode
-        if (globalEnumRegistry.isGlobalLegacyMode) {
-          return IntValue(arg.value);
-        } else {
-          // Find the appropriate enum type based on container context
-          // For now, default to proto2
-          return EnumValue.createStrong('cel.expr.conformance.proto2.GlobalEnum', arg.value);
-        }
-      }
-      
-      return ErrorValue('GlobalEnum constructor requires int argument, got ${arg.runtimeType}');
-    }),
-
-    // NestedEnum constructor  
-    Overload('NestedEnum', functionOperator: (args) {
-      if (args.length != 1) {
-        return ErrorValue('NestedEnum constructor requires exactly 1 argument');
-      }
-      
-      final arg = args[0];
-      if (arg is IntValue) {
-        // Ensure enum registry is initialized
-        if (globalEnumRegistry.registeredTypes.isEmpty) {
-          globalEnumRegistry.discoverAndRegisterProtobufEnums();
-        }
-        
-        // Create enum value with current global mode
-        if (globalEnumRegistry.isGlobalLegacyMode) {
-          return IntValue(arg.value);
-        } else {
-          // Find the appropriate enum type based on container context
-          // For now, default to proto2  
-          return EnumValue.createStrong('cel.expr.conformance.proto2.TestAllTypes.NestedEnum', arg.value);
-        }
-      }
-      
-      if (arg is StringValue) {
-        // Ensure enum registry is initialized
-        if (globalEnumRegistry.registeredTypes.isEmpty) {
-          globalEnumRegistry.discoverAndRegisterProtobufEnums();
-        }
-        
-        // Find enum namespace and resolve constant
-        final namespace = globalEnumRegistry.getEnumNamespace('cel.expr.conformance.proto2.TestAllTypes.NestedEnum');
-        if (namespace != null) {
-          final enumNamespaceWithMode = EnumNamespace(namespace.enumTypeName, namespace.constants, 
-                                                     isLegacyMode: globalEnumRegistry.isGlobalLegacyMode);
-          return enumNamespaceWithMode.resolveConstant(arg.value) ?? 
-                 ErrorValue('invalid enum constant: ${arg.value} for NestedEnum');
-        }
-      }
-      
-      return ErrorValue('NestedEnum constructor requires int or string argument, got ${arg.runtimeType}');
-    }),
+    // Enum constructor functions are now dynamically generated
+    // See generateEnumConstructorOverloads() in enum.dart
   ];
 }
 

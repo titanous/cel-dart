@@ -43,7 +43,15 @@ class EnumValue extends Value implements Comparer, Adder, Subtractor {
   dynamic get value => numericValue;
 
   @override
-  dynamic convertToNative() => numericValue;
+  dynamic convertToNative() {
+    if (isLegacyMode) {
+      // Legacy mode: convert to int
+      return numericValue;
+    } else {
+      // Strong mode: return the EnumValue object itself  
+      return this;
+    }
+  }
 
   @override
   Value compare(Value other) {
@@ -336,11 +344,19 @@ List<Overload> generateEnumConstructorOverloads() {
     // Extract the simple name (e.g., "GlobalEnum" from "cel.expr.conformance.proto2.GlobalEnum")
     final simpleName = enumTypeName.split('.').last;
     
-    // Create constructor overload for int argument: GlobalEnum(1)
+    // For nested enums, create qualified name (e.g., "TestAllTypes.NestedEnum")
+    String functionName = simpleName;
+    final parts = enumTypeName.split('.');
+    if (parts.length >= 2 && parts[parts.length - 2] != 'proto2' && parts[parts.length - 2] != 'proto3') {
+      // Check if this is a nested enum (parent class name + enum name)
+      functionName = '${parts[parts.length - 2]}.$simpleName';
+    }
+    
+    // Create constructor overload for int argument: GlobalEnum(1) or TestAllTypes.NestedEnum(1)
     overloads.add(
-      Overload(simpleName, functionOperator: (args) {
+      Overload(functionName, functionOperator: (args) {
         if (args.isEmpty || args.length > 1) {
-          return ErrorValue('$simpleName constructor requires exactly 1 argument');
+          return ErrorValue('$functionName constructor requires exactly 1 argument');
         }
         
         final arg = args[0];
@@ -349,8 +365,10 @@ List<Overload> generateEnumConstructorOverloads() {
         if (arg is IntValue) {
           final namespace = globalEnumRegistry.getEnumNamespace(enumTypeName);
           if (namespace != null) {
+            // Always use the current global mode, not the stored namespace mode
+            final currentMode = globalEnumRegistry.isGlobalLegacyMode;
             return EnumNamespace(namespace.enumTypeName, namespace.constants,
-                                isLegacyMode: globalEnumRegistry.isGlobalLegacyMode)
+                                isLegacyMode: currentMode)
                 .resolveConstantByValue(arg.value) ?? 
                 EnumValue.createStrong(enumTypeName, arg.value);
           }
@@ -361,13 +379,50 @@ List<Overload> generateEnumConstructorOverloads() {
           final namespace = globalEnumRegistry.getEnumNamespace(enumTypeName);
           if (namespace != null) {
             return namespace.resolveConstant(arg.value) ?? 
-                   ErrorValue('invalid enum constant: ${arg.value} for $simpleName');
+                   ErrorValue('invalid enum constant: ${arg.value} for $functionName');
           }
         }
         
-        return ErrorValue('$simpleName constructor requires int or string argument, got ${arg.runtimeType}');
+        return ErrorValue('$functionName constructor requires int or string argument, got ${arg.runtimeType}');
       }),
     );
+    
+    // Only register simple names for top-level enums (not nested ones) to avoid conflicts
+    // Nested enums like TestAllTypes.NestedEnum should only be accessible via qualified names
+    if (functionName != simpleName && !functionName.contains('.')) {
+      overloads.add(
+        Overload(simpleName, functionOperator: (args) {
+          if (args.isEmpty || args.length > 1) {
+            return ErrorValue('$simpleName constructor requires exactly 1 argument');
+          }
+          
+          final arg = args[0];
+          
+          // Handle int argument
+          if (arg is IntValue) {
+            final namespace = globalEnumRegistry.getEnumNamespace(enumTypeName);
+            if (namespace != null) {
+              final currentMode = globalEnumRegistry.isGlobalLegacyMode;
+              return EnumNamespace(namespace.enumTypeName, namespace.constants,
+                                  isLegacyMode: currentMode)
+                  .resolveConstantByValue(arg.value) ?? 
+                  EnumValue.createStrong(enumTypeName, arg.value);
+            }
+          }
+          
+          // Handle string argument
+          if (arg is StringValue) {
+            final namespace = globalEnumRegistry.getEnumNamespace(enumTypeName);
+            if (namespace != null) {
+              return namespace.resolveConstant(arg.value) ?? 
+                     ErrorValue('invalid enum constant: ${arg.value} for $simpleName');
+            }
+          }
+          
+          return ErrorValue('$simpleName constructor requires int or string argument, got ${arg.runtimeType}');
+        }),
+      );
+    }
   }
   
   return overloads;

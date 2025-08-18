@@ -2,6 +2,7 @@ import 'package:cel/cel.dart';
 import 'package:cel/src/checker/declaration.dart';
 import 'package:cel/src/checker/standard.dart';
 import 'package:cel/src/interpreter/functions/standard.dart';
+import 'package:cel/src/common/types/enum.dart';
 
 import 'options.dart';
 
@@ -28,7 +29,20 @@ abstract class Library {
 // for the core CEL features documented in the specification.
 class StandardLibrary extends Library {
   @override
-  List<ProgramOption> get programOptions => [functions(standardOverloads())];
+  List<ProgramOption> get programOptions {
+    // Ensure enum registry is initialized
+    if (globalEnumRegistry.registeredTypes.isEmpty) {
+      globalEnumRegistry.discoverAndRegisterProtobufEnums();
+    }
+    
+    // Combine standard overloads with enum constructor overloads
+    final allOverloads = [
+      ...standardOverloads(),
+      ...generateEnumConstructorOverloads(),
+    ];
+    
+    return [functions(allOverloads)];
+  }
 
   /// Returns options for the standard CEL function declarations and macros.
   @override

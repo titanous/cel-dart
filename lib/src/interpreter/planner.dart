@@ -86,6 +86,27 @@ class Planner {
     final functionImplementation = dispatcher.findOverload(functionName,
         argCount: interpretableArguments.length);
     if (functionImplementation == null) {
+      // Check if this is an enum constructor call (e.g., TestAllTypes.NestedEnum(2))
+      if (expression.target != null && expression.target is IdentExpr) {
+        final targetName = (expression.target as IdentExpr).name;
+        // Try to construct qualified enum constructor name
+        final qualifiedFunctionName = '$targetName.$functionName';
+        final qualifiedImplementation = dispatcher.findOverload(qualifiedFunctionName,
+            argCount: expression.args.length); // Use actual args count, not interpretableArguments
+        
+        if (qualifiedImplementation != null) {
+          // This is an enum constructor call - only use the actual arguments (exclude target)
+          final actualArgs = interpretableArguments.skip(1).toList();
+          if (qualifiedImplementation.functionOperator != null) {
+            return planCallFunction(
+                CallExpr(function: qualifiedFunctionName, args: expression.args),
+                qualifiedFunctionName,
+                qualifiedImplementation,
+                actualArgs);
+          }
+        }
+      }
+      
       // If no overload found and this is a method call with a target,
       // try the receiver pattern (e.g., str_var.format([args]))
       if (expression.target != null && interpretableArguments.length == 2) {

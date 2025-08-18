@@ -23,3 +23,6 @@ export 'src/common/types/bytes.dart' show BytesValue;
 export 'src/common/types/error.dart' show ErrorValue;
 export 'src/common/types/timestamp.dart' show TimestampValue;
 export 'src/common/types/duration.dart' show DurationValue;
+
+// Enum registry for conformance testing
+export 'src/common/types/enum.dart' show globalEnumRegistry;
