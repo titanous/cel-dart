@@ -16,6 +16,7 @@ import 'package:cel/src/common/types/null_.dart';
 import 'package:cel/src/common/types/list.dart';
 import 'package:cel/src/common/types/map.dart';
 import 'package:cel/src/common/types/enum.dart';
+import 'package:cel/src/common/types/pb/message.dart';
 import '../error_utils.dart';
 
 import 'functions.dart';
@@ -75,6 +76,31 @@ List<Overload> conversionOverloads() {
         if (val is EnumValue) {
           // Convert enum to its numeric value
           return IntValue(val.numericValue);
+        }
+        if (val is MessageValue) {
+          // For well-known message types, we can convert them to int by accessing their seconds field
+          // This follows the CEL specification for timestamp and duration conversion to int
+          final message = val.message;
+          final messageTypeName = message.info_.qualifiedMessageName;
+          
+          if (messageTypeName == 'google.protobuf.Timestamp' || 
+              messageTypeName == 'google.protobuf.Duration') {
+            // Both timestamps and durations convert to int via their seconds field
+            try {
+              final seconds = message.getField(1); // seconds field is tag 1
+              if (seconds is int) {
+                return IntValue(seconds);
+              } else if (seconds is Int64) {
+                return IntValue(seconds.toInt());
+              }
+            } catch (e) {
+              return ErrorValue('failed to access seconds field');
+            }
+          }
+          
+          // For other message types, conversion to int is not supported
+          return ErrorValue(
+              'cannot convert message type $messageTypeName to int');
         }
 
         return ErrorValue(

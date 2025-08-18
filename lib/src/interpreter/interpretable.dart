@@ -12,7 +12,6 @@ import 'package:cel/src/common/types/null_.dart';
 import 'package:cel/src/common/types/list.dart';
 import 'package:cel/src/common/types/map.dart';
 import 'package:cel/src/common/types/pb/message.dart';
-import 'package:cel/src/common/types/pb/registry.dart';
 import 'package:cel/src/common/types/provider.dart';
 import 'package:protobuf/protobuf.dart' show GeneratedMessage;
 
@@ -646,6 +645,10 @@ class ComprehensionInterpretable implements Interpretable {
     } else if (iterRangeValue is ListValue) {
       // For lists, iterate over elements
       items = iterRangeValue.value;
+    } else if (iterRangeValue is BytesValue) {
+      // For bytes, iterate over individual bytes as integers
+      final bytes = iterRangeValue.value;
+      items = bytes.map((byte) => IntValue(byte)).toList();
     } else {
       return ErrorValue(
           'type mismatch: iterable vs ${iterRangeValue.runtimeType}');
@@ -673,7 +676,8 @@ class ComprehensionInterpretable implements Interpretable {
         shouldBreak = !condValue.value;
       } else if (condValue is bool) {
         shouldBreak = !(condValue as bool);
-      } else if (condValue == false) {
+      } else {
+        // For non-boolean values, treat as falsy and break
         shouldBreak = true;
       }
       
