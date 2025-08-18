@@ -574,6 +574,17 @@ class ProtobufTypeAdapter {
         return _adaptSingleValueWithContext(rawValue, msg);
       }
     } else {
+      // For enum fields, we need to check if there's a default value
+      // Even when hasField is false, protobuf might return a valid enum
+      try {
+        final fieldValue = msg.getField(field.tagNumber);
+        if (fieldValue != null) {
+          return _adaptSingleValueWithContext(fieldValue, msg);
+        }
+      } catch (_) {
+        // If getField fails, continue to default handling
+      }
+      
       // Field is not set, return default
       return _getDefaultValueForType(field.type);
     }

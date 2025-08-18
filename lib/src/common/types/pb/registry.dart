@@ -185,9 +185,16 @@ class ProtoTypeRegistry {
   
   /// Convert basic types to match protobuf field expectations
   dynamic _convertBasicTypes(FieldInfo field, dynamic value) {
+    
     // Handle enum fields - convert string names to enum values
-    if (field.type == 512) { // enum field (ENUM_BIT = 0x200)
-      return _convertEnumField(field, value);
+    // Use bit mask to check for enum type, ignoring modifier bits (repeated, etc.)
+    const ENUM_BIT = 0x200; // 512
+    const MODIFIER_MASK = 0x400007; // Mask for repeated, required, packed, map bits
+    final baseType = field.type & ~MODIFIER_MASK;
+    
+    if ((baseType & ENUM_BIT) != 0) {
+      final result = _convertEnumField(field, value);
+      return result;
     }
     
     // Handle int64 fields (including sint64) - convert Dart int to Int64
@@ -243,6 +250,20 @@ class ProtoTypeRegistry {
         throw ArgumentError('range');
       }
       
+      // Try to find an existing enum value with this integer value
+      try {
+        final enumValues = field.enumValues;
+        if (enumValues != null && enumValues.isNotEmpty) {
+          for (final enumValue in enumValues) {
+            if (enumValue.value == value) {
+              return enumValue;
+            }
+          }
+        }
+      } catch (_) {
+        // If enum introspection fails, continue with other approaches
+      }
+      
       // Use the field's valueOf function if available
       try {
         final valueOf = field.valueOf;
@@ -251,23 +272,17 @@ class ProtoTypeRegistry {
           if (enumValue != null) {
             return enumValue;
           }
+          // If valueOf returns null, this is an unknown enum value
+          // For protobuf, we can allow the integer value to be stored directly
+          // The protobuf library should handle unknown enum values correctly
+          return value;
         }
       } catch (_) {
-        // Fallback: try to use enumValues directly
-        try {
-          final enumValues = field.enumValues;
-          if (enumValues != null) {
-            for (final enumValue in enumValues) {
-              if (enumValue.value == value) {
-                return enumValue;
-              }
-            }
-          }
-        } catch (_) {
-          // Last fallback: allow any integer value for the enum
-        }
+        // valueOf failed, continue
       }
-      // If valueOf doesn't work, let the protobuf library handle it
+      
+      // If we reach here, field.valueOf is null or failed
+      // Return the integer value and let protobuf handle it
       return value;
     }
     
@@ -294,6 +309,7 @@ class ProtoTypeRegistry {
     // For other types, return as-is and let protobuf handle it
     return value;
   }
+  
 
   /// Convert values for message fields (ListValue, Any, etc.)
   dynamic _convertMessageField(FieldInfo field, dynamic value) {
