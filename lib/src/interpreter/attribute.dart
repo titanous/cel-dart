@@ -67,6 +67,37 @@ class MaybeAttribute extends Attribute {
   List<Object?> get props => [namespaceAttributes];
 }
 
+class HybridAttribute extends Attribute {
+  HybridAttribute(this.primaryAttribute, this.fallbackAttribute);
+
+  final Attribute primaryAttribute;
+  final Attribute fallbackAttribute;
+
+  @override
+  void addQualifier(Qualifier qualifier) {
+    primaryAttribute.addQualifier(qualifier);
+    fallbackAttribute.addQualifier(qualifier);
+  }
+
+  @override
+  resolve(Activation activation) {
+    final primaryResult = primaryAttribute.resolve(activation);
+    // If primary resolution succeeded, return it
+    if (primaryResult is! ErrorValue) {
+      return primaryResult;
+    }
+    // If primary failed with "no such attribute", try fallback
+    if (primaryResult.message.startsWith('no such attribute:')) {
+      return fallbackAttribute.resolve(activation);
+    }
+    // For other errors, return the primary error
+    return primaryResult;
+  }
+
+  @override
+  List<Object?> get props => [primaryAttribute, fallbackAttribute];
+}
+
 abstract class NamespaceAttribute extends Attribute {}
 
 class AbsoluteAttribute extends NamespaceAttribute {

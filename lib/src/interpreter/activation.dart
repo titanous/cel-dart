@@ -4,6 +4,7 @@ import 'package:protobuf/protobuf.dart';
 import '../common/types/ref/provider.dart';
 import '../common/types/type.dart';
 import '../common/types/enum.dart';
+import '../common/containers/container.dart';
 
 abstract class Activation extends Equatable {
   dynamic resolveName(dynamic namespaceName);
@@ -22,7 +23,7 @@ class EvalActivation extends Activation {
 
   final Map<String, dynamic> input;
   final TypeAdapter? typeAdapter;
-  final String? container;
+  final Container? container;
 
   @override
   dynamic resolveName(dynamic namespaceName) {
@@ -56,11 +57,28 @@ class EvalActivation extends Activation {
       if (enumNamespace != null) {
         return enumNamespace;
       }
+
+      // Use container namespace resolution if container is provided
+      if (container != null) {
+        final candidates = container!.resolveCandidateNames(namespaceName);
+        for (final candidate in candidates) {
+          if (input.containsKey(candidate)) {
+            final value = input[candidate];
+            return _processValue(value);
+          }
+        }
+        // If no candidates found in input, return null
+        return null;
+      }
     }
     
-    // Get the value from input
+    // Get the value from input (fallback for when no container is set)
     final value = input[namespaceName];
+    return _processValue(value);
+  }
 
+  /// Process a value from the input, handling wrapper types and enums
+  dynamic _processValue(dynamic value) {
     // If it's a wrapper type, unwrap it to the primitive value
     if (value is pb_wrappers.DoubleValue) {
       return value.value;
@@ -102,7 +120,7 @@ class EvalActivation extends Activation {
     }
     
     // Use the enum registry to resolve the namespace
-    return globalEnumRegistry.resolveEnumNamespace(namespaceName, container);
+    return globalEnumRegistry.resolveEnumNamespace(namespaceName, container?.name);
   }
 
   @override

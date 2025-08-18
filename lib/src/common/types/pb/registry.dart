@@ -214,7 +214,7 @@ class ProtoTypeRegistry {
     }
     
     // Handle int64 fields (including sint64) - convert Dart int to Int64
-    if (field.type == 4096 || field.type == 16384) { // int64 or sint64
+    if (field.type == 4096 || field.type == 16384) { // PbFieldType.O6, OS6
       if (value is int) {
         return Int64(value);
       }
@@ -224,12 +224,23 @@ class ProtoTypeRegistry {
     }
     
     // Handle uint64 fields - convert Dart int to Int64  
-    if (field.type == 65536) { // uint64
+    if (field.type == 65536) { // PbFieldType.OU6
       if (value is int) {
         return Int64(value);
       }
       if (value is num) {
         return Int64(value.toInt());
+      }
+    }
+    
+    // Handle uint32, fixed32, and sfixed32 fields (both singular and repeated) - convert Int64 to Dart int
+    if (field.type == 32768 || field.type == 131072 || field.type == 524288 ||  // PbFieldType.OU3, OF3, OSF3
+        field.type == 32774 || field.type == 131078 || field.type == 524294) { // PbFieldType.KU3, KF3, KSF3
+      if (value is Int64) {
+        return value.toInt();
+      }
+      if (value is num) {
+        return value.toInt();
       }
     }
     

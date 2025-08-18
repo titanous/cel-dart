@@ -193,31 +193,39 @@ class Planner {
     // But we should only do this for actual qualified identifiers, not field access on variables
     final qualifiedName = _buildQualifiedName(select);
     if (qualifiedName != null) {
-      // Check if this looks like field access on a variable rather than a qualified identifier
-      // If the base part (before first dot) is a simple identifier that could be a variable,
-      // prefer traditional select planning over qualified identifier resolution
-      final parts = qualifiedName.split('.');
-      if (parts.length == 2 && _isSimpleIdentifier(parts[0])) {
-        // This looks like "variable.field" - use traditional select planning
-        // Fall through to traditional planning
+      // Create a hybrid attribute that tries qualified identifier resolution first,
+      // then falls back to traditional field access
+      final qualifiedAttr = attributeFactory.maybeAttribute(qualifiedName);
+      
+      // Create traditional field access as fallback
+      final operand = plan(select.operand);
+      Attribute fieldAccessAttr;
+      if (operand is AttributeValueInterpretable) {
+        fieldAccessAttr = operand.attribute;
       } else {
-        // This looks like a true qualified identifier - use qualified name resolution
-        final qualifiedAttr = attributeFactory.maybeAttribute(qualifiedName);
-        return AttributeValueInterpretable(qualifiedAttr, adapter);
+        fieldAccessAttr = attributeFactory.relativeAttribute(operand);
       }
+      final qualifier = attributeFactory.qualifier(select.field);
+      fieldAccessAttr.addQualifier(qualifier);
+      
+      // Create a hybrid attribute that tries qualified first, then field access
+      final hybridAttr = HybridAttribute(qualifiedAttr, fieldAccessAttr);
+      return AttributeValueInterpretable(hybridAttr, adapter);
     }
 
     // Fall back to traditional select planning
     final operand = plan(select.operand);
 
-    var attribute = operand;
-    if (attribute is! AttributeValueInterpretable) {
+    Attribute attribute;
+    if (operand is AttributeValueInterpretable) {
+      attribute = operand.attribute;
+    } else {
       // Set up a relative attribute.
-      attribute = relativeAttribute(operand);
+      attribute = attributeFactory.relativeAttribute(operand);
     }
     final qualifier = attributeFactory.qualifier(select.field);
     attribute.addQualifier(qualifier);
-    return attribute;
+    return AttributeValueInterpretable(attribute, adapter);
   }
 
   /// Build qualified identifier name from nested select expressions
